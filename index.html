@@ -16,8 +16,8 @@
 :root{color-scheme:light;
  --bg:#f2ede6;--card:#fffdfa;--ink:#1d1d1f;--ink2:#5d544c;--mut:#968b80;--hair:rgba(90,60,30,.13);
  --acc:#8a5a3b;--acc2:#c99a6b;--fill:rgba(138,90,59,.09);--fill2:rgba(120,90,60,.15);--warn:#c0503a;--ok:#2f8a55;--bar:#f7f3ee;
- --f:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,system-ui,sans-serif;
- --num:ui-rounded,"SF Pro Rounded",-apple-system,system-ui,sans-serif;
+ --f:"Helvetica Neue",Helvetica,Arial,sans-serif;
+ --num:"Helvetica Neue",Helvetica,Arial,sans-serif;
  /* Aufguss-Farben (Okabe-Ito-nah) + Form je Aufguss */
  --c0:#3f6fa8;--c1:#d9822b;--c2:#7d5fae;--c3:#2f9773;--c4:#c4533a;--c5:#3e9fc8;
  --pp-bg1:#fffdf9;--pp-bg2:#ecdfcf;--pp-halo:#ffffff;--pp-ink:#1d1d1f;--pp-ink2:#7a6b5e;--pp-acc:#9a6236;--pp-acc2:#e0aa6c;
@@ -71,17 +71,17 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 /* Kennzahlen */
 .kz{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px}
 .kz div{background:var(--card);border-radius:14px;padding:8px 8px 7px;min-width:0}
-.kz b{display:block;font:700 16px var(--num);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kz b{display:block;font:400 17px var(--num);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .kz span{font-size:11px;color:var(--mut)}
 /* Diagramm */
 .chart{background:var(--card);border-radius:18px;margin-bottom:10px;position:relative}
 .chart svg{display:block;width:100%;height:auto}
 .t{fill:var(--mut);font:10px var(--f)}
-.tb{fill:var(--ink);font:700 11px var(--num)}
+.tb{fill:var(--ink);font:500 11px var(--num)}
 .gr{stroke:var(--hair);stroke-width:1}
 .lay{opacity:.12;cursor:pointer}.lay.on{opacity:.26}
 .hit{fill:transparent;touch-action:none;cursor:grab}
-.bub rect{fill:var(--pc)}.bub text{fill:#fff;font:700 12px var(--num)}
+.bub rect{fill:var(--pc)}.bub text{fill:#fff;font:500 13px var(--num)}
 .gh{fill:none;stroke:var(--mut);stroke-width:1.4;stroke-dasharray:4 4;opacity:.7}
 .ln{fill:none;stroke:var(--acc);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .chint{position:absolute;left:44px;top:4px;font-size:11px;color:var(--mut)}
@@ -96,7 +96,7 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .pm:active{background:var(--pc,var(--acc));color:#fff}.pm:disabled{opacity:.3}
 .rl{flex:1;display:flex;gap:5px;overflow-x:auto;scrollbar-width:none;padding:2px 0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent);mask-image:linear-gradient(90deg,transparent,#000 14px,#000 calc(100% - 14px),transparent)}
 .rl::-webkit-scrollbar{display:none}
-.rv{flex:none;min-width:48px;height:42px;padding:0 10px;border:1px solid var(--hair);border-radius:11px;background:var(--card);font:650 14px var(--num);white-space:nowrap}
+.rv{flex:none;min-width:48px;height:42px;padding:0 10px;border:1px solid var(--hair);border-radius:11px;background:var(--card);font:400 15px var(--num);white-space:nowrap}
 .rv.on{background:var(--pc,var(--acc));border-color:var(--pc,var(--acc));color:#fff}
 .seg{display:flex;padding:3px;border-radius:11px;background:var(--fill)}
 .seg button{flex:1;min-width:0;height:34px;border:0;border-radius:9px;background:none;font-size:13px;font-weight:650;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:0 4px}
@@ -114,7 +114,7 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .ar{display:flex;align-items:center;gap:12px;width:100%;min-height:56px;padding:10px 14px;border:0;background:none;text-align:left;border-bottom:1px solid var(--hair)}
 .ac>div:last-child>.ar,.ac>div:last-child>.ab{border-bottom:0}
 .ar .nm{flex:1;min-width:0}.ar .nm b{display:block;font-size:15px}.ar .nm span{display:block;font-size:12.5px;color:var(--mut);margin-top:1px}
-.ar .big{font:700 19px var(--num);white-space:nowrap}
+.ar .big{font:400 19px var(--num);white-space:nowrap}
 .ar .chev{width:18px;height:18px;color:var(--mut);transition:transform .2s;flex:none}
 .ao .ar{background:color-mix(in srgb,var(--pc) 9%,var(--card))}
 .ao .ar .chev{transform:rotate(180deg)}
@@ -131,12 +131,12 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .cups{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:10px}
 .cupb{border:1px solid var(--hair);border-radius:16px;background:var(--card);padding:10px 0 8px;display:grid;justify-items:center;gap:2px;font-size:12px;color:var(--ink2)}
 .cupb svg{width:34px;height:34px}
-.cupb b{font:700 16px var(--num);color:var(--ink)}
+.cupb b{font:400 17px var(--num);color:var(--ink)}
 .cupb.on{border-color:var(--acc);box-shadow:0 0 0 1.5px var(--acc)}
 .easy{background:var(--card);border-radius:18px;padding:12px 14px;margin-bottom:10px;display:grid;gap:4px}
 .easy .r{display:flex;gap:10px;align-items:baseline}
 .easy .r span{color:var(--mut);min-width:64px;flex:none;font-size:13px}
-.easy .r b{font-size:15px}
+.easy .r b{font-size:15px;font-weight:500}
 /* Listen (Profil, Rezepte) */
 .ls{background:var(--card);border-radius:16px;overflow:hidden}
 .li{display:flex;align-items:center;gap:12px;width:100%;min-height:54px;padding:8px 14px;border:0;border-bottom:1px solid var(--hair);background:none;text-align:left}
@@ -191,14 +191,14 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .bwh b{flex:1;font-size:15px;text-align:center}
 #stage{width:min(100%,320px);aspect-ratio:1}
 .pp{width:100%;height:100%;display:block;overflow:visible}
-.pp-g{font-family:var(--num);font-size:17px;font-weight:700;fill:var(--pp-ink);font-variant-numeric:tabular-nums}
+.pp-g{font-family:var(--num);font-size:17px;font-weight:500;fill:var(--pp-ink);font-variant-numeric:tabular-nums}
 .pp-gc{font-family:var(--f);font-size:10.5px;font-weight:600;fill:var(--pp-ink2)}
-.time{font:600 50px/1 var(--num);letter-spacing:-.02em;margin-top:4px}
+.time{font:200 50px/1 var(--num);letter-spacing:-.02em;margin-top:4px}
 .btitle{margin-top:8px;font-size:23px;font-weight:700;letter-spacing:-.02em;text-align:center}
 .bline{margin-top:4px;font-size:15px;color:var(--ink2);text-align:center;min-height:20px}
 .bnext{margin-top:3px;font-size:13px;color:var(--mut);text-align:center;min-height:18px}
 .bbig{display:flex;gap:8px;align-items:baseline;margin-top:8px}
-.bbig b{font:700 26px var(--num)}.bbig span{color:var(--mut)}
+.bbig b{font:300 28px var(--num)}.bbig span{color:var(--mut)}
 .strip{width:100%;display:block;margin-top:10px}
 .bctl{display:flex;gap:8px;width:100%;margin-top:12px}
 .bctl .go{margin:0;flex:2}.bctl .pill{flex:1;height:54px;border-radius:16px}
@@ -215,7 +215,7 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .tip .nm{flex:1}
 .toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:70;background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:99px;font-size:13.5px;font-weight:600;white-space:nowrap;pointer-events:none;transition:opacity .3s}
 .empty{padding:18px;text-align:center;color:var(--mut);background:var(--card);border-radius:16px}
-.hist .li .val{font-family:var(--num);font-weight:700;color:var(--ink)}
+.hist .li .val{font-family:var(--num);font-weight:400;color:var(--ink)}
 @media (min-width:700px){.pg{padding-top:24px}}
 /* Heute benutze ich (Variante A: eine Zeile, Variante B: nur Brühgerät) */
 .hb{display:flex;align-items:center;gap:10px;width:100%;min-height:52px;padding:6px 12px 6px 6px;border:1px solid var(--hair);border-radius:16px;background:var(--card);text-align:left;margin-bottom:10px}
@@ -234,7 +234,7 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .sht .line{margin-bottom:12px}
 .lx{stroke:var(--ink2);stroke-opacity:.5;stroke-width:1.2}.lx.sm{stroke-opacity:.3}
 .lf{stroke:var(--ink);stroke-width:1.3;stroke-linecap:round}
-.l0{fill:var(--ink);font:700 11px var(--num)}.l1{fill:var(--ink);font:400 11px var(--f)}.l2{fill:var(--mut);font:400 11px var(--f)}
+.l0{fill:var(--ink);font:500 11px var(--num)}.l1{fill:var(--ink);font:400 11px var(--f)}.l2{fill:var(--mut);font:400 11px var(--f)}
 .bwc{width:100%;margin:10px 0 0}
 /* Profil: Gruppen in einer Liste */
 .gh2{font-size:12px;font-weight:600;color:var(--mut);padding:12px 14px 2px;border-bottom:1px solid var(--hair)}
@@ -253,6 +253,41 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .lhit{fill:transparent;touch-action:none;cursor:grab}
 .seg.avw{margin-bottom:10px}
 .ar.st{cursor:default}
+/* Anfänger:in: nur Kaffee und Wasser */
+.ez{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.ez>div{background:var(--card);border-radius:18px;padding:14px 14px 12px;min-width:0}
+.ez small{display:block;font-size:13px;color:var(--mut)}
+.ez b{display:block;font:300 34px/1.15 var(--num);letter-spacing:-.02em;margin:2px 0 4px;white-space:nowrap}
+.ez span{display:block;font-size:13px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ezm{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:44px;border:0;background:none;color:var(--mut);font-size:15px;margin-bottom:4px}
+.ezm .chev{width:16px;height:16px;transition:transform .2s}
+.ezm[aria-expanded=true] .chev{transform:rotate(180deg)}
+/* Hilfe-Knopf */
+.hq{flex:none;width:34px;height:34px;border:1px solid var(--hair);border-radius:50%;background:var(--card);color:var(--ink2);font-size:15px;position:relative}
+.hq::after{content:"";position:absolute;inset:-5px}
+/* Hilfe im Prezi-Stil */
+.hw{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
+.hw-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.hw-top b{flex:1;font-size:17px;font-weight:500}
+.hw-st{position:relative;flex:1;min-height:260px;max-height:52vh;overflow:hidden;border-radius:22px;background:radial-gradient(120% 90% at 20% 0%,color-mix(in srgb,var(--acc2) 28%,var(--bg)),var(--bg) 70%)}
+.hw-w{position:absolute;left:0;top:0;width:1000px;height:720px;transform-origin:0 0;transition:transform .85s cubic-bezier(.65,0,.25,1)}
+.hw-w.rm{transition:none}
+.hw-ti{position:absolute;font:300 44px var(--f);letter-spacing:-.02em;color:var(--ink)}
+.hw-c{position:absolute;width:260px;height:160px;border:0;border-radius:24px;background:var(--card);text-align:left;padding:20px 22px;box-shadow:0 18px 36px -24px rgba(90,60,30,.45)}
+.hw-c small{display:block;font-size:17px;color:var(--mut)}
+.hw-c b{display:block;font:300 48px/1.1 var(--num);letter-spacing:-.02em;margin:4px 0;white-space:nowrap}
+.hw-c span{display:block;font-size:17px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hw-l{position:absolute;width:700px;height:362px;border:0;border-radius:28px;background:var(--card);padding:0;box-shadow:0 18px 36px -24px rgba(90,60,30,.45)}
+.hw-l svg{display:block;width:100%;height:100%}
+.hw-hl{position:absolute;border:2px solid var(--acc);border-radius:26px;opacity:0;transition:opacity .4s,left .85s cubic-bezier(.65,0,.25,1),top .85s cubic-bezier(.65,0,.25,1),width .85s cubic-bezier(.65,0,.25,1),height .85s cubic-bezier(.65,0,.25,1);pointer-events:none}
+.hw-cap{min-height:96px;padding:14px 4px 4px}
+.hw-cap b{display:block;font-size:22px;font-weight:500;letter-spacing:-.02em}
+.hw-cap p{margin:4px 0 0;font-size:15px;line-height:1.4;color:var(--ink2)}
+.hw-dots{display:flex;gap:2px;justify-content:center;margin:6px 0 10px}
+.hw-dots button{width:22px;height:22px;border:0;background:none;position:relative;padding:0}
+.hw-dots button::before{content:"";position:absolute;left:7px;top:7px;width:8px;height:8px;border-radius:50%;background:var(--hair)}
+.hw-dots button.on::before{background:var(--acc)}
+.hw-ctl .pill{height:48px;border-radius:14px}
+@media (prefers-reduced-motion:reduce){.hw-w,.hw-hl{transition:opacity .2s}}
 
 </style></head>
 <body>
@@ -534,11 +569,11 @@ var GESCH={hell:['Fruchtig, hell',95],mitte:['Ausgewogen',93],dunkel:['Schokolad
 var WASS={leitung:'Leitungswasser',filter:'Gefiltert',flasche:'Flaschenwasser',rezept:'Eigenes Rezeptwasser'};
 
 /* ---------- Stufen: was jede Stufe zeigt (nur hier pflegen) ----------
- worte: Schritte in Worten · graph: altes Diagramm (aus, ersetzt durch die Linie) · linie: true = Hauptanzeige, 'wahl' = zuschaltbar · ziehen: Linie per Finger bearbeiten
+ worte: Schritte in Worten · graph: altes Diagramm (aus, ersetzt durch die Linie) · linie: true = Hauptanzeige, 'antippen' = erst nach Antippen von „So gießt du“ · ziehen: Linie per Finger bearbeiten
  zeilen: Ausklapp-Zeilen (false / 'anpassen' = erst nach Antippen / true = immer) · loeffel: ohne Waage Messlöffel
  raster: Schritt für Mengen/Zeiten · dauer/fluss: Gießdauer und g/s · technik: Gießart · tds: Refraktometer */
 var STUFE={
- a:{worte:true, graph:false,linie:'wahl',ziehen:false,zeilen:'anpassen',loeffel:true, raster:5,dauer:false,fluss:false,technik:false,tds:false,bewerten:'einfach'},
+ a:{worte:true, graph:false,linie:'antippen',ziehen:false,zeilen:'anpassen',loeffel:true, raster:5,dauer:false,fluss:false,technik:false,tds:false,bewerten:'einfach'},
  m:{worte:false,graph:false,linie:true, ziehen:true, zeilen:'anpassen',loeffel:false,raster:5,dauer:false,fluss:false,technik:true, tds:false,bewerten:'sterne'},
  p:{worte:false,graph:false,linie:true, ziehen:true, zeilen:true,      loeffel:false,raster:1,dauer:true, fluss:true, technik:true, tds:true, bewerten:'sterne'}};
 function SG(k){return (STUFE[PR.stufe]||STUFE.m)[k]}
@@ -704,12 +739,12 @@ function theme(){var t=PR.theme;if(t=='auto')document.documentElement.removeAttr
 
 /* ---------- Ruhige Linie (wie die Rezeptkarte aus dem Atlas) ---------- */
 var LG=null,LD=null;
-function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl()=='a',ed=!!o.edit,Wd=340,ay=ed?100:88,H=ed?194:176,x0=ed?16:8,x1=Wd-(ed?16:8),last=P[P.length-1],T=LD?LD.T:Math.max(end,last.t+last.d+10)*(ed?1.12:1);
+function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl()=='a',ed=!!o.edit,Wd=340,ay=ed?100:88,H=ed?194:176,x0=ed?16:8,x1=Wd-(ed?16:8),last=P[P.length-1],T=LD?LD.T:Math.max(end,last.t+last.d+10)*(ed?1.12:1),zw=ed?zoomWin(T):null,w0=zw?zw[0]:0,w1=zw?zw[1]:T,zm=w1-w0<T-1;
  if(ed)LG={x0:x0,x1:x1,T:T,W:Wd};
- function X(t){return +(x0+(x1-x0)*cl(t,0,T)/T).toFixed(1)}
+ function X(t){return +(x0+(x1-x0)*(zm?(t-w0)/(w1-w0):cl(t,0,T)/T)).toFixed(1)}
  function fit(t,w){var n=Math.max(4,Math.floor(w/5.9));return t.length>n?t.slice(0,n-1)+'…':t}
- var s='<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="Brühverlauf"><line class="lx" x1="'+x0+'" x2="'+x1+'" y1="'+ay+'" y2="'+ay+'"/>';
- for(var t=0;t<=T;t+=30){var big=t%60==0;s+='<line class="lx'+(big?'':' sm')+'" x1="'+X(t)+'" x2="'+X(t)+'" y1="'+(ay-(big?5:3))+'" y2="'+(ay+(big?5:3))+'"/>'}
+ var s='<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="Brühverlauf"'+(zm?' class="zm"':'')+'>'+(zm?'<defs><clipPath id="lzc"><rect x="'+(x0-6)+'" y="0" width="'+(x1-x0+12)+'" height="'+H+'"/></clipPath></defs><g clip-path="url(#lzc)">':'')+'<line class="lx" x1="'+x0+'" x2="'+x1+'" y1="'+ay+'" y2="'+ay+'"/>';
+ var tst=zm&&w1-w0<150?5:30;for(var t=Math.ceil(w0/tst)*tst;t<=w1;t+=tst){var big=t%(tst==5?15:60)==0;s+='<line class="lx'+(big?'':' sm')+'" x1="'+X(t)+'" x2="'+X(t)+'" y1="'+(ay-(big?5:3))+'" y2="'+(ay+(big?5:3))+'"/>'}
  var EV=P.map(function(p,i){var amt=p.g-(i?P[i-1].g:0),bl=i==0&&p.n=='Bloom'&&P.length>1;
   return a?{t:p.t,d:p.d,tm:i?mm(p.t):'0:00',l1:nameP(P,i),l2:aGP(P,i)}:{t:p.t,d:p.d,tm:mm(p.t)+'–'+mm(p.t+p.d),l1:(bl?'Bloom · ':'')+amt+' '+unitW()+' gießen',l2:'auf '+p.g+' '+unitW()+(p.n&&!bl&&P.length>1?' · '+p.n:'')}});
  EV.push({t:end,d:0,end:1,tm:(a?'':'~')+mm(end),l1:FERT[m][0],l2:m=='filter'?'Durchlauf':''});
@@ -721,22 +756,31 @@ function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl(
    '<g transform="translate('+(x-5)+' '+(ay-5)+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1">'+shape(k,10).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g>'}
   var an=e.end?'end':'start',tx=e.end?x-6:x+6,y1=e.up?ay-56:ay+28;
   s+='<text class="l0" x="'+tx+'" y="'+y1+'" text-anchor="'+an+'">'+esc(fit(e.tm,w))+'</text><text class="l1" x="'+tx+'" y="'+(y1+14)+'" text-anchor="'+an+'">'+esc(fit(e.l1,w))+'</text>'+(e.l2?'<text class="l2" x="'+tx+'" y="'+(y1+27)+'" text-anchor="'+an+'">'+esc(fit(e.l2,w))+'</text>':'')});
- if(ed){P.forEach(function(p,k){var x=X(p.t),on=LD&&LD.i==k&&LD.k=='p';
+ if(zm)s+='</g>';
+ if(ed){P.forEach(function(p,k){if(zm&&(p.t<w0-2||p.t>w1+2))return;var x=X(p.t),on=LD&&LD.i==k&&LD.k=='p';
    s+='<g transform="translate('+(x-(on?9:7))+' '+(ay-(on?9:7))+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1.5">'+shape(k,on?18:14).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g><circle class="lhit" data-li="'+k+'" data-lk="p" cx="'+x+'" cy="'+ay+'" r="22"/>';
    if(SG('dauer')){var up=k%2==0,x2=Math.max(X(p.t+p.d),x+5),fy=ay+(up?-9:9);s+='<circle cx="'+x2+'" cy="'+fy+'" r="3.5" style="fill:'+C(k)+'"/><circle class="lhit" data-li="'+k+'" data-lk="d" cx="'+(x2+8)+'" cy="'+fy+'" r="16"/>'}});
-  var xe=X(end);s+='<rect x="'+(xe-4)+'" y="'+(ay-4)+'" width="8" height="8" rx="2" fill="var(--ink)"/><circle class="lhit" data-li="-1" data-lk="e" cx="'+xe+'" cy="'+ay+'" r="22"/>';
+  var xe=X(end);if(!zm||end<=w1+2)s+='<rect x="'+(xe-4)+'" y="'+(ay-4)+'" width="8" height="8" rx="2" fill="var(--ink)"/><circle class="lhit" data-li="-1" data-lk="e" cx="'+xe+'" cy="'+ay+'" r="22"/>';
   if(LD){var bt,bx,bc;if(LD.k=='e'){bt=FERT[m][0]+' '+mm(end);bx=xe;bc='var(--ink)'}else{var q=P[LD.i];bt=LD.k=='d'?'Dauer '+q.d+' s':mm(q.t)+' · auf '+q.g+' '+unitW();bx=X(q.t);bc=C(LD.i)}
    var bw=Math.max(96,bt.length*7.6+20);bx=cl(bx,bw/2+2,Wd-bw/2-2);s+='<g class="bub" style="--pc:'+bc+'"><rect x="'+(bx-bw/2)+'" y="2" width="'+bw+'" height="28" rx="14"/><text x="'+bx+'" y="21" text-anchor="middle">'+esc(bt)+'</text></g>'}
-  else s+='<text class="l2" x="'+x0+'" y="'+(H-4)+'">← → Zeit · ↑ ↓ Menge</text>'}
+  else s+='<text class="l2" x="'+x0+'" y="'+(H-4)+'">← → Zeit · ↑ ↓ Menge</text>';
+  if(zm)s+='<text class="l2" x="'+x1+'" y="'+(H-4)+'" text-anchor="end">Zoom '+mm(w0)+'–'+mm(w1)+'</text>'}
  if(o.now!=null){var xn=X(o.now);s+='<line x1="'+xn+'" x2="'+xn+'" y1="'+(ay-16)+'" y2="'+(ay+16)+'" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round"/>'}
  return s+'</svg>'}
 function lineCard(){return '<button class="line" data-a="edit" aria-label="Rezept anpassen">'+lineSVG()+'</button>'}
+var ZA=null; // {f:[a,b],t:[a,b],s:Start} weicher Zoom
+function zoomWin(T){if(!ZA)return null;var p=reduce?1:cl((performance.now()-ZA.s)/280,0,1),e=1-Math.pow(1-p,3),t=ZA.t||[0,T],f=ZA.f||[0,T];
+ if(p<1&&!ZA.raf){ZA.raf=requestAnimationFrame(function(){if(ZA)ZA.raf=0;drawBr(1)})}
+ var w=[f[0]+(t[0]-f[0])*e,f[1]+(t[1]-f[1])*e];if(p>=1&&!ZA.t){ZA=null;return null}return w}
+function zoomTo(c,T){var span=Math.min(T,70),a=cl(c-span/2,0,Math.max(0,T-span));ZA={f:ZA&&ZA.t?ZA.t:[0,T],t:[a,a+span],s:performance.now()}}
+function zoomOut(T){if(!ZA||!ZA.t)return;ZA={f:ZA.t,t:null,s:performance.now()}}
 function lineEdit(){return '<div class="line led" id="lineEd">'+lineSVG({edit:true})+'</div>'}
 // Linie ziehen: waagerecht = Zeit, senkrecht = Menge (Richtung rastet nach 10 px ein), Wert steht über dem Finger
 document.addEventListener('pointerdown',function(e){var h=e.target.closest('#lineEd .lhit');if(!h||!SG('ziehen'))return;e.preventDefault();
  var i=+h.dataset.li,k=h.dataset.lk,r=$('lineEd').querySelector('svg').getBoundingClientRect(),q=W.P[i]||{};
- LD={i:i,k:k,cx:e.clientX,cy:e.clientY,t:q.t,g:q.g,d:q.d,e:W.end,T:LG.T,sc:LG.W/r.width,gp:Math.max(.5,total()/240),ax:k=='p'?null:'x',last:''};U.open=i>=0?i:'e';U.k='g';try{h.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
-document.addEventListener('pointermove',function(e){if(!LD)return;var dx=(e.clientX-LD.cx)*LD.sc,dy=(e.clientY-LD.cy)*LD.sc,p=SG('raster')==1,dt=dx*LD.T/(LG.x1-LG.x0);
+ var fine=SG('raster')==1;LD={i:i,k:k,cx:e.clientX,cy:e.clientY,t:q.t,g:q.g,d:q.d,e:W.end,T:LG.T,sc:LG.W/r.width,gp:Math.max(.25,total()/(fine?600:240)),ax:k=='p'?null:'x',last:''};
+ if(fine){var ct=k=='e'?W.end:k=='d'?q.t+q.d:q.t;zoomTo(ct,LG.T);LD.zw=ZA.t}U.open=i>=0?i:'e';U.k='g';try{h.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
+document.addEventListener('pointermove',function(e){if(!LD)return;var dx=(e.clientX-LD.cx)*LD.sc,dy=(e.clientY-LD.cy)*LD.sc,p=SG('raster')==1,dt=dx*(LD.zw?LD.zw[1]-LD.zw[0]:LD.T)/(LG.x1-LG.x0);
  if(!LD.ax){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;LD.ax=Math.abs(dx)>=Math.abs(dy)?'x':'y';if(LD.i==0&&LD.ax=='x')LD.ax='y'}
  function sn(v){return p?snap(v,1.5):Math.round(v/5)*5}
  if(LD.k=='e')setV('e',0,sn(LD.e+dt));else if(LD.k=='d')setV('d',LD.i,Math.round(LD.d+dt));
@@ -744,7 +788,7 @@ document.addEventListener('pointermove',function(e){if(!LD)return;var dx=(e.clie
  U.k=LD.ax=='x'?(LD.k=='d'?'d':'t'):'g';
  var q=W.P[LD.i]||{},key=q.t+'/'+q.g+'/'+q.d+'/'+W.end;if(key!=LD.last&&PR.vib&&navigator.vibrate)try{navigator.vibrate(4)}catch(x){}LD.last=key;
  if(!raf)raf=requestAnimationFrame(function(){raf=0;drawBr(1)})});
-['pointerup','pointercancel'].forEach(function(t){document.addEventListener(t,function(){if(!LD)return;LD=null;touch();drawBr(1)})});
+['pointerup','pointercancel'].forEach(function(t){document.addEventListener(t,function(){if(!LD)return;var TT=LD.T;LD=null;zoomOut(TT);touch();drawBr(1)})});
 // Anfänger:in: Schritte als einfache Liste
 function stepList(){var h='<div class="ac">';W.P.forEach(function(q,i){h+='<div class="ar st">'+mk(i)+'<span class="nm"><b>'+nameOf(i)+'</b><span>'+aT(q.t).replace(/^n/,'N')+'</span></span><span class="big">'+aG(i)+'</span></div>'});
  var F=FERT[meth()];return h+'<div class="ar st">'+ic0('✓')+'<span class="nm"><b>'+F[0]+'</b><span>'+F[1]+'</span></span><span class="big">'+mm(W.end)+' Min.</span></div></div>'}
@@ -834,18 +878,18 @@ function pourRows(){var a=SG('worte'),p=SG('fluss'),h='<div class="ac">',m=meth(
  return h+'</div>'}
 function cupIc(n,on){var c=on?'var(--acc)':'var(--mut)';return '<svg viewBox="0 0 40 40" fill="none" stroke="'+c+'" stroke-width="2.2" stroke-linecap="round"><path d="M9 15h18v9a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8z" fill="'+(on?'color-mix(in srgb,var(--acc) 22%,transparent)':'none')+'"/><path d="M27 18h2a4 4 0 0 1 0 8h-2"/><path d="M14 6c-1.5 2 1.5 3 0 5M20 6c-1.5 2 1.5 3 0 5"/></svg>'}
 function easyTop(){var h='<div class="cups">';for(var n=1;n<=4;n++)h+='<button class="cupb'+(W.cups==n?' on':'')+'" data-a="cups" data-n="'+n+'">'+cupIc(n,W.cups==n)+'<b>'+n+'</b>'+(n==1?'Tasse':'Tassen')+'</button>';
- h+='</div>';
- var g=grinder();var f=meth()=='filter'?filterNow():null;h+='<div class="easy"><div class="r"><span>Kaffee</span><b>'+kaffee(W.dose)+'</b></div><div class="r"><span>Mahlen</span><b>'+(g&&g.typ!='pre'?grindTxt()+' an der '+esc(g.name):'vorgemahlen')+'</b></div><div class="r"><span>Wasser</span><b>'+wTxt(total())+', '+hot()+'</b></div>'+(f?'<div class="r"><span>Filter</span><b>'+esc(f.name)+(f.gr?' '+esc(f.gr):'')+'</b></div>':'')+'</div>';
+ var g=grinder();h+='</div><div class="ez"><div><small>Kaffee</small><b>'+kaffee(W.dose)+'</b><span>'+(g&&g.typ!='pre'?'mahlen: '+grindTxt():'vorgemahlen')+'</span></div><div><small>Wasser</small><b>'+wTxt(total())+'</b><span>'+(tempCtl()?tC(W.temp):'aufkochen, 30 s warten')+'</span></div></div>';
  return h}
-function easyHead(){var d=dev();return '<div class="rh"><span class="ic eh">'+devIc(d.typ)+'</span><span class="t"><b>'+esc(d.name)+'</b></span>'+(eqOf('geraet').length>1?'<button class="pill" data-a="heute" data-only="geraet">Wechseln</button>':'')+'</div>'}
+var HQ='<button class="hq" data-a="help" aria-label="So liest du dein Rezept">?</button>';
+function easyHead(){var d=dev();return '<div class="rh"><span class="ic eh">'+devIc(d.typ)+'</span><span class="t"><b>'+esc(d.name)+'</b></span>'+(eqOf('geraet').length>1?'<button class="pill" data-a="heute" data-only="geraet">Wechseln</button>':'')+HQ+'</div>'}
 function applyCups(){var st=W.str||PR.staerke,r=PR.ratio+STR[st][1],wv=W.cups*PR.tasse;scaleTo(Math.round(wv/5)*5);W.dose=Math.round(total()/r*2)/2}
 function drawBr(keep){if(!W)loadW();var a=lvl()=='a',sl=[].map.call(document.querySelectorAll('#brx .rl'),function(r){return r.scrollLeft});
  var r=rzById(W.id),ch=changed();
  var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit),gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
- $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+'</div>'+(Z===true?gearList():'');
+ $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+HQ+'</div>'+(Z===true?gearList():'');
  var c=chartEl();c.hidden=!gr;if(gr)c.innerHTML=chartSVG({ghost:ch&&r?{P:r.P,end:r.end}:null})+(D?'':'<span class="chint">Punkte ziehen</span>');else c.innerHTML='';
- $('brRows').innerHTML=a?(ed?pourRows():aView()+(PR.aLinie?lineCard():stepList())):ed?(SG('ziehen')?lineEdit():'')+prepRows()+pourRows():kzRow()+gearList()+lineCard();
- $('brFoot').innerHTML=a?(ed?(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Fertig</button></div>':'<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Anpassen</button></div>'):ed?'<div class="foot"><span class="mut">'+FERT[meth()][0]+' nach</span><b style="font:700 15px var(--num)">'+mm(W.end)+'</b><span class="sp"></span><span class="mut">'+kaffee(W.dose)+' · '+ratio()+'</span><button class="lnk" data-a="add" data-i="'+(W.P.length-1)+'">+ Aufguss</button></div>'+(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button>':
+ $('brRows').innerHTML=a?(ed?pourRows():''):ed?(SG('ziehen')?lineEdit():'')+prepRows()+pourRows():kzRow()+gearList()+lineCard();
+ $('brFoot').innerHTML=a?(ed?(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Fertig</button></div>':'<button class="go" data-a="brew">Brühen</button><button class="ezm" data-a="aopen" aria-expanded="'+!!U.aOpen+'">So gießt du'+chev+'</button>'+(U.aOpen?lineCard()+'<div class="sec"><button class="pill" data-a="edit">Anpassen</button></div>':'')):ed?'<div class="foot"><span class="mut">'+FERT[meth()][0]+' nach</span><b style="font:400 15px var(--num)">'+mm(W.end)+'</b><span class="sp"></span><span class="mut">'+kaffee(W.dose)+' · '+ratio()+'</span><button class="lnk" data-a="add" data-i="'+(W.P.length-1)+'">+ Aufguss</button></div>'+(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button>':
   '<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Anpassen</button>'+(ch?'<button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'')+'</div>';
  if(keep){[].forEach.call(document.querySelectorAll('#brx .rl'),function(rl,k){if(sl[k]!=null)rl.scrollLeft=sl[k]});if(D)center()}else center()}
 function center(){[].forEach.call(document.querySelectorAll('.rl'),function(rl){var on=rl.querySelector('.on');if(on)rl.scrollLeft=on.offsetLeft-rl.clientWidth/2+on.offsetWidth/2})}
@@ -857,6 +901,47 @@ function addAfter(i){var P=W.P,c=P[i],nx=P[i+1],qq;
  P.splice(i+1,0,qq);U.open=i+1;U.k='g';touch();drawBr()}
 function delStep(i){if(W.P.length<2)return;var last=i==W.P.length-1,tot=total();W.P.splice(i,1);if(i==0)W.P[0].t=0;if(last&&lvl()=='a')W.P[W.P.length-1].g=tot;U.open=Math.max(0,i-1);touch();drawBr()}
 function saveRz(){var r=rzById(W.id);if(!r)return;r.hist.push({v:r.ver,at:Date.now(),dose:r.dose,end:r.end,temp:r.temp,P:r.P,grind:r.grind});r.ver++;['dose','end','temp','P','grind','name'].forEach(function(k){r[k]=cp(W[k])});DB.draft=null;W=cp(r);save();toast('Version '+r.ver+' gesichert');drawBr()}
+
+/* ---------- Hilfe: Rezept und Linie erklärt (Prezi-Stil: eine große Fläche, die Kamera fährt und zoomt) ---------- */
+var HP={i:0,play:0,tm:0};
+function helpStops(){var a=lvl()=='a',g=grinder(),r=ratio(),P=W.P,L=[
+ {id:'all',t:'So liest du dein Rezept',x:'Tippe auf einen Teil oder auf Weiter.'},
+ {id:'kaffee',t:'Kaffee',x:kaffee(W.dose)+' frisch gemahlener Kaffee. '+(hasScale()?'Filter mit Kaffee auf die Waage, dann auf 0 stellen.':'Ein Messlöffel sind etwa 7 g.')},
+ {id:'wasser',t:'Wasser',x:wTxt(total())+' Wasser auf '+kaffee(W.dose)+' Kaffee. '+(a?'Mehr Tassen heißt einfach mehr von beidem.':'Das ist das Verhältnis '+r+': auf 1 g Kaffee kommen '+de(Math.round(ratioV()*10)/10)+' g Wasser.')+' '+(tempCtl()?tC(W.temp)+' heiß.':'Aufkochen, 30 s warten.')},
+ {id:'mahl',t:'Mahlgrad',x:g&&g.typ!='pre'?grindTxt()+' an der '+g.name+'. Feiner schmeckt kräftiger und läuft langsamer, gröber heller und schneller.':'Vorgemahlener Kaffee, hier stellst du nichts ein.'},
+ {id:'linie',t:'Die Linie',x:'Sie zeigt dein Rezept als Zeitstrahl, von links nach rechts.'},
+ {id:'achse',t:'Zeit',x:'Jeder kleine Strich sind 30 Sekunden, ein großer eine Minute.'},
+ {id:'flag',t:'Ein Aufguss',x:a?'Jedes Fähnchen ist ein Mal Gießen: wann, und wie viel.':'Jedes Fähnchen ist ein Aufguss: oben die Zeit von–bis, dann wie viel du gießt und auf welches Gewicht die Waage dann zeigt. Farbe und Form gehören zum Aufguss.'},
+ {id:'end',t:FERT[meth()][0],x:meth()=='filter'?'Hier ist alles durchgelaufen. Genieß deine Tasse.':'Hier wird gedrückt.'}];
+ if(SG('ziehen'))L.push({id:'ziehen',t:'Selbst ändern',x:'Unter „Anpassen“ ziehst du die Punkte: waagerecht ändert die Zeit, senkrecht die Menge. Der Wert steht über deinem Finger.'+(SG('raster')==1?' Beim Ziehen zoomt die Linie auf den Schritt.':'')});
+ return L}
+function helpWorld(){var g=grinder(),S=lineSVG(),xs=function(t){var last=W.P[W.P.length-1],T=Math.max(W.end,last.t+last.d+10);return 150+700*(8+324*cl(t,0,T)/T)/340};
+ var f1=W.P[1]||W.P[0],fx=xs(f1.t);
+ HP.R={all:[0,0,1000,720],kaffee:[60,150,260,160],wasser:[370,150,260,160],mahl:[680,150,260,160],linie:[150,340,700,362],achse:[150,475,700,100],flag:[fx-20,W.P[1]?520:345,260,180],end:[xs(W.end)-200,520,230,180],ziehen:[fx-90,420,240,200]};
+ return '<div class="hw-w" id="hw">'+
+  '<div class="hw-ti" style="left:60px;top:50px;width:880px">So liest du dein Rezept</div>'+
+  '<button class="hw-c" data-a="hgo" data-h="kaffee" style="left:60px;top:150px"><small>Kaffee</small><b>'+kaffee(W.dose)+'</b><span>'+(hasScale()?'auf der Waage':'Messlöffel')+'</span></button>'+
+  '<button class="hw-c" data-a="hgo" data-h="wasser" style="left:370px;top:150px"><small>Wasser</small><b>'+wTxt(total())+'</b><span>'+ratio()+' · '+(tempCtl()?tC(W.temp):'aufkochen')+'</span></button>'+
+  '<button class="hw-c" data-a="hgo" data-h="mahl" style="left:680px;top:150px"><small>Mahlgrad</small><b>'+(g&&g.typ!='pre'?grindTxt():'vorgemahlen')+'</b><span>'+(g?esc(g.name):'')+'</span></button>'+
+  '<button class="hw-l" data-a="hgo" data-h="linie" style="left:150px;top:340px">'+S+'</button>'+
+  '<div class="hw-hl" id="hwHl"></div></div>'}
+function helpOpen(){HP.i=0;HP.play=0;var o=document.createElement('div');o.className='hw';o.id='help';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
+ o.innerHTML='<div class="hw-top"><b>So liest du dein Rezept</b><button class="x" data-a="hx" aria-label="Schließen">×</button></div><div class="hw-st" id="hwSt">'+helpWorld()+'</div>'+
+  '<div class="hw-cap"><b id="hwT"></b><p id="hwX"></p></div><div class="hw-dots" id="hwD"></div>'+
+  '<div class="sec hw-ctl"><button class="pill" data-a="hprev">Zurück</button><button class="pill" data-a="hplay" id="hwP">Abspielen</button><button class="pill acc" data-a="hnext" id="hwN">Weiter</button></div>';
+ document.body.appendChild(o);document.body.style.overflow='hidden';requestAnimationFrame(function(){helpShow(0,true)})}
+function helpClose(){clearTimeout(HP.tm);HP.play=0;var o=$('help');if(o)o.remove();document.body.style.overflow=''}
+function cam(r,rot){var st=$('hwSt'),w=$('hw');if(!st||!w)return;var SW=st.clientWidth,SH=st.clientHeight,s=Math.min(SW/(r[2]*1.12),SH/(r[3]*1.12)),cx=r[0]+r[2]/2,cy=r[1]+r[3]/2;
+ w.style.transform='translate('+SW/2+'px,'+SH/2+'px) rotate('+(rot||0)+'deg) scale('+s+') translate('+(-cx)+'px,'+(-cy)+'px)'}
+function helpShow(i,first){var L=helpStops();i=cl(i,0,L.length-1);var prev=HP.i;HP.i=i;var st=L[i],r=HP.R[st.id],w=$('hw');if(!w)return;
+ var far=!first&&!reduce&&Math.abs(i-prev)>0&&st.id!='all'&&L[prev].id!='all';
+ w.classList.toggle('rm',reduce);
+ if(far){w.style.transitionDuration='.45s';cam([100,80,800,600],0);clearTimeout(HP.zt);HP.zt=setTimeout(function(){w.style.transitionDuration='';cam(r,i%2?-2:2)},430)}else{if(first)w.style.transitionDuration='0s';cam(r,st.id=='all'?0:(i%2?-2:2));if(first)requestAnimationFrame(function(){w.style.transitionDuration=''})}
+ var hl=$('hwHl');if(st.id=='all'){hl.style.opacity=0}else{hl.style.cssText='left:'+(r[0]-8)+'px;top:'+(r[1]-8)+'px;width:'+(r[2]+16)+'px;height:'+(r[3]+16)+'px;opacity:1'}
+ $('hwT').textContent=st.t;$('hwX').textContent=st.x;
+ $('hwD').innerHTML=L.map(function(_,k){return '<button class="'+(k==i?'on':'')+'" data-a="hgo" data-n="'+k+'" aria-label="Schritt '+(k+1)+'"></button>'}).join('');
+ $('hwN').textContent=i==L.length-1?'Fertig':'Weiter';$('hwP').textContent=HP.play?'Pause':'Abspielen'}
+function helpTick(){clearTimeout(HP.tm);if(!HP.play)return;HP.tm=setTimeout(function(){var L=helpStops();if(HP.i>=L.length-1){HP.play=0;helpShow(HP.i);return}helpShow(HP.i+1);helpTick()},3600)}
 
 /* ---------- Brühen (Vollbild) ---------- */
 var B={t:-5,run:false,speed:1,last:0,sc:null,raf:0,done:false,ph:'',lock:null};
@@ -1079,7 +1164,13 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'cups':W.cups=+d.n;applyCups();touch();drawBr();return;
  case 'str':W.str=d.s;applyCups();touch();drawBr();return;
  case 'brew':openBrew();return;
- case 'aview':PR.aLinie=d.v=='1';save();drawBr(1);return;
+ case 'help':helpOpen();return;
+ case 'hx':helpClose();return;
+ case 'hnext':HP.play=0;if(HP.i>=helpStops().length-1){helpClose();return}helpShow(HP.i+1);return;
+ case 'hprev':HP.play=0;helpShow(HP.i-1);return;
+ case 'hplay':HP.play=!HP.play;if(HP.play&&HP.i>=helpStops().length-1)HP.i=0;helpShow(HP.i);helpTick();return;
+ case 'hgo':HP.play=0;helpShow(d.n!=null?+d.n:helpStops().map(function(z){return z.id}).indexOf(d.h));return;
+ case 'aopen':U.aOpen=!U.aOpen;drawBr(1);return;
  case 'edit':U.edit=!U.edit;if(U.edit)U.open=-1;drawBr();return;
  case 'heute':openSh({k:'heute',only:d.only});return;
  case 'use':var uk=d.k;DB.heute[uk]=d.id;if(uk=='geraet'){DB.draft=null;W=null}save();if(U.sh)drawSh();render();return;
@@ -1140,7 +1231,7 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
 document.addEventListener('input',function(ev){var x=ev.target;if(x.id=='eqName'){var e=byId(U.sh.id);if(e){e.name=x.value;save()}}if(x.id=='rzName'){var r=rzById(U.sh.id);if(r){r.name=x.value||r.name;if(W&&W.id==r.id)W.name=r.name;save()}}if(x.id=='meName'){PR.name=x.value;save()}});
 document.addEventListener('change',function(ev){var x=ev.target;if(x.id=='eqName'||x.id=='rzName'||x.id=='meName')render()});
 $('sh').addEventListener('click',function(e){if(e.target===this)closeSh()});
-document.addEventListener('keydown',function(e){if(e.key=='Escape'){if(U.sh)closeSh();else if(!$('bw').hidden)closeBrew()}});
+document.addEventListener('keydown',function(e){if(e.key=='Escape'&&$('help')){helpClose();return}if(e.key=='Escape'){if(U.sh)closeSh();else if(!$('bw').hidden)closeBrew()}});
 // −/+ für Feinschritte, gedrückt halten = schnell
 var hold=null,hn=0;
 function bump(k,i,dir){var c=getV(k,i),st=fine(k)*(hn>10&&k!='d'&&k!='grind'?5:1),nv;
@@ -1155,7 +1246,7 @@ $('bwAgain').addEventListener('click',function(){openBrew()});
 $('bwX').addEventListener('click',closeBrew);
 
 function boot(){theme();if(!DB.setup&&!qs){OB={step:0,dev:['v60'],gr:['comandante'],sc:1,ke:1,lv:PR.stufe||'m'};drawOb()}else{if(!DB.setup)seedDefaults();$('ob').hidden=true}render()}
-window.BB={DB:function(){return DB},W:function(){return W},U:U,B:B,setV:setV,getV:getV,tipOf:tipOf,fromAtlas:fromAtlas,collect:collect};
+window.BB={HP:HP,LD:function(){return LD},ZA:function(){return ZA},DB:function(){return DB},W:function(){return W},U:U,B:B,setV:setV,getV:getV,tipOf:tipOf,fromAtlas:fromAtlas,collect:collect};
 boot();
 if('serviceWorker' in navigator&&location.protocol=='https:')navigator.serviceWorker.register('sw.js').catch(function(){});
 })();
