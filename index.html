@@ -681,9 +681,9 @@ function bounds(k,i){var P=W.P,p=P[i],pv=P[i-1],nx=P[i+1];
 function getV(k,i){return k=='e'?W.end:k=='dose'?W.dose:k=='water'?total():k=='ratio'?Math.round(ratioV()*2)/2:k=='temp'?W.temp:k=='grind'?grindV():W.P[i][k]}
 function scaleTo(v){var f=v/total(),st=SG('raster');W.P.forEach(function(p,i){p.g=Math.round(p.g*f/st)*st;if(i&&p.g<=W.P[i-1].g)p.g=W.P[i-1].g+st});W.P[W.P.length-1].g=Math.round(v)}
 function setV(k,i,v){var b=bounds(k,i);v=cl(v,b[0],Math.max(b[0],b[1]));
- if(k=='e')W.end=v;else if(k=='dose'){var r=ratioV();W.dose=v;scaleTo(Math.round(v*r/SG('raster'))*SG('raster'))}
- else if(k=='water'){var r2=ratioV();scaleTo(v);W.dose=Math.round(v/r2*2)/2}
- else if(k=='ratio')W.dose=Math.round(total()/v*2)/2;
+ if(k=='e')W.end=v;else if(k=='dose')W.dose=v; // Kaffee und Wasser führen, das Verhältnis rechnet sich mit
+ else if(k=='water')scaleTo(v);
+ else if(k=='ratio')scaleTo(Math.round(W.dose*v/SG('raster'))*SG('raster')); // nur ausdrücklich: Wasser folgt dem Verhältnis
  else if(k=='temp')W.temp=v;
  else if(k=='grind'){W.grind=W.grind||{};W.grind[grinder().id]=v}
  else W.P[i][k]=v}
@@ -863,7 +863,7 @@ function acts(i){return '<div class="acts"><button class="lnk" data-a="add" data
 function ic0(ch){return '<span class="mk ic0">'+ch+'</span>'}
 function prepRows(){var p=lvl()=='p',g=grinder(),h='<div class="ac">',r=ratio();
  var dk=U.open=='water'&&(U.k=='ratio')?'ratio':'water';
- h+=row('dose','var(--acc)','<span class="ic">'+PK[hasScale()?'scale':'noscale']+'</span>','Kaffee',hasScale()?'gemahlen, auf der Waage':'≈ 7 g je Messlöffel',kaffee(W.dose),(VAR=='b'?useChips('waage'):'')+ruler('dose',0)+'<div class="note">Das Wasser wächst mit, das Verhältnis bleibt.</div>');
+ h+=row('dose','var(--acc)','<span class="ic">'+PK[hasScale()?'scale':'noscale']+'</span>','Kaffee',hasScale()?'gemahlen, auf der Waage':'≈ 7 g je Messlöffel',kaffee(W.dose),(VAR=='b'?useChips('waage'):'')+ruler('dose',0)+'<div class="note">Das Wasser bleibt, das Verhältnis passt sich an.</div>');
  h+=row('water','var(--acc)','<span class="ic">'+PK.kettle+'</span>','Wasser','Verhältnis '+r+(hasScale()?'':' · Messbecher'),wTxt(total()),'<div class="seg"><button class="'+(dk=='water'?'on':'')+'" data-a="k" data-k="water">Menge <b>'+wTxt(total())+'</b></button><button class="'+(dk=='ratio'?'on':'')+'" data-a="k" data-k="ratio">Verhältnis <b>'+r+'</b></button></div>'+ruler(dk,0));
  if(g&&g.typ!='pre')h+=row('grind','var(--acc)','<span class="ic">'+grIc(g)+'</span>','Mahlgrad',esc(g.name)+' · Startwert '+de(g.s[meth()]),grindTxt(),(VAR=='b'?useChips('muehle'):'')+ruler('grind',0)+'<div class="note">Richtwert für '+DEVC[dev().typ].n+'. Feiner = länger, kräftiger. Gröber = schneller, heller.</div>');
  else h+=row('grind','var(--acc)','<span class="ic">'+PK.pre+'</span>','Mahlgrad','vorgemahlen','Filter',(VAR=='b'?useChips('muehle'):'')+'<div class="note">Bei vorgemahlenem Kaffee stellst du Stärke über die Menge ein.</div>');
