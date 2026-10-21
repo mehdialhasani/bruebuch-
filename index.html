@@ -135,7 +135,7 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .cupb.on{border-color:var(--acc);box-shadow:0 0 0 1.5px var(--acc)}
 .easy{background:var(--card);border-radius:18px;padding:12px 14px;margin-bottom:10px;display:grid;gap:4px}
 .easy .r{display:flex;gap:10px;align-items:baseline}
-.easy .r span{color:var(--mut);min-width:96px;font-size:13px}
+.easy .r span{color:var(--mut);min-width:64px;flex:none;font-size:13px}
 .easy .r b{font-size:15px}
 /* Listen (Profil, Rezepte) */
 .ls{background:var(--card);border-radius:16px;overflow:hidden}
@@ -246,6 +246,8 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .ewb .seg button{height:32px;font-size:12.5px}
 .ewb small{font-size:11px;color:var(--mut);margin-left:4px}
 .ewb+section .pg{padding-top:10px}
+.warnb{background:var(--warn)!important;color:#fff!important}
+.line.bwc{padding:4px 6px}
 
 </style></head>
 <body>
@@ -526,6 +528,16 @@ var STR={mild:['milder',1],normal:['normal',0],kraeftig:['kräftiger',-1]};
 var GESCH={hell:['Fruchtig, hell',95],mitte:['Ausgewogen',93],dunkel:['Schokoladig, dunkel',90]};
 var WASS={leitung:'Leitungswasser',filter:'Gefiltert',flasche:'Flaschenwasser',rezept:'Eigenes Rezeptwasser'};
 
+/* ---------- Stufen: was jede Stufe zeigt (nur hier pflegen) ----------
+ worte: Schritte in Worten · graph: Diagramm mit ziehbaren Punkten · linie: ruhige Zeitlinie
+ zeilen: Ausklapp-Zeilen (false / 'anpassen' = erst nach Antippen / true = immer) · loeffel: ohne Waage Messlöffel
+ raster: Schritt für Mengen/Zeiten · dauer/fluss: Gießdauer und g/s · technik: Gießart · tds: Refraktometer */
+var STUFE={
+ a:{worte:true, graph:false,linie:true, zeilen:false,     loeffel:true, raster:5,dauer:false,fluss:false,technik:false,tds:false,bewerten:'einfach'},
+ m:{worte:false,graph:false,linie:true, zeilen:'anpassen',loeffel:false,raster:5,dauer:false,fluss:false,technik:true, tds:false,bewerten:'sterne'},
+ p:{worte:false,graph:true, linie:false,zeilen:true,      loeffel:false,raster:1,dauer:true, fluss:true, technik:true, tds:true, bewerten:'sterne'}};
+function SG(k){return (STUFE[PR.stufe]||STUFE.m)[k]}
+
 /* ---------- Piktogramme ---------- */
 var PK=(function(){
  var ink='#3a2f28';
@@ -564,6 +576,7 @@ function save(){try{localStorage.setItem(KEY,JSON.stringify(DB))}catch(e){}}
 DB=load()||fresh();
 var PR=DB.profil;
 ['vorlauf','vib','wach','std','gesch','wasser','theme'].forEach(function(k){if(PR[k]==null)PR[k]=fresh().profil[k]});
+if(DB.heute&&DB.heute.waage==='none')delete DB.heute.waage;
 
 /* ---------- Ausrüstung ---------- */
 function mkDev(typ){return {id:uid(),kat:'geraet',typ:typ,name:DEVC[typ].n}}
@@ -577,7 +590,7 @@ function cur(k){var h=DB.heute[k];if(h==='none')return null;var e=h&&byId(h);if(
 function dev(){return cur('geraet')||{id:'-',typ:'v60',name:'V60'}}
 function meth(){return DEVC[dev().typ].m}
 function grinder(){return cur('muehle')}
-function hasScale(){return !!cur('waage')}
+function hasScale(){return !!cur('waage')||!SG('loeffel')}
 function tempCtl(){var k=cur('kocher');return !!(k&&k.temp)}
 function filterNow(){var t=dev().typ,L=eqOf('filter').filter(function(f){return !f.passt||!f.passt.length||f.passt.indexOf(t)>=0});var h=DB.heute.filter&&byId(DB.heute.filter);return h&&L.indexOf(h)>=0?h:(L.filter(function(x){return x.fav})[0]||L[0]||null)}
 
@@ -626,9 +639,9 @@ function bounds(k,i){var P=W.P,p=P[i],pv=P[i-1],nx=P[i+1];
  if(k=='dose')return [5,80];if(k=='water')return [80,1200];if(k=='ratio')return [10,20];if(k=='temp')return [80,100];
  if(k=='grind'){var g=grinder();return [g.lo,g.hi]}}
 function getV(k,i){return k=='e'?W.end:k=='dose'?W.dose:k=='water'?total():k=='ratio'?Math.round(ratioV()*2)/2:k=='temp'?W.temp:k=='grind'?grindV():W.P[i][k]}
-function scaleTo(v){var f=v/total(),st=lvl()=='p'?1:5;W.P.forEach(function(p,i){p.g=Math.round(p.g*f/st)*st;if(i&&p.g<=W.P[i-1].g)p.g=W.P[i-1].g+st});W.P[W.P.length-1].g=Math.round(v)}
+function scaleTo(v){var f=v/total(),st=SG('raster');W.P.forEach(function(p,i){p.g=Math.round(p.g*f/st)*st;if(i&&p.g<=W.P[i-1].g)p.g=W.P[i-1].g+st});W.P[W.P.length-1].g=Math.round(v)}
 function setV(k,i,v){var b=bounds(k,i);v=cl(v,b[0],Math.max(b[0],b[1]));
- if(k=='e')W.end=v;else if(k=='dose'){var r=ratioV();W.dose=v;scaleTo(Math.round(v*r/(lvl()=='p'?1:5))*(lvl()=='p'?1:5))}
+ if(k=='e')W.end=v;else if(k=='dose'){var r=ratioV();W.dose=v;scaleTo(Math.round(v*r/SG('raster'))*SG('raster'))}
  else if(k=='water'){var r2=ratioV();scaleTo(v);W.dose=Math.round(v/r2*2)/2}
  else if(k=='ratio')W.dose=Math.round(total()/v*2)/2;
  else if(k=='temp')W.temp=v;
@@ -637,7 +650,7 @@ function setV(k,i,v){var b=bounds(k,i);v=cl(v,b[0],Math.max(b[0],b[1]));
 function fmt(k,i){var v=getV(k,i);if(lvl()=='a'){if(k=='t')return aT(v);if(k=='g')return aG(i);if(k=='e')return mm(v)+' Min.'}
  return k=='t'||k=='e'?mm(v):k=='g'||k=='water'?wTxt(v):k=='d'?v+' s':k=='dose'?kaffee(v):k=='ratio'?'1:'+de(v):k=='temp'?tC(v):k=='grind'?grindTxt():v}
 // alle sinnvollen Werte zum Antippen, aktueller Wert in der Mitte
-function vals(k,i){var b=bounds(k,i),cur=getV(k,i),out=[],a=lvl()=='a',p=lvl()=='p';
+function vals(k,i){var b=bounds(k,i),cur=getV(k,i),out=[],a=SG('worte'),p=SG('raster')==1;
  function rng(lo,hi,st,lab){for(var x=Math.ceil(lo/st-1e-9)*st;x<=hi+1e-9;x+=st){x=Math.round(x*100)/100;out.push([x,lab?lab(x):de(x)])}}
  if(a&&k=='g'){if(i==0)[2,3].forEach(function(x){out.push([Math.round(W.dose*x/5)*5,x==2?'kleiner Schluck':'großer Schluck'])});else FR.forEach(function(w){out.push([Math.round(total()*w[0]/5)*5,'bis '+w[1]])})}
  else if(a&&k=='t')[20,30,40,45,50,60,75,90,105,120,135,150,180].forEach(function(v){out.push([v,aT(v)])});
@@ -654,7 +667,7 @@ function vals(k,i){var b=bounds(k,i),cur=getV(k,i),out=[],a=lvl()=='a',p=lvl()==
  out=out.filter(function(o){return o[0]>=b[0]-1e-9&&o[0]<=b[1]+1e-9});
  if(!out.some(function(o){return Math.abs(o[0]-cur)<1e-9})&&!(a&&k=='g'&&out.some(function(o){return o[1]==fmt('g',i)}))){out.push([cur,k=='g'?(a?fmt(k,i):String(cur)):k=='t'||k=='e'?mm(cur):k=='d'?cur+' s':de(cur)]);out.sort(function(x,y){return x[0]-y[0]})}
  return out}
-function fine(k){if(k=='d'||k=='temp')return 1;if(k=='grind')return grinder().st;if(k=='dose')return hasScale()?(lvl()=='p'?.5:1):7;if(k=='ratio')return .5;return lvl()=='p'?1:5}
+function fine(k){if(k=='d'||k=='temp')return 1;if(k=='grind')return grinder().st;if(k=='dose')return hasScale()?(SG('raster')==1?.5:1):7;if(k=='ratio')return .5;return SG('raster')}
 function ruler(k,i){var b=bounds(k,i),cur=getV(k,i);
  if(k=='t'&&i==0)return '<div class="note">Der erste Aufguss beginnt immer bei 0:00.</div>';
  if(k=='g'&&lvl()=='a'&&i==W.P.length-1)return '<div class="note">'+(W.P.length==1?'Das ganze Wasser auf einmal.':'Der Rest bis zur Gesamtmenge. Die kommt aus den Tassen.')+'</div>';
@@ -701,6 +714,7 @@ function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl(
    '<g transform="translate('+(x-5)+' '+(ay-5)+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1">'+shape(k,10).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g>'}
   var an=e.end?'end':'start',tx=e.end?x-6:x+6,y1=e.up?ay-56:ay+28;
   s+='<text class="l0" x="'+tx+'" y="'+y1+'" text-anchor="'+an+'">'+esc(fit(e.tm,w))+'</text><text class="l1" x="'+tx+'" y="'+(y1+14)+'" text-anchor="'+an+'">'+esc(fit(e.l1,w))+'</text>'+(e.l2?'<text class="l2" x="'+tx+'" y="'+(y1+27)+'" text-anchor="'+an+'">'+esc(fit(e.l2,w))+'</text>':'')});
+ if(o.now!=null){var xn=X(o.now);s+='<line x1="'+xn+'" x2="'+xn+'" y1="'+(ay-16)+'" y2="'+(ay+16)+'" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round"/>'}
  return s+'</svg>'}
 function lineCard(){return '<button class="line" data-a="'+(lvl()=='a'?'brew':'edit')+'" aria-label="'+(lvl()=='a'?'Brühen':'Rezept anpassen')+'">'+lineSVG()+'</button>'}
 
@@ -728,11 +742,11 @@ function chartSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,Wd=340,H=o.h||(lvl(
  return s+'</svg>'}
 function snap(v,tol){var m=Math.round(v/5)*5;return Math.abs(v-m)<=tol?m:Math.round(v)}
 function chartEl(){return $('chart')}
-document.addEventListener('pointerdown',function(e){var ch=chartEl();if(!ch||!ch.contains(e.target)||lvl()=='a')return;var h=e.target.closest('.hit');
+document.addEventListener('pointerdown',function(e){var ch=chartEl();if(!ch||!ch.contains(e.target)||!SG('graph'))return;var h=e.target.closest('.hit');
  if(!h){var l=e.target.closest('[data-li]');if(l){U.open=+l.dataset.li;U.k='g';drawBr()}return}
  var i=+h.dataset.i,r=ch.querySelector('svg').getBoundingClientRect();e.preventDefault();
  D={i:i,cx:e.clientX,cy:e.clientY,t:W.P[i].t,g:W.P[i].g,sc:CG.W/r.width,last:''};U.open=i;U.k='g';try{ch.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
-document.addEventListener('pointermove',function(e){if(!D)return;var dx=(e.clientX-D.cx)*D.sc,dy=(e.clientY-D.cy)*D.sc,i=D.i,p=lvl()=='p';
+document.addEventListener('pointermove',function(e){if(!D)return;var dx=(e.clientX-D.cx)*D.sc,dy=(e.clientY-D.cy)*D.sc,i=D.i,p=SG('raster')==1;
  // magnetisch auf 5er; Profi kann dazwischen landen, Interessiert rastet immer auf 5
  if(i>0)setV('t',i,p?snap(D.t+dx*CG.T/(CG.x1-CG.x0),1.5):Math.round((D.t+dx*CG.T/(CG.x1-CG.x0))/5)*5);
  setV('g',i,p?snap(D.g-dy*CG.G/(CG.y1-CG.y0),2.5):Math.round((D.g-dy*CG.G/(CG.y1-CG.y0))/5)*5);
@@ -744,7 +758,7 @@ document.addEventListener('pointermove',function(e){if(!D)return;var dx=(e.clien
 /* ---------- Seite Brühen ---------- */
 function fitsF(f){var t=dev().typ;return !f.passt||!f.passt.length||f.passt.indexOf(t)>=0}
 function useOpts(k){var L=eqOf(k);if(k=='filter'){if(meth()!='filter')return [];L=L.filter(fitsF)}var o=L.map(function(x){return [x.id,x.name+(k=='filter'&&x.gr?' '+x.gr:'')]});
- if(k=='waage'&&L.length)o.push(['none','ohne Waage']);if(k=='kocher'&&L.some(function(x){return x.temp}))o.push(['none','ohne °C']);if(k=='muehle'&&L.some(function(x){return x.typ!='pre'}))o.push(['none','vorgemahlen']);return o}
+ if(k=='waage'&&L.length&&SG('loeffel'))o.push(['none','ohne Waage']);if(k=='kocher'&&L.some(function(x){return x.temp}))o.push(['none','ohne °C']);if(k=='muehle'&&L.some(function(x){return x.typ!='pre'}))o.push(['none','vorgemahlen']);return o}
 function curId(k){var e=k=='filter'?filterNow():cur(k);return e?e.id:'none'}
 function useChips(k){var O=useOpts(k);if(O.length<2)return '';return '<div class="tch">'+O.map(function(x){return '<button class="chip'+(curId(k)==x[0]?' on':'')+'" data-a="use" data-k="'+k+'" data-id="'+x[0]+'">'+esc(x[1])+'</button>'}).join('')+'</div>'}
 function useGroup(k){var c=useChips(k);if(!c){var e=k=='filter'?filterNow():cur(k);if(!e||(k=='filter'&&meth()!='filter'))return '';return '<div class="fl"><span class="lab">'+KATN[k][0]+'</span><div class="fix">'+esc(e.name)+'</div></div>'}return '<div class="fl"><span class="lab">'+KATN[k][0]+'</span>'+c+'</div>'}
@@ -759,10 +773,16 @@ function todayBar(){var d=dev(),g=grinder(),s=cur('waage'),k=cur('kocher'),f=fil
  if(meth()=='filter'||f)h+=tdy('filter',PK.filter,'Filter',f?f.name+(f.gr?' · '+f.gr:''):'keiner');
  return h+'</div>'}
 function kzRow(){var F=FERT[meth()][0];return '<button class="kz kzb" data-a="edit"><div><b>'+kaffee(W.dose)+'</b><span>Kaffee</span></div><div><b>'+wTxt(total())+'</b><span>Wasser</span></div><div><b>'+ratio()+'</b><span>Verhältnis</span></div><div><b>'+mm(W.end)+'</b><span>'+F+'</span></div></button>'}
-function metaRow(){var g=grinder();return '<button class="meta" data-a="edit">'+[g&&g.typ!='pre'?esc(g.name)+' · '+grindTxt():'vorgemahlen',tempCtl()?tC(W.temp):'aufkochen, 30 s warten'].join(' · ')+'</button>'}
+// was diese Brühung braucht (nur Anzeige, gewählt wird in den Zeilen)
+function gearList(){var g=grinder(),sc=cur('waage'),k=cur('kocher'),f=meth()=='filter'?filterNow():null,L=[];
+ L.push(['Mühle',g&&g.typ!='pre'?esc(g.name)+', '+grindTxt():'vorgemahlen']);
+ L.push(['Waage',sc?esc(sc.name):SG('loeffel')?'Messlöffel':'ohne']);
+ L.push(['Wasser',(k?esc(k.name)+', ':'')+hot()]);
+ if(f)L.push(['Filter',esc(f.name)+(f.gr?' '+esc(f.gr):'')]);
+ return '<div class="easy">'+L.map(function(x){return '<div class="r"><span>'+x[0]+'</span><b>'+x[1]+'</b></div>'}).join('')+'</div>'}
 function row(key,pc,icon,name,sub,big,body){var o=U.open===key;return '<div class="'+(o?'ao':'')+'" style="--pc:'+pc+'"><button class="ar" data-a="open" data-o="'+key+'" aria-expanded="'+o+'">'+icon+'<span class="nm"><b>'+name+'</b><span>'+sub+'</span></span><span class="big">'+big+'</span>'+chev+'</button>'+(o?'<div class="ab">'+body+'</div>':'')+'</div>'}
-function kseg(i){var L=[['g','Menge'],['t','Zeit']];if(lvl()=='p')L.push(['d','Dauer']);return '<div class="seg">'+L.map(function(x){return '<button class="'+(U.k==x[0]?'on':'')+'" data-a="k" data-k="'+x[0]+'">'+x[1]+' <b>'+fmt(x[0],i)+'</b></button>'}).join('')+'</div>'}
-function tech(i){if(lvl()=='a'||(i==0&&W.P[0].n=='Bloom'&&W.P.length>1))return '';var T=TECH[meth()];return '<div class="tch">'+T.map(function(t){return '<button class="chip'+(W.P[i].n==t?' on':'')+'" data-a="tech" data-t="'+t+'" data-i="'+i+'">'+t+'</button>'}).join('')+'</div>'}
+function kseg(i){var L=[['g','Menge'],['t','Zeit']];if(SG('dauer'))L.push(['d','Dauer']);return '<div class="seg">'+L.map(function(x){return '<button class="'+(U.k==x[0]?'on':'')+'" data-a="k" data-k="'+x[0]+'">'+x[1]+' <b>'+fmt(x[0],i)+'</b></button>'}).join('')+'</div>'}
+function tech(i){if(!SG('technik')||(i==0&&W.P[0].n=='Bloom'&&W.P.length>1))return '';var T=TECH[meth()];return '<div class="tch">'+T.map(function(t){return '<button class="chip'+(W.P[i].n==t?' on':'')+'" data-a="tech" data-t="'+t+'" data-i="'+i+'">'+t+'</button>'}).join('')+'</div>'}
 function acts(i){return '<div class="acts"><button class="lnk" data-a="add" data-i="'+i+'">+ danach</button>'+(W.P.length>1?'<button class="lnk del" data-a="del" data-i="'+i+'">Entfernen</button>':'')+'</div>'}
 function ic0(ch){return '<span class="mk ic0">'+ch+'</span>'}
 function prepRows(){var p=lvl()=='p',g=grinder(),h='<div class="ac">',r=ratio();
@@ -774,7 +794,7 @@ function prepRows(){var p=lvl()=='p',g=grinder(),h='<div class="ac">',r=ratio();
  h+=row('temp','var(--acc)','<span class="ic">'+PK[tempCtl()?'kettle':'pot']+'</span>','Temperatur',tempCtl()?(GESCH[PR.gesch]||GESCH.mitte)[0]+' · Profil':'Kocher ohne Temperatur',tempCtl()?tC(W.temp):'kochen',(VAR=='b'?useChips('kocher'):'')+(tempCtl()?ruler('temp',0):'<div class="note">Aufkochen, Deckel auf, 30 Sekunden warten. Das sind ungefähr 94–96 °C.</div>'));
  var f=filterNow();if(VAR=='b'&&meth()=='filter'&&f)h+=row('filt','var(--acc)','<span class="ic">'+PK.filter+'</span>','Filter',(FTC.filter(function(z){return z[0]==f.typ})[0]||['',''])[1],esc(f.gr||''),useChips('filter')||'<div class="note">'+esc(f.name)+'</div>');
  return h+'</div>'}
-function pourRows(){var a=lvl()=='a',p=lvl()=='p',h='<div class="ac">',m=meth();
+function pourRows(){var a=SG('worte'),p=SG('fluss'),h='<div class="ac">',m=meth();
  W.P.forEach(function(qq,i){var sub=a?aT(qq.t).replace(/^n/,'N'):'ab '+mm(qq.t)+(qq.n&&!(i==0&&qq.n=='Bloom')?' · '+qq.n:'')+(p?' · +'+addOf(i)+' · '+de(Math.round(flowOf(i)*10)/10)+' '+unitW()+'/s':'');
   var big=a?aG(i):qq.g+' '+unitW(),body=a?('<div class="seg"><button class="'+(U.k!='t'?'on':'')+'" data-a="k" data-k="g">Wie viel</button><button class="'+(U.k=='t'?'on':'')+'" data-a="k" data-k="t">Wann</button></div>'+ruler(U.k=='t'?'t':'g',i)+acts(i)):(kseg(i)+ruler(U.k,i)+tech(i)+acts(i));
   h+=row(i,C(i),mk(i),nameOf(i),sub,big,body)});
@@ -783,16 +803,16 @@ function pourRows(){var a=lvl()=='a',p=lvl()=='p',h='<div class="ac">',m=meth();
 function cupIc(n,on){var c=on?'var(--acc)':'var(--mut)';return '<svg viewBox="0 0 40 40" fill="none" stroke="'+c+'" stroke-width="2.2" stroke-linecap="round"><path d="M9 15h18v9a8 8 0 0 1-8 8h-2a8 8 0 0 1-8-8z" fill="'+(on?'color-mix(in srgb,var(--acc) 22%,transparent)':'none')+'"/><path d="M27 18h2a4 4 0 0 1 0 8h-2"/><path d="M14 6c-1.5 2 1.5 3 0 5M20 6c-1.5 2 1.5 3 0 5"/></svg>'}
 function easyTop(){var h='<div class="cups">';for(var n=1;n<=4;n++)h+='<button class="cupb'+(W.cups==n?' on':'')+'" data-a="cups" data-n="'+n+'">'+cupIc(n,W.cups==n)+'<b>'+n+'</b>'+(n==1?'Tasse':'Tassen')+'</button>';
  h+='</div>';
- var g=grinder();h+='<div class="easy"><div class="r"><span>Kaffee</span><b>'+kaffee(W.dose)+'</b></div><div class="r"><span>Mahlen</span><b>'+(g&&g.typ!='pre'?grindTxt()+' an der '+esc(g.name):'vorgemahlen')+'</b></div><div class="r"><span>Wasser</span><b>'+wTxt(total())+', '+hot()+'</b></div></div>';
+ var g=grinder();var f=meth()=='filter'?filterNow():null;h+='<div class="easy"><div class="r"><span>Kaffee</span><b>'+kaffee(W.dose)+'</b></div><div class="r"><span>Mahlen</span><b>'+(g&&g.typ!='pre'?grindTxt()+' an der '+esc(g.name):'vorgemahlen')+'</b></div><div class="r"><span>Wasser</span><b>'+wTxt(total())+', '+hot()+'</b></div>'+(f?'<div class="r"><span>Filter</span><b>'+esc(f.name)+(f.gr?' '+esc(f.gr):'')+'</b></div>':'')+'</div>';
  return h}
 function easyHead(){var d=dev();return '<div class="rh"><span class="ic eh">'+devIc(d.typ)+'</span><span class="t"><b>'+esc(d.name)+'</b></span>'+(eqOf('geraet').length>1?'<button class="pill" data-a="heute" data-only="geraet">Wechseln</button>':'')+'</div>'}
 function applyCups(){var st=W.str||PR.staerke,r=PR.ratio+STR[st][1],wv=W.cups*PR.tasse;scaleTo(Math.round(wv/5)*5);W.dose=Math.round(total()/r*2)/2}
 function drawBr(keep){if(!W)loadW();var a=lvl()=='a',sl=[].map.call(document.querySelectorAll('#brx .rl'),function(r){return r.scrollLeft});
  var r=rzById(W.id),ch=changed();
- var ed=!a&&U.edit,sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
- $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+'</div>';
- var c=chartEl();c.hidden=!ed;if(ed)c.innerHTML=chartSVG({ghost:ch&&r?{P:r.P,end:r.end}:null})+(D?'':'<span class="chint">Punkte ziehen</span>');else c.innerHTML='';
- $('brRows').innerHTML=a?lineCard():ed?prepRows()+pourRows():kzRow()+metaRow()+lineCard();
+ var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit),gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
+ $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+'</div>'+(gr?gearList():'');
+ var c=chartEl();c.hidden=!gr;if(gr)c.innerHTML=chartSVG({ghost:ch&&r?{P:r.P,end:r.end}:null})+(D?'':'<span class="chint">Punkte ziehen</span>');else c.innerHTML='';
+ $('brRows').innerHTML=a?lineCard():ed?prepRows()+pourRows():kzRow()+gearList()+lineCard();
  $('brFoot').innerHTML=a?'<button class="go" data-a="brew">Brühen</button>':ed?'<div class="foot"><span class="mut">'+FERT[meth()][0]+' nach</span><b style="font:700 15px var(--num)">'+mm(W.end)+'</b><span class="sp"></span><span class="mut">'+kaffee(W.dose)+' · '+ratio()+'</span><button class="lnk" data-a="add" data-i="'+(W.P.length-1)+'">+ Aufguss</button></div>'+(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button>':
   '<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Anpassen</button>'+(ch?'<button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'')+'</div>';
  if(keep){[].forEach.call(document.querySelectorAll('#brx .rl'),function(rl,k){if(sl[k]!=null)rl.scrollLeft=sl[k]});if(D)center()}else center()}
@@ -840,7 +860,7 @@ function bframe(now){var t=B.t,ph=B.sc?B.sc.frame(Math.min(t,W.end+6),now,{calm:
  if(!B.sc)$('stage').innerHTML=ring(Math.max(0,t));
  var key=ph.k+(ph.i!=null?ph.i:'');if(B.ph&&key!=B.ph&&B.run&&PR.vib&&navigator.vibrate)try{navigator.vibrate(ph.k=='pour'?[30,40,30]:20)}catch(e){}B.ph=key;
  $('bwTime').textContent=t<0?String(Math.ceil(-t)):mm(t);$('bwTitle').textContent=x[0];$('bwTitle').style.color=ph.k=='pour'?C(ph.i):'';$('bwLine').textContent=x[1];$('bwNext').textContent=x[2];$('bwBig').innerHTML=bigOf(t,ph);
- $('bwStrip').innerHTML=lvl()=='a'?'':'<div class="chart bwc">'+chartSVG({plan:true,sel:-1,h:150,extra:function(X){var x=X(Math.max(0,t));return '<line x1="'+x+'" x2="'+x+'" y1="14" y2="128" stroke="var(--ink)" stroke-width="2"/>'}})+'</div>';return ph}
+ $('bwStrip').innerHTML=!SG('graph')?(SG('worte')?'':'<div class="line bwc">'+lineSVG({now:Math.max(0,t)})+'</div>'):'<div class="chart bwc">'+chartSVG({plan:true,sel:-1,h:150,extra:function(X){var x=X(Math.max(0,t));return '<line x1="'+x+'" x2="'+x+'" y1="14" y2="128" stroke="var(--ink)" stroke-width="2"/>'}})+'</div>';return ph}
 function bloop(now){B.raf=0;if(!B.run||$('bw').hidden||document.hidden)return;var dt=Math.min(.1,(now-B.last)/1000);B.last=now;B.t+=dt*B.speed;
  if(B.t>W.end+3){B.t=W.end+3;B.run=false;B.done=true;bbtn();relLock()}
  bframe(now);if(B.run)B.raf=requestAnimationFrame(bloop)}
@@ -932,11 +952,11 @@ function drawSh(){var o=U.sh,h='';if(!o)return closeSh();var e=o.id&&byId(o.id);
   '<button class="li" data-a="rzcopy"><span class="nm"><b>Kopieren</b></span></button>'+
   (r.hist.length?'<button class="li" data-a="rzback"><span class="nm"><b>Zurück zu Version '+r.hist[r.hist.length-1].v+'</b><span>die aktuelle Version bleibt im Verlauf</span></span></button>':'')+
   '<button class="li" data-a="rzdel"><span class="nm"><b style="color:var(--warn)">Löschen</b></span></button></div>'}
- else if(o.k=='rate'){var a=lvl()=='a',tp=tipOf();h=shHead('Wie war die Tasse?');
+ else if(o.k=='rate'){var a=SG('bewerten')=='einfach',tp=tipOf();h=shHead('Wie war die Tasse?');
   if(a)h+='<div class="kp" style="grid-template-columns:repeat(2,1fr)">'+[['gut','Lecker'],['sauer','Zu sauer'],['bitter','Zu bitter'],['duenn','Zu dünn']].map(function(x){return '<button class="'+(RT.easy==x[0]?'on':'')+'" data-a="rset" data-f="easy" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>';
   else{h+='<div class="stars">'+[1,2,3,4,5].map(function(n){return '<button class="'+(RT.stars>=n?'on':'')+'" data-a="rset" data-f="stars" data-v="'+n+'" aria-label="'+n+' Sterne">★</button>'}).join('')+'</div>'+
    '<div class="fl"><span class="lab">Geschmack</span>'+segR('taste',[['sauer','sauer'],['ok','ausgewogen'],['bitter','bitter']])+'</div><div class="fl"><span class="lab">Körper</span>'+segR('body',[['duenn','dünn'],['ok','passt'],['schwer','schwer']])+'</div>';
-   if(lvl()=='p'){var ey=eyOf();h+='<div class="fl"><span class="lab">TDS (Refraktometer)'+(ey!=null?' · Extraktion '+de(ey)+' %'+(ey<18?' · unter':ey>22?' · über':' · im')+' Zielbereich 18–22 %':'')+'</span><div class="ru"><div class="rl">'+range(1,1.8,.05,function(v){return de(v,2)}).map(function(x){return '<button class="rv'+(RT.tds!=null&&Math.abs(x[0]-RT.tds)<1e-9?' on':'')+'" data-a="rset" data-f="tds" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div></div>'}}
+   if(SG('tds')){var ey=eyOf();h+='<div class="fl"><span class="lab">TDS (Refraktometer)'+(ey!=null?' · Extraktion '+de(ey)+' %'+(ey<18?' · unter':ey>22?' · über':' · im')+' Zielbereich 18–22 %':'')+'</span><div class="ru"><div class="rl">'+range(1,1.8,.05,function(v){return de(v,2)}).map(function(x){return '<button class="rv'+(RT.tds!=null&&Math.abs(x[0]-RT.tds)<1e-9?' on':'')+'" data-a="rset" data-f="tds" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div></div></div>'}}
   h+='<div class="tip"><span class="nm"><b>'+tp[0]+'</b><span class="note">'+tp[1]+'</span></span>'+(tp[2]?'<button class="pill acc" data-a="tipok">Übernehmen</button>':'')+'</div><div class="sec"><button class="pill" data-a="ratesave" style="height:48px">Ins Tagebuch</button></div>'}
  else if(o.k=='data'){h=shHead('Daten')+'<div class="ls"><button class="li" data-a="export"><span class="nm"><b>Sicherung speichern</b><span>alles als Datei: Profil, Ausrüstung, Rezepte, Tagebuch</span></span></button>'+
   '<label class="li" style="cursor:pointer"><span class="nm"><b>Sicherung laden</b><span>auch eine Sicherung aus dem Coffee Atlas</span></span><input type="file" accept="application/json,.json" id="imp" hidden></label>'+
@@ -945,6 +965,7 @@ function drawSh(){var o=U.sh,h='';if(!o)return closeSh();var e=o.id&&byId(o.id);
  var sht=$('sh').querySelector('.sht');if(sht&&!$('sh').hidden&&U.sh.k==U.shk){var st0=sht.scrollTop;sht.innerHTML=h;sht.scrollTop=st0}else $('sh').innerHTML='<div class="sht" role="dialog" aria-modal="true">'+h+'</div>';U.shk=U.sh.k;$('sh').hidden=false;
  setTimeout(function(){[].forEach.call($('sh').querySelectorAll('.rl'),function(rl){var on=rl.querySelector('.on');if(on)rl.scrollLeft=on.offsetLeft-rl.clientWidth/2+on.offsetWidth/2})},0);
  var im=$('imp');if(im)im.onchange=function(){var f=im.files[0];if(!f)return;var fr=new FileReader();fr.onload=function(){importJSON(fr.result)};fr.readAsText(f)}}
+function sure(x){if(x.dataset.ok)return true;x.dataset.ok='1';x.textContent='Nochmal tippen zum Löschen';x.classList.add('warnb');return false}
 function segR(f,L){return '<div class="seg">'+L.map(function(x){return '<button class="'+(RT[f]==x[0]?'on':'')+'" data-a="rset" data-f="'+f+'" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'}
 function rzSub(r){var tot=r.P[r.P.length-1].g;return de(r.dose)+' g · '+tot+' g · '+r.P.length+(r.P.length==1?' Aufguss':' Aufgüsse')+' · '+mm(r.end)+' · Version '+r.ver}
 function owned(kat,typ){var L=eqOf(kat);if(kat=='waage'||kat=='kocher'){var c=(kat=='waage'?SCC:KEC)[+typ];return c&&!/^Eigene/.test(c[0])?L.filter(function(e){return e.name==c[0]})[0]:null}
@@ -962,7 +983,7 @@ function fromAtlas(list){var n=0;list.forEach(function(r){var typ=mapTyp(r.brewe
  save();return n}
 function atlasData(){try{var s=localStorage.getItem('coffee-atlas-rezepte-v1');if(!s)return null;var out=[];collect(JSON.parse(s),out);return out.length?out:null}catch(e){return null}}
 function importJSON(txt){var d;try{d=JSON.parse(txt)}catch(e){toast('Datei nicht lesbar');return}
- if(d&&d.v&&d.profil&&d.eq){if(!confirm('Sicherung laden? Die jetzigen Daten werden ersetzt.'))return;DB=d;PR=DB.profil;save();W=null;closeSh();boot();toast('Sicherung geladen');return}
+ if(d&&d.v&&d.profil&&d.eq){DB=d;PR=DB.profil;save();W=null;closeSh();boot();toast('Sicherung geladen');return}
  var out=[];collect(d,out);if(!out.length){toast('Keine Rezepte in der Datei');return}var n=fromAtlas(out);closeSh();render();toast(n+' Rezepte übernommen')}
 function exportJSON(){var b=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='bruehbuch-sicherung-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
 
@@ -1050,14 +1071,14 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
   save();drawSh();render();return;
  case 'passt':if(!e)return;e.passt=e.passt||[];var ix=e.passt.indexOf(d.v);if(ix>=0)e.passt.splice(ix,1);else e.passt.push(d.v);save();drawSh();render();return;
  case 'fav':case 'favq':var it=a=='fav'?e:byId(d.id);if(!it)return;var was=it.fav;eqOf(it.kat).forEach(function(z){z.fav=false});it.fav=!was;if(it.fav)delete DB.heute[it.kat];save();if(a=='fav')drawSh();render();return;
- case 'eqdel':if(!e)return;if(e.kat=='geraet'&&eqOf('geraet').length<2){toast('Mindestens ein Brühgerät bleibt');return}if(!confirm('„'+e.name+'“ entfernen?'))return;DB.eq=DB.eq.filter(function(z){return z!==e});if(DB.heute[e.kat]==e.id)delete DB.heute[e.kat];save();closeSh();W=null;render();return;
+ case 'eqdel':if(!e)return;if(e.kat=='geraet'&&eqOf('geraet').length<2){toast('Mindestens ein Brühgerät bleibt');return}if(!sure(x))return;DB.eq=DB.eq.filter(function(z){return z!==e});if(DB.heute[e.kat]==e.id)delete DB.heute[e.kat];save();closeSh();W=null;render();return;
  case 'pref':openSh({k:'pref',f:d.f,typ:d.typ,t:x.querySelector('b').textContent});return;
  case 'pset':PR[d.f]=d.v;save();if(U.sh)drawSh();W=null;render();return;
  case 'pstd':PR.std[U.sh.typ]=d.id;save();drawSh();render();return;
  case 'data':openSh({k:'data'});return;
  case 'export':exportJSON();return;
  case 'atlas':var nn=fromAtlas(atlasData()||[]);closeSh();render();toast(nn+' Rezepte übernommen');return;
- case 'reset':if(!confirm('Wirklich alles löschen? Vorher am besten eine Sicherung speichern.'))return;try{localStorage.removeItem(KEY)}catch(z){}DB=fresh();PR=DB.profil;W=null;closeSh();boot();return;
+ case 'reset':if(!sure(x))return;try{localStorage.removeItem(KEY)}catch(z){}DB=fresh();PR=DB.profil;W=null;closeSh();boot();return;
  case 'rzpick':openSh({k:'rzpick'});return;
  case 'rzuse':useRz(d.id);return;
  case 'rznew':openSh({k:'rznew',typ:d.typ});return;
@@ -1068,7 +1089,7 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'rzstd':var rr=rzById(U.sh.id);PR.std[rr.typ]=rr.id;save();drawSh();render();return;
  case 'rzcopy':var rc=cp(rzById(U.sh.id));rc.id=uid();rc.name+=' · Kopie';rc.ver=1;rc.hist=[];delete rc.src;DB.rz.push(rc);save();closeSh();render();toast('Kopie angelegt');return;
  case 'rzback':var rb=rzById(U.sh.id),hv=rb.hist.pop();rb.hist.push({v:rb.ver,at:Date.now(),dose:rb.dose,end:rb.end,temp:rb.temp,P:rb.P,grind:rb.grind});['dose','end','temp','P','grind'].forEach(function(k){rb[k]=cp(hv[k])});rb.ver++;if(DB.draft&&DB.draft.id==rb.id)DB.draft=null;W=null;save();closeSh();render();toast('Version '+hv.v+' ist wieder aktiv');return;
- case 'rzdel':var rd=rzById(U.sh.id);if(!confirm('„'+rd.name+'“ löschen?'))return;DB.rz=DB.rz.filter(function(z){return z!==rd});if(PR.std[rd.typ]==rd.id)delete PR.std[rd.typ];if(DB.draft&&DB.draft.id==rd.id)DB.draft=null;W=null;save();closeSh();render();return;
+ case 'rzdel':var rd=rzById(U.sh.id);if(!sure(x))return;DB.rz=DB.rz.filter(function(z){return z!==rd});if(PR.std[rd.typ]==rd.id)delete PR.std[rd.typ];if(DB.draft&&DB.draft.id==rd.id)DB.draft=null;W=null;save();closeSh();render();return;
  case 'rzf':U.rzf=d.v;drawRz();return;
  case 'rset':RT[d.f]=d.f=='stars'||d.f=='tds'?+d.v:d.v;drawSh();return;
  case 'tipok':var tp=tipOf();logBrew();applyTip(tp[2]);closeSh();closeBrew();toast(tp[0]+' · im Rezept übernommen');return;
