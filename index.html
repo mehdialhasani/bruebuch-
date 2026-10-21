@@ -533,7 +533,7 @@ var WASS={leitung:'Leitungswasser',filter:'Gefiltert',flasche:'Flaschenwasser',r
  zeilen: Ausklapp-Zeilen (false / 'anpassen' = erst nach Antippen / true = immer) · loeffel: ohne Waage Messlöffel
  raster: Schritt für Mengen/Zeiten · dauer/fluss: Gießdauer und g/s · technik: Gießart · tds: Refraktometer */
 var STUFE={
- a:{worte:true, graph:false,linie:true, zeilen:false,     loeffel:true, raster:5,dauer:false,fluss:false,technik:false,tds:false,bewerten:'einfach'},
+ a:{worte:true, graph:false,linie:true, zeilen:'anpassen',loeffel:true, raster:5,dauer:false,fluss:false,technik:false,tds:false,bewerten:'einfach'},
  m:{worte:false,graph:false,linie:true, zeilen:'anpassen',loeffel:false,raster:5,dauer:false,fluss:false,technik:true, tds:false,bewerten:'sterne'},
  p:{worte:false,graph:true, linie:false,zeilen:true,      loeffel:false,raster:1,dauer:true, fluss:true, technik:true, tds:true, bewerten:'sterne'}};
 function SG(k){return (STUFE[PR.stufe]||STUFE.m)[k]}
@@ -716,7 +716,7 @@ function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl(
   s+='<text class="l0" x="'+tx+'" y="'+y1+'" text-anchor="'+an+'">'+esc(fit(e.tm,w))+'</text><text class="l1" x="'+tx+'" y="'+(y1+14)+'" text-anchor="'+an+'">'+esc(fit(e.l1,w))+'</text>'+(e.l2?'<text class="l2" x="'+tx+'" y="'+(y1+27)+'" text-anchor="'+an+'">'+esc(fit(e.l2,w))+'</text>':'')});
  if(o.now!=null){var xn=X(o.now);s+='<line x1="'+xn+'" x2="'+xn+'" y1="'+(ay-16)+'" y2="'+(ay+16)+'" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round"/>'}
  return s+'</svg>'}
-function lineCard(){return '<button class="line" data-a="'+(lvl()=='a'?'brew':'edit')+'" aria-label="'+(lvl()=='a'?'Brühen':'Rezept anpassen')+'">'+lineSVG()+'</button>'}
+function lineCard(){return '<button class="line" data-a="edit" aria-label="Rezept anpassen">'+lineSVG()+'</button>'}
 
 /* ---------- Diagramm mit ziehbaren Punkten ---------- */
 var CG=null,D=null,raf=0;
@@ -812,8 +812,8 @@ function drawBr(keep){if(!W)loadW();var a=lvl()=='a',sl=[].map.call(document.que
  var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit),gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
  $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+'</div>'+(gr?gearList():'');
  var c=chartEl();c.hidden=!gr;if(gr)c.innerHTML=chartSVG({ghost:ch&&r?{P:r.P,end:r.end}:null})+(D?'':'<span class="chint">Punkte ziehen</span>');else c.innerHTML='';
- $('brRows').innerHTML=a?lineCard():ed?prepRows()+pourRows():kzRow()+gearList()+lineCard();
- $('brFoot').innerHTML=a?'<button class="go" data-a="brew">Brühen</button>':ed?'<div class="foot"><span class="mut">'+FERT[meth()][0]+' nach</span><b style="font:700 15px var(--num)">'+mm(W.end)+'</b><span class="sp"></span><span class="mut">'+kaffee(W.dose)+' · '+ratio()+'</span><button class="lnk" data-a="add" data-i="'+(W.P.length-1)+'">+ Aufguss</button></div>'+(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button>':
+ $('brRows').innerHTML=a?(ed?pourRows():lineCard()):ed?prepRows()+pourRows():kzRow()+gearList()+lineCard();
+ $('brFoot').innerHTML=a?(ed?(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Fertig</button></div>':'<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Anpassen</button></div>'):ed?'<div class="foot"><span class="mut">'+FERT[meth()][0]+' nach</span><b style="font:700 15px var(--num)">'+mm(W.end)+'</b><span class="sp"></span><span class="mut">'+kaffee(W.dose)+' · '+ratio()+'</span><button class="lnk" data-a="add" data-i="'+(W.P.length-1)+'">+ Aufguss</button></div>'+(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button>':
   '<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Anpassen</button>'+(ch?'<button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'')+'</div>';
  if(keep){[].forEach.call(document.querySelectorAll('#brx .rl'),function(rl,k){if(sl[k]!=null)rl.scrollLeft=sl[k]});if(D)center()}else center()}
 function center(){[].forEach.call(document.querySelectorAll('.rl'),function(rl){var on=rl.querySelector('.on');if(on)rl.scrollLeft=on.offsetLeft-rl.clientWidth/2+on.offsetWidth/2})}
@@ -948,6 +948,7 @@ function drawSh(){var o=U.sh,h='';if(!o)return closeSh();var e=o.id&&byId(o.id);
   L2.forEach(function(x){var T=x[0]=='dev'?DEVR[t2]:TPL[x[0]];h+='<button class="li" data-a="rzmake" data-typ="'+t2+'" data-tpl="'+x[0]+'"><span class="nm"><b>'+x[1]+'</b><span>'+T.P.length+' Aufgüsse · '+mm(T.end)+'</span></span>'+arrow+'</button>'});h+='</div></div>'}
  else if(o.k=='rzact'){var r=rzById(o.id);if(!r)return closeSh();h=shHead(esc(r.name))+'<div class="line">'+lineSVG({P:r.P,end:r.end,m:DEVC[r.typ].m})+'</div><div class="fl"><label for="rzName">Name</label><input class="tx" id="rzName" value="'+esc(r.name)+'" autocomplete="off" data-a="rzname"></div><div class="ls">'+
   '<button class="li" data-a="rzbrew"><span class="nm"><b>Damit brühen</b></span>'+arrow+'</button>'+
+  '<button class="li" data-a="rzedit"><span class="nm"><b>Bearbeiten</b><span>Mengen, Zeiten, Aufgüsse</span></span>'+arrow+'</button>'+
   '<button class="li" data-a="rzstd"><span class="nm"><b>'+(PR.std[r.typ]==r.id?'Standard für '+DEVC[r.typ].n+' ✓':'Als Standard für '+DEVC[r.typ].n)+'</b></span></button>'+
   '<button class="li" data-a="rzcopy"><span class="nm"><b>Kopieren</b></span></button>'+
   (r.hist.length?'<button class="li" data-a="rzback"><span class="nm"><b>Zurück zu Version '+r.hist[r.hist.length-1].v+'</b><span>die aktuelle Version bleibt im Verlauf</span></span></button>':'')+
@@ -1073,7 +1074,7 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'fav':case 'favq':var it=a=='fav'?e:byId(d.id);if(!it)return;var was=it.fav;eqOf(it.kat).forEach(function(z){z.fav=false});it.fav=!was;if(it.fav)delete DB.heute[it.kat];save();if(a=='fav')drawSh();render();return;
  case 'eqdel':if(!e)return;if(e.kat=='geraet'&&eqOf('geraet').length<2){toast('Mindestens ein Brühgerät bleibt');return}if(!sure(x))return;DB.eq=DB.eq.filter(function(z){return z!==e});if(DB.heute[e.kat]==e.id)delete DB.heute[e.kat];save();closeSh();W=null;render();return;
  case 'pref':openSh({k:'pref',f:d.f,typ:d.typ,t:x.querySelector('b').textContent});return;
- case 'pset':PR[d.f]=d.v;save();if(U.sh)drawSh();W=null;render();return;
+ case 'pset':PR[d.f]=d.v;if(d.f=='stufe')U.edit=false;save();if(U.sh)drawSh();W=null;render();return;
  case 'pstd':PR.std[U.sh.typ]=d.id;save();drawSh();render();return;
  case 'data':openSh({k:'data'});return;
  case 'export':exportJSON();return;
@@ -1086,6 +1087,7 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'rzmake':var t3=d.typ,nr=mkRz(t3,d.tpl=='dev'?null:TPL[d.tpl],DEVC[t3].n+' · '+(d.tpl=='dev'?'Neu':d.tpl));DB.rz.push(nr);save();useRz(nr.id);toast('Rezept angelegt');return;
  case 'rzact':openSh({k:'rzact',id:d.id});return;
  case 'rzbrew':useRz(U.sh.id);return;
+ case 'rzedit':useRz(U.sh.id);U.edit=true;U.open=-1;drawBr();window.scrollTo(0,0);return;
  case 'rzstd':var rr=rzById(U.sh.id);PR.std[rr.typ]=rr.id;save();drawSh();render();return;
  case 'rzcopy':var rc=cp(rzById(U.sh.id));rc.id=uid();rc.name+=' · Kopie';rc.ver=1;rc.hist=[];delete rc.src;DB.rz.push(rc);save();closeSh();render();toast('Kopie angelegt');return;
  case 'rzback':var rb=rzById(U.sh.id),hv=rb.hist.pop();rb.hist.push({v:rb.ver,at:Date.now(),dose:rb.dose,end:rb.end,temp:rb.temp,P:rb.P,grind:rb.grind});['dose','end','temp','P','grind'].forEach(function(k){rb[k]=cp(hv[k])});rb.ver++;if(DB.draft&&DB.draft.id==rb.id)DB.draft=null;W=null;save();closeSh();render();toast('Version '+hv.v+' ist wieder aktiv');return;
