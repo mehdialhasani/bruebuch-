@@ -39,6 +39,8 @@
  --pp-paper:#3b3129;--pp-steam:rgba(255,255,255,.32);--pp-scale:#2d2622;--pp-chip:rgba(30,25,22,.78);--pp-rim:rgba(255,255,255,.22)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;overscroll-behavior-y:none}
 button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -184,6 +186,27 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .obs i{width:26px;height:5px;border-radius:3px;background:var(--hair)}.obs i.on{background:var(--acc)}
 .ob h1{text-align:center;margin-bottom:4px}
 .ob p.lead{text-align:center;color:var(--mut);margin:0 0 16px}
+.ob .pg{min-height:100%;display:flex;flex-direction:column}
+.ob-hi{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;min-height:60vh}
+.ob-hallo{font:200 clamp(38px,12vw,64px)/1.05 var(--f);text-align:center;letter-spacing:-.04em;margin-bottom:12px;animation:obHi 1.1s cubic-bezier(.2,.7,.2,1) both}
+.ob-hi .lead{max-width:300px;animation:obHi 1.1s .25s cubic-bezier(.2,.7,.2,1) both}
+@keyframes obHi{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.ob-f{animation:obF .35s cubic-bezier(.2,.7,.2,1)}.ob-b{animation:obB .35s cubic-bezier(.2,.7,.2,1)}
+@keyframes obF{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}@keyframes obB{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+.ob-name{margin-top:22px;width:min(280px,100%);height:50px;border:0;border-radius:14px;background:var(--card);color:var(--ink);font:300 20px var(--f);text-align:center;animation:obHi 1.1s .45s cubic-bezier(.2,.7,.2,1) both}
+.ob-name::placeholder{color:var(--mut)}
+.ob-demo{margin-bottom:4px}.ob-demo .bub rect{fill:var(--pc)}.ob-demo .bub text{fill:#fff;font:400 12px var(--num)}
+.ob-fg{fill:rgba(255,255,255,.35);stroke:var(--ink);stroke-width:1.4;opacity:.85}
+.ob-cap{text-align:center;font-size:15px;color:var(--ink);margin:2px 0 12px;min-height:20px}
+.tr-x{display:grid;grid-template-rows:0fr;transition:grid-template-rows .3s cubic-bezier(.2,.7,.2,1)}.tr-x.on{grid-template-rows:1fr}.tr-x>div{overflow:hidden;min-height:0}
+.tr-ru{display:flex;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none;padding:8px 2px;-webkit-mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent);mask-image:linear-gradient(90deg,transparent,#000 18px,#000 calc(100% - 18px),transparent)}.tr-ru::-webkit-scrollbar{display:none}
+.tr-v{flex:none;width:48px;height:48px;border:0;border-radius:12px;background:var(--fill2);font:400 17px var(--num);scroll-snap-align:center;transition:background .15s,color .15s}.tr-v.on{background:var(--acc);color:#fff}
+.tr-n{transition:opacity .15s}.ob-demo svg{touch-action:none}.ob-demo{position:relative}
+.ob-wo{font-size:15px;color:var(--ink);background:var(--card);border-radius:12px;padding:8px 14px;margin:0;animation:obHi 1.1s .45s cubic-bezier(.2,.7,.2,1) both}
+.ob-r{background:var(--card);border-radius:18px;padding:4px 12px}
+.ob-r .ic.gi{display:flex;align-items:center;justify-content:center;width:44px;height:44px}.ob-r .ic.gi svg{width:36px;height:36px}
+.ob-ctl{display:flex;gap:8px;margin-top:auto;padding-top:18px}.ob-ctl .pill{flex:1;height:50px}
+@media (prefers-reduced-motion:reduce){.ob-hallo,.ob-hi .lead,.ob-f,.ob-b{animation:none}}
 /* Brühen-Vollbild */
 .bw{position:fixed;inset:0;z-index:45;background:var(--bg);overflow:auto}
 .bw .pg{display:flex;flex-direction:column;align-items:center;padding-bottom:max(24px,env(safe-area-inset-bottom))}
@@ -249,7 +272,8 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .warnb{background:var(--warn)!important;color:#fff!important}
 .line.bwc{padding:4px 6px}
 /* Linie bearbeiten */
-.led{touch-action:pan-y}
+.led{touch-action:pan-y;position:relative}
+.lzo{position:absolute;right:10px;bottom:6px;border:0;border-radius:999px;background:var(--fill2);color:var(--ink);font:400 13px var(--f);padding:7px 12px;min-height:32px}
 .lhit{fill:transparent;touch-action:none;cursor:grab}
 .seg.avw{margin-bottom:10px}
 .ar.st{cursor:default}
@@ -266,28 +290,20 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .hq{flex:none;width:34px;height:34px;border:1px solid var(--hair);border-radius:50%;background:var(--card);color:var(--ink2);font-size:15px;position:relative}
 .hq::after{content:"";position:absolute;inset:-5px}
 /* Hilfe im Prezi-Stil */
-.hw{position:fixed;inset:0;z-index:80;background:var(--bg);display:flex;flex-direction:column;padding:max(10px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
-.hw-top{display:flex;align-items:center;gap:8px;margin-bottom:8px}.hw-top b{flex:1;font-size:17px;font-weight:500}
-.hw-st{position:relative;flex:1;min-height:260px;max-height:52vh;overflow:hidden;border-radius:22px;background:radial-gradient(120% 90% at 20% 0%,color-mix(in srgb,var(--acc2) 28%,var(--bg)),var(--bg) 70%)}
-.hw-w{position:absolute;left:0;top:0;width:1000px;height:720px;transform-origin:0 0;transition:transform .85s cubic-bezier(.65,0,.25,1)}
-.hw-w.rm{transition:none}
-.hw-ti{position:absolute;font:300 44px var(--f);letter-spacing:-.02em;color:var(--ink)}
-.hw-c{position:absolute;width:260px;height:160px;border:0;border-radius:24px;background:var(--card);text-align:left;padding:20px 22px;box-shadow:0 18px 36px -24px rgba(90,60,30,.45)}
-.hw-c small{display:block;font-size:17px;color:var(--mut)}
-.hw-c b{display:block;font:300 48px/1.1 var(--num);letter-spacing:-.02em;margin:4px 0;white-space:nowrap}
-.hw-c span{display:block;font-size:17px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.hw-l{position:absolute;width:700px;height:362px;border:0;border-radius:28px;background:var(--card);padding:0;box-shadow:0 18px 36px -24px rgba(90,60,30,.45)}
-.hw-l svg{display:block;width:100%;height:100%}
-.hw-hl{position:absolute;border:2px solid var(--acc);border-radius:26px;opacity:0;transition:opacity .4s,left .85s cubic-bezier(.65,0,.25,1),top .85s cubic-bezier(.65,0,.25,1),width .85s cubic-bezier(.65,0,.25,1),height .85s cubic-bezier(.65,0,.25,1);pointer-events:none}
-.hw-cap{min-height:96px;padding:14px 4px 4px}
-.hw-cap b{display:block;font-size:22px;font-weight:500;letter-spacing:-.02em}
-.hw-cap p{margin:4px 0 0;font-size:15px;line-height:1.4;color:var(--ink2)}
-.hw-dots{display:flex;gap:2px;justify-content:center;margin:6px 0 10px}
-.hw-dots button{width:22px;height:22px;border:0;background:none;position:relative;padding:0}
-.hw-dots button::before{content:"";position:absolute;left:7px;top:7px;width:8px;height:8px;border-radius:50%;background:var(--hair)}
-.hw-dots button.on::before{background:var(--acc)}
-.hw-ctl .pill{height:48px;border-radius:14px}
-@media (prefers-reduced-motion:reduce){.hw-w,.hw-hl{transition:opacity .2s}}
+.hk-r{display:flex;align-items:center;gap:12px;padding:8px 0;border-top:1px solid var(--hair)}.hk-r:first-child{border-top:0}
+.hk-r>span b{display:block;font-size:15px;font-weight:500}.hk-r>span span{display:block;font-size:13px;color:var(--ink2)}
+.gi{flex:none;width:44px;height:44px}
+.gi .ga{fill:none;stroke:var(--mut);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.gi .gd{fill:var(--acc)}.gi .gf{fill:rgba(255,255,255,.35);stroke:var(--ink);stroke-width:1.4;opacity:.8}
+.gi-tap .gf{animation:giTap 1.8s ease-in-out infinite;transform-origin:24px 24px}
+.gi-y .gf,.gi-y .gd{animation:giY 2.2s ease-in-out infinite}
+.gi-x .gf,.gi-x .gd{animation:giX 2.2s ease-in-out infinite}
+.gi-sw .gf{animation:giX 2.2s ease-in-out infinite}
+@keyframes giTap{0%,100%{transform:scale(1.25);opacity:0}30%{transform:scale(1);opacity:.8}45%{transform:scale(.8)}60%{transform:scale(1);opacity:.8}}
+@keyframes giY{0%,100%{transform:translateY(0)}35%{transform:translateY(-12px)}70%{transform:translateY(10px)}}
+@keyframes giX{0%,100%{transform:translateX(0)}35%{transform:translateX(12px)}70%{transform:translateX(-10px)}}
+.line .l0.hi{font-weight:500}
+@media (prefers-reduced-motion:reduce){.gi *{animation:none!important}}
 
 </style></head>
 <body>
@@ -740,7 +756,7 @@ function theme(){var t=PR.theme;if(t=='auto')document.documentElement.removeAttr
 /* ---------- Ruhige Linie (wie die Rezeptkarte aus dem Atlas) ---------- */
 var LG=null,LD=null;
 function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl()=='a',ed=!!o.edit,Wd=340,ay=ed?100:88,H=ed?194:176,x0=ed?16:8,x1=Wd-(ed?16:8),last=P[P.length-1],T=LD?LD.T:Math.max(end,last.t+last.d+10)*(ed?1.12:1),zw=ed?zoomWin(T):null,w0=zw?zw[0]:0,w1=zw?zw[1]:T,zm=w1-w0<T-1;
- if(ed)LG={x0:x0,x1:x1,T:T,W:Wd};
+ if(ed)LG={x0:x0,x1:x1,T:T,W:Wd,h:[]};
  function X(t){return +(x0+(x1-x0)*(zm?(t-w0)/(w1-w0):cl(t,0,T)/T)).toFixed(1)}
  function fit(t,w){var n=Math.max(4,Math.floor(w/5.9));return t.length>n?t.slice(0,n-1)+'…':t}
  var s='<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="Brühverlauf"'+(zm?' class="zm"':'')+'>'+(zm?'<defs><clipPath id="lzc"><rect x="'+(x0-6)+'" y="0" width="'+(x1-x0+12)+'" height="'+H+'"/></clipPath></defs><g clip-path="url(#lzc)">':'')+'<line class="lx" x1="'+x0+'" x2="'+x1+'" y1="'+ay+'" y2="'+ay+'"/>';
@@ -755,16 +771,15 @@ function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl(
   else{var x2=Math.max(X(e.t+e.d),x+5);s+='<line class="lf" x1="'+x+'" x2="'+x+'" y1="'+(k?fy:ay)+'" y2="'+ly+'"/><line class="lf" x1="'+x+'" x2="'+x2+'" y1="'+fy+'" y2="'+fy+'"/>'+
    '<g transform="translate('+(x-5)+' '+(ay-5)+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1">'+shape(k,10).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g>'}
   var an=e.end?'end':'start',tx=e.end?x-6:x+6,y1=e.up?ay-56:ay+28;
-  s+='<text class="l0" x="'+tx+'" y="'+y1+'" text-anchor="'+an+'">'+esc(fit(e.tm,w))+'</text><text class="l1" x="'+tx+'" y="'+(y1+14)+'" text-anchor="'+an+'">'+esc(fit(e.l1,w))+'</text>'+(e.l2?'<text class="l2" x="'+tx+'" y="'+(y1+27)+'" text-anchor="'+an+'">'+esc(fit(e.l2,w))+'</text>':'')});
+  var hi=o.hi===k;s+='<text class="l0'+(hi?' hi':'')+'" x="'+tx+'" y="'+y1+'" text-anchor="'+an+'"'+(hi&&!e.end?' style="fill:'+C(k)+'"':'')+'>'+esc(fit(e.tm,w))+'</text><text class="l1" x="'+tx+'" y="'+(y1+14)+'" text-anchor="'+an+'">'+esc(fit(e.l1,w))+'</text>'+(e.l2?'<text class="l2" x="'+tx+'" y="'+(y1+27)+'" text-anchor="'+an+'">'+esc(fit(e.l2,w))+'</text>':'')});
  if(zm)s+='</g>';
  if(ed){P.forEach(function(p,k){if(zm&&(p.t<w0-2||p.t>w1+2))return;var x=X(p.t),on=LD&&LD.i==k&&LD.k=='p';
-   s+='<g transform="translate('+(x-(on?9:7))+' '+(ay-(on?9:7))+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1.5">'+shape(k,on?18:14).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g><circle class="lhit" data-li="'+k+'" data-lk="p" cx="'+x+'" cy="'+ay+'" r="22"/>';
-   if(SG('dauer')){var up=k%2==0,x2=Math.max(X(p.t+p.d),x+5),fy=ay+(up?-9:9);s+='<circle cx="'+x2+'" cy="'+fy+'" r="3.5" style="fill:'+C(k)+'"/><circle class="lhit" data-li="'+k+'" data-lk="d" cx="'+(x2+8)+'" cy="'+fy+'" r="16"/>'}});
-  var xe=X(end);if(!zm||end<=w1+2)s+='<rect x="'+(xe-4)+'" y="'+(ay-4)+'" width="8" height="8" rx="2" fill="var(--ink)"/><circle class="lhit" data-li="-1" data-lk="e" cx="'+xe+'" cy="'+ay+'" r="22"/>';
+   s+='<g transform="translate('+(x-(on?9:7))+' '+(ay-(on?9:7))+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1.5">'+shape(k,on?18:14).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g><circle class="lhit" data-li="'+k+'" data-lk="p" cx="'+x+'" cy="'+ay+'" r="22"/>';LG.h.push({i:k,k:'p',x:x,y:ay});
+   if(SG('dauer')&&U.open===k){var up=k%2==0,x2=Math.max(X(p.t+p.d),x+5),fy=ay+(up?-9:9);s+='<circle cx="'+x2+'" cy="'+fy+'" r="3.5" style="fill:'+C(k)+'"/><circle class="lhit" data-li="'+k+'" data-lk="d" cx="'+(x2+8)+'" cy="'+fy+'" r="16"/>';LG.h.push({i:k,k:'d',x:x2+8,y:fy})}});
+  var xe=X(end);if(!zm||end<=w1+2)s+='<rect x="'+(xe-4)+'" y="'+(ay-4)+'" width="8" height="8" rx="2" fill="var(--ink)"/><circle class="lhit" data-li="-1" data-lk="e" cx="'+xe+'" cy="'+ay+'" r="22"/>',LG.h.push({i:-1,k:'e',x:xe,y:ay});
   if(LD){var bt,bx,bc;if(LD.k=='e'){bt=FERT[m][0]+' '+mm(end);bx=xe;bc='var(--ink)'}else{var q=P[LD.i];bt=LD.k=='d'?'Dauer '+q.d+' s':mm(q.t)+' · auf '+q.g+' '+unitW();bx=X(q.t);bc=C(LD.i)}
    var bw=Math.max(96,bt.length*7.6+20);bx=cl(bx,bw/2+2,Wd-bw/2-2);s+='<g class="bub" style="--pc:'+bc+'"><rect x="'+(bx-bw/2)+'" y="2" width="'+bw+'" height="28" rx="14"/><text x="'+bx+'" y="21" text-anchor="middle">'+esc(bt)+'</text></g>'}
-  else s+='<text class="l2" x="'+x0+'" y="'+(H-4)+'">← → Zeit · ↑ ↓ Menge</text>';
-  if(zm)s+='<text class="l2" x="'+x1+'" y="'+(H-4)+'" text-anchor="end">Zoom '+mm(w0)+'–'+mm(w1)+'</text>'}
+  else s+='<text class="l2" x="'+x0+'" y="'+(H-4)+'">← → Zeit · ↑ ↓ Menge</text>'}
  if(o.now!=null){var xn=X(o.now);s+='<line x1="'+xn+'" x2="'+xn+'" y1="'+(ay-16)+'" y2="'+(ay+16)+'" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round"/>'}
  return s+'</svg>'}
 function lineCard(){return '<button class="line" data-a="edit" aria-label="Rezept anpassen">'+lineSVG()+'</button>'}
@@ -774,21 +789,29 @@ function zoomWin(T){if(!ZA)return null;var p=reduce?1:cl((performance.now()-ZA.s
  var w=[f[0]+(t[0]-f[0])*e,f[1]+(t[1]-f[1])*e];if(p>=1&&!ZA.t){ZA=null;return null}return w}
 function zoomTo(c,T){var span=Math.min(T,70),a=cl(c-span/2,0,Math.max(0,T-span));ZA={f:ZA&&ZA.t?ZA.t:[0,T],t:[a,a+span],s:performance.now()}}
 function zoomOut(T){if(!ZA||!ZA.t)return;ZA={f:ZA.t,t:null,s:performance.now()}}
-function lineEdit(){return '<div class="line led" id="lineEd">'+lineSVG({edit:true})+'</div>'}
+function lineEdit(){var h=lineSVG({edit:true});return '<div class="line led" id="lineEd">'+h+(ZA&&ZA.t?'<button class="lzo" data-a="zout">Ganze Linie</button>':'')+'</div>'}
+// Griff am nächsten zum Finger (statt oberstes Element): weniger Fehltreffer, wenn Griffe dicht liegen
+function lineHit(e){var sv=e.target.closest&&e.target.closest('#lineEd svg');if(!sv||!LG||!LG.h)return null;var r=sv.getBoundingClientRect(),sc=LG.W/r.width,px=(e.clientX-r.left)*sc,py=(e.clientY-r.top)*sc,b=null,bd=28;
+ LG.h.forEach(function(h){var d=Math.hypot(h.x-px,h.y-py)-(h.k=='p'?4:0);if(d<bd){bd=d;b=h}});return b?{h:b,r:r}:null}
 // Linie ziehen: waagerecht = Zeit, senkrecht = Menge (Richtung rastet nach 10 px ein), Wert steht über dem Finger
-document.addEventListener('pointerdown',function(e){var h=e.target.closest('#lineEd .lhit');if(!h||!SG('ziehen'))return;e.preventDefault();
- var i=+h.dataset.li,k=h.dataset.lk,r=$('lineEd').querySelector('svg').getBoundingClientRect(),q=W.P[i]||{};
- var fine=SG('raster')==1;LD={i:i,k:k,cx:e.clientX,cy:e.clientY,t:q.t,g:q.g,d:q.d,e:W.end,T:LG.T,sc:LG.W/r.width,gp:Math.max(.25,total()/(fine?600:240)),ax:k=='p'?null:'x',last:''};
- if(fine){var ct=k=='e'?W.end:k=='d'?q.t+q.d:q.t;zoomTo(ct,LG.T);LD.zw=ZA.t}U.open=i>=0?i:'e';U.k='g';try{h.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
+// iOS: kein Markieren, keine Lupe, kein Scrollen, wenn der Finger einen Griff trifft
+document.addEventListener('touchstart',function(e){if(LD||(SG('ziehen')&&lineHit(e.touches[0]?{target:e.target,clientX:e.touches[0].clientX,clientY:e.touches[0].clientY}:e)))e.preventDefault()},{passive:false});
+document.addEventListener('pointerdown',function(e){if(!SG('ziehen'))return;var m=lineHit(e);if(!m)return;e.preventDefault();
+ var i=m.h.i,k=m.h.k,r=m.r,q=W.P[i]||{};
+ var fine=SG('raster')==1;LD={i:i,k:k,cx:e.clientX,cy:e.clientY,t:q.t,g:q.g,d:q.d,e:W.end,T:LG.T,sc:LG.W/r.width,gp:Math.max(.25,total()/(fine?600:240)),ax:null,last:''};
+ // Profi: Zoom bleibt stehen; nur neu zoomen, wenn der Griff nicht im Ausschnitt liegt
+ if(fine){var ct=k=='e'?W.end:k=='d'?q.t+q.d:q.t;if(!(ZA&&ZA.t&&ct>ZA.t[0]+3&&ct<ZA.t[1]-3))zoomTo(ct,LG.T);LD.zw=ZA.t}U.open=i>=0?i:'e';U.k='g';try{e.target.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
 document.addEventListener('pointermove',function(e){if(!LD)return;var dx=(e.clientX-LD.cx)*LD.sc,dy=(e.clientY-LD.cy)*LD.sc,p=SG('raster')==1,dt=dx*(LD.zw?LD.zw[1]-LD.zw[0]:LD.T)/(LG.x1-LG.x0);
- if(!LD.ax){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;LD.ax=Math.abs(dx)>=Math.abs(dy)?'x':'y';if(LD.i==0&&LD.ax=='x')LD.ax='y'}
+ if(!LD.ax){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;LD.ax=LD.k!='p'||Math.abs(dx)>=Math.abs(dy)?'x':'y';if(LD.k=='p'&&LD.i==0&&LD.ax=='x')LD.ax='y'}
  function sn(v){return p?snap(v,1.5):Math.round(v/5)*5}
  if(LD.k=='e')setV('e',0,sn(LD.e+dt));else if(LD.k=='d')setV('d',LD.i,Math.round(LD.d+dt));
  else if(LD.ax=='x')setV('t',LD.i,sn(LD.t+dt));else setV('g',LD.i,p?snap(LD.g-dy*LD.gp,2.5):Math.round((LD.g-dy*LD.gp)/5)*5);
  U.k=LD.ax=='x'?(LD.k=='d'?'d':'t'):'g';
  var q=W.P[LD.i]||{},key=q.t+'/'+q.g+'/'+q.d+'/'+W.end;if(key!=LD.last&&PR.vib&&navigator.vibrate)try{navigator.vibrate(4)}catch(x){}LD.last=key;
  if(!raf)raf=requestAnimationFrame(function(){raf=0;drawBr(1)})});
-['pointerup','pointercancel'].forEach(function(t){document.addEventListener(t,function(){if(!LD)return;var TT=LD.T;LD=null;zoomOut(TT);touch();drawBr(1)})});
+['pointerup','pointercancel'].forEach(function(t){document.addEventListener(t,function(){if(!LD)return;var TT=LD.T,q=W.P[LD.i]||{},ct=LD.k=='e'?W.end:LD.k=='d'?q.t+q.d:q.t;LD=null;
+ // Zoom bleibt nach dem Loslassen; läuft der Punkt aus dem Ausschnitt, fährt er mit
+ if(ZA&&ZA.t&&(ct<ZA.t[0]+3||ct>ZA.t[1]-3))zoomTo(ct,TT);touch();drawBr(1)})});
 // Anfänger:in: Schritte als einfache Liste
 function stepList(){var h='<div class="ac">';W.P.forEach(function(q,i){h+='<div class="ar st">'+mk(i)+'<span class="nm"><b>'+nameOf(i)+'</b><span>'+aT(q.t).replace(/^n/,'N')+'</span></span><span class="big">'+aG(i)+'</span></div>'});
  var F=FERT[meth()];return h+'<div class="ar st">'+ic0('✓')+'<span class="nm"><b>'+F[0]+'</b><span>'+F[1]+'</span></span><span class="big">'+mm(W.end)+' Min.</span></div></div>'}
@@ -880,12 +903,12 @@ function cupIc(n,on){var c=on?'var(--acc)':'var(--mut)';return '<svg viewBox="0 
 function easyTop(){var h='<div class="cups">';for(var n=1;n<=4;n++)h+='<button class="cupb'+(W.cups==n?' on':'')+'" data-a="cups" data-n="'+n+'">'+cupIc(n,W.cups==n)+'<b>'+n+'</b>'+(n==1?'Tasse':'Tassen')+'</button>';
  var g=grinder();h+='</div><div class="ez"><div><small>Kaffee</small><b>'+kaffee(W.dose)+'</b><span>'+(g&&g.typ!='pre'?'mahlen: '+grindTxt():'vorgemahlen')+'</span></div><div><small>Wasser</small><b>'+wTxt(total())+'</b><span>'+(tempCtl()?tC(W.temp):'aufkochen, 30 s warten')+'</span></div></div>';
  return h}
-var HQ='<button class="hq" data-a="help" aria-label="So liest du dein Rezept">?</button>';
+var HQ=''; // Erklärung steckt im Intro (Profil → Intro ansehen)
 function easyHead(){var d=dev();return '<div class="rh"><span class="ic eh">'+devIc(d.typ)+'</span><span class="t"><b>'+esc(d.name)+'</b></span>'+(eqOf('geraet').length>1?'<button class="pill" data-a="heute" data-only="geraet">Wechseln</button>':'')+HQ+'</div>'}
 function applyCups(){var st=W.str||PR.staerke,r=PR.ratio+STR[st][1],wv=W.cups*PR.tasse;scaleTo(Math.round(wv/5)*5);W.dose=Math.round(total()/r*2)/2}
 function drawBr(keep){if(!W)loadW();var a=lvl()=='a',sl=[].map.call(document.querySelectorAll('#brx .rl'),function(r){return r.scrollLeft});
  var r=rzById(W.id),ch=changed();
- var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit),gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
+ var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit);if(!ed||SG('raster')!=1)ZA=null;var gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
  $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+HQ+'</div>'+(Z===true?gearList():'');
  var c=chartEl();c.hidden=!gr;if(gr)c.innerHTML=chartSVG({ghost:ch&&r?{P:r.P,end:r.end}:null})+(D?'':'<span class="chint">Punkte ziehen</span>');else c.innerHTML='';
  $('brRows').innerHTML=a?(ed?pourRows():''):ed?(SG('ziehen')?lineEdit():'')+prepRows()+pourRows():kzRow()+gearList()+lineCard();
@@ -903,45 +926,15 @@ function delStep(i){if(W.P.length<2)return;var last=i==W.P.length-1,tot=total();
 function saveRz(){var r=rzById(W.id);if(!r)return;r.hist.push({v:r.ver,at:Date.now(),dose:r.dose,end:r.end,temp:r.temp,P:r.P,grind:r.grind});r.ver++;['dose','end','temp','P','grind','name'].forEach(function(k){r[k]=cp(W[k])});DB.draft=null;W=cp(r);save();toast('Version '+r.ver+' gesichert');drawBr()}
 
 /* ---------- Hilfe: Rezept und Linie erklärt (Prezi-Stil: eine große Fläche, die Kamera fährt und zoomt) ---------- */
-var HP={i:0,play:0,tm:0};
-function helpStops(){var a=lvl()=='a',g=grinder(),r=ratio(),P=W.P,L=[
- {id:'all',t:'So liest du dein Rezept',x:'Tippe auf einen Teil oder auf Weiter.'},
- {id:'kaffee',t:'Kaffee',x:kaffee(W.dose)+' frisch gemahlener Kaffee. '+(hasScale()?'Filter mit Kaffee auf die Waage, dann auf 0 stellen.':'Ein Messlöffel sind etwa 7 g.')},
- {id:'wasser',t:'Wasser',x:wTxt(total())+' Wasser auf '+kaffee(W.dose)+' Kaffee. '+(a?'Mehr Tassen heißt einfach mehr von beidem.':'Das ist das Verhältnis '+r+': auf 1 g Kaffee kommen '+de(Math.round(ratioV()*10)/10)+' g Wasser.')+' '+(tempCtl()?tC(W.temp)+' heiß.':'Aufkochen, 30 s warten.')},
- {id:'mahl',t:'Mahlgrad',x:g&&g.typ!='pre'?grindTxt()+' an der '+g.name+'. Feiner schmeckt kräftiger und läuft langsamer, gröber heller und schneller.':'Vorgemahlener Kaffee, hier stellst du nichts ein.'},
- {id:'linie',t:'Die Linie',x:'Sie zeigt dein Rezept als Zeitstrahl, von links nach rechts.'},
- {id:'achse',t:'Zeit',x:'Jeder kleine Strich sind 30 Sekunden, ein großer eine Minute.'},
- {id:'flag',t:'Ein Aufguss',x:a?'Jedes Fähnchen ist ein Mal Gießen: wann, und wie viel.':'Jedes Fähnchen ist ein Aufguss: oben die Zeit von–bis, dann wie viel du gießt und auf welches Gewicht die Waage dann zeigt. Farbe und Form gehören zum Aufguss.'},
- {id:'end',t:FERT[meth()][0],x:meth()=='filter'?'Hier ist alles durchgelaufen. Genieß deine Tasse.':'Hier wird gedrückt.'}];
- if(SG('ziehen'))L.push({id:'ziehen',t:'Selbst ändern',x:'Unter „Anpassen“ ziehst du die Punkte: waagerecht ändert die Zeit, senkrecht die Menge. Der Wert steht über deinem Finger.'+(SG('raster')==1?' Beim Ziehen zoomt die Linie auf den Schritt.':'')});
- return L}
-function helpWorld(){var g=grinder(),S=lineSVG(),xs=function(t){var last=W.P[W.P.length-1],T=Math.max(W.end,last.t+last.d+10);return 150+700*(8+324*cl(t,0,T)/T)/340};
- var f1=W.P[1]||W.P[0],fx=xs(f1.t);
- HP.R={all:[0,0,1000,720],kaffee:[60,150,260,160],wasser:[370,150,260,160],mahl:[680,150,260,160],linie:[150,340,700,362],achse:[150,475,700,100],flag:[fx-20,W.P[1]?520:345,260,180],end:[xs(W.end)-200,520,230,180],ziehen:[fx-90,420,240,200]};
- return '<div class="hw-w" id="hw">'+
-  '<div class="hw-ti" style="left:60px;top:50px;width:880px">So liest du dein Rezept</div>'+
-  '<button class="hw-c" data-a="hgo" data-h="kaffee" style="left:60px;top:150px"><small>Kaffee</small><b>'+kaffee(W.dose)+'</b><span>'+(hasScale()?'auf der Waage':'Messlöffel')+'</span></button>'+
-  '<button class="hw-c" data-a="hgo" data-h="wasser" style="left:370px;top:150px"><small>Wasser</small><b>'+wTxt(total())+'</b><span>'+ratio()+' · '+(tempCtl()?tC(W.temp):'aufkochen')+'</span></button>'+
-  '<button class="hw-c" data-a="hgo" data-h="mahl" style="left:680px;top:150px"><small>Mahlgrad</small><b>'+(g&&g.typ!='pre'?grindTxt():'vorgemahlen')+'</b><span>'+(g?esc(g.name):'')+'</span></button>'+
-  '<button class="hw-l" data-a="hgo" data-h="linie" style="left:150px;top:340px">'+S+'</button>'+
-  '<div class="hw-hl" id="hwHl"></div></div>'}
-function helpOpen(){HP.i=0;HP.play=0;var o=document.createElement('div');o.className='hw';o.id='help';o.setAttribute('role','dialog');o.setAttribute('aria-modal','true');
- o.innerHTML='<div class="hw-top"><b>So liest du dein Rezept</b><button class="x" data-a="hx" aria-label="Schließen">×</button></div><div class="hw-st" id="hwSt">'+helpWorld()+'</div>'+
-  '<div class="hw-cap"><b id="hwT"></b><p id="hwX"></p></div><div class="hw-dots" id="hwD"></div>'+
-  '<div class="sec hw-ctl"><button class="pill" data-a="hprev">Zurück</button><button class="pill" data-a="hplay" id="hwP">Abspielen</button><button class="pill acc" data-a="hnext" id="hwN">Weiter</button></div>';
- document.body.appendChild(o);document.body.style.overflow='hidden';requestAnimationFrame(function(){helpShow(0,true)})}
-function helpClose(){clearTimeout(HP.tm);HP.play=0;var o=$('help');if(o)o.remove();document.body.style.overflow=''}
-function cam(r,rot){var st=$('hwSt'),w=$('hw');if(!st||!w)return;var SW=st.clientWidth,SH=st.clientHeight,s=Math.min(SW/(r[2]*1.12),SH/(r[3]*1.12)),cx=r[0]+r[2]/2,cy=r[1]+r[3]/2;
- w.style.transform='translate('+SW/2+'px,'+SH/2+'px) rotate('+(rot||0)+'deg) scale('+s+') translate('+(-cx)+'px,'+(-cy)+'px)'}
-function helpShow(i,first){var L=helpStops();i=cl(i,0,L.length-1);var prev=HP.i;HP.i=i;var st=L[i],r=HP.R[st.id],w=$('hw');if(!w)return;
- var far=!first&&!reduce&&Math.abs(i-prev)>0&&st.id!='all'&&L[prev].id!='all';
- w.classList.toggle('rm',reduce);
- if(far){w.style.transitionDuration='.45s';cam([100,80,800,600],0);clearTimeout(HP.zt);HP.zt=setTimeout(function(){w.style.transitionDuration='';cam(r,i%2?-2:2)},430)}else{if(first)w.style.transitionDuration='0s';cam(r,st.id=='all'?0:(i%2?-2:2));if(first)requestAnimationFrame(function(){w.style.transitionDuration=''})}
- var hl=$('hwHl');if(st.id=='all'){hl.style.opacity=0}else{hl.style.cssText='left:'+(r[0]-8)+'px;top:'+(r[1]-8)+'px;width:'+(r[2]+16)+'px;height:'+(r[3]+16)+'px;opacity:1'}
- $('hwT').textContent=st.t;$('hwX').textContent=st.x;
- $('hwD').innerHTML=L.map(function(_,k){return '<button class="'+(k==i?'on':'')+'" data-a="hgo" data-n="'+k+'" aria-label="Schritt '+(k+1)+'"></button>'}).join('');
- $('hwN').textContent=i==L.length-1?'Fertig':'Weiter';$('hwP').textContent=HP.play?'Pause':'Abspielen'}
-function helpTick(){clearTimeout(HP.tm);if(!HP.play)return;HP.tm=setTimeout(function(){var L=helpStops();if(HP.i>=L.length-1){HP.play=0;helpShow(HP.i);return}helpShow(HP.i+1);helpTick()},3600)}
+// Gesten-Bilder für Intro und Handgriff-Tour
+var HP={};
+// Kleine Gesten-Bilder: Punkt + Finger, der die Bewegung vormacht
+function gest(k){var a='<svg viewBox="0 0 48 48" class="gi gi-'+k+'" aria-hidden="true">',z='</svg>',d='<circle class="gd" cx="24" cy="24" r="6"/>',f='<circle class="gf" cx="24" cy="24" r="9"/>';
+ if(k=='tap')return a+'<circle class="ga" cx="24" cy="24" r="15"/>'+d+f+z;
+ if(k=='y')return a+'<path class="ga" d="M24 6v36M19 11l5-5 5 5M19 37l5 5 5-5"/>'+d+f+z;
+ if(k=='x')return a+'<path class="ga" d="M6 24h36M11 19l-5 5 5 5M37 19l5 5-5 5"/>'+d+f+z;
+ if(k=='sw')return a+'<rect class="ga" x="4" y="16" width="40" height="16" rx="8"/><path class="ga" d="M14 24h20"/>'+f+z;
+ return a+d+z}
 
 /* ---------- Brühen (Vollbild) ---------- */
 var B={t:-5,run:false,speed:1,last:0,sc:null,raf:0,done:false,ph:'',lock:null};
@@ -1119,6 +1112,7 @@ function drawRz(){var T=typesOwned(),f=U.rzf,h='<h1>Rezepte</h1><div class="tch"
 function prefRow(f,lab,val,t){return '<button class="li" data-a="pref" data-f="'+f+'"'+(t?' data-typ="'+t+'"':'')+'><span class="nm"><b>'+lab+'</b></span><span class="val">'+val+'</span>'+arrow+'</button>'}
 function drawPr(){var h='<h1>Profil</h1><div class="me"><div class="av">'+esc((PR.name||'Ich').trim().charAt(0).toUpperCase())+'</div><div class="nm"><input id="meName" value="'+esc(PR.name)+'" placeholder="Dein Name" autocomplete="off" data-a="mename" aria-label="Name"><span class="note">'+DB.rz.length+' Rezepte · '+DB.log.length+' Tassen im Tagebuch</span></div></div>';
  h+='<h2 class="sh">Stufe</h2><div class="lvl">'+['a','m','p'].map(function(l){return '<button class="lvb'+(PR.stufe==l?' on':'')+'" data-a="pset" data-f="stufe" data-v="'+l+'">'+PK['l'+(' amp'.indexOf(l))]+LVN[l]+'</button>'}).join('')+'</div><p class="note" style="margin:0 4px">'+LVT[PR.stufe]+'</p>';
+ h+='<div class="ls" style="margin-top:10px"><button class="li" data-a="intro"><span class="nm"><b>Handgriffe ansehen</b><span>Zum Ausprobieren</span></span>'+arrow+'</button></div>';
  h+='<h2 class="sh">Meine Ausrüstung</h2><div class="ls">';
  ['geraet','muehle','waage','kocher','filter'].forEach(function(k){var L=eqOf(k);h+='<div class="gh2">'+KATN[k][1]+'</div>';
   L.forEach(function(e){h+='<button class="li" data-a="eq" data-id="'+e.id+'"><span class="ic">'+eqIcon(e)+'</span><span class="nm"><b>'+esc(e.name)+'</b><span>'+esc(eqSub(e))+'</span></span>'+arrow+'</button>'});
@@ -1130,19 +1124,100 @@ function drawPr(){var h='<h1>Profil</h1><div class="me"><div class="av">'+esc((P
  h+='<h2 class="sh">Daten</h2><div class="ls"><button class="li" data-a="data"><span class="nm"><b>Sichern, laden, übernehmen</b><span>Alles bleibt auf diesem Gerät</span></span>'+arrow+'</button></div>';
  $('prx').innerHTML=h}
 
-/* ---------- Einrichtung beim ersten Start ---------- */
-var OB={step:0,dev:['v60'],gr:['comandante'],sc:1,ke:1,lv:'m'};
-function drawOb(){var o=$('ob'),h='<div class="pg"><div class="obs">'+[0,1,2].map(function(i){return '<i class="'+(i<=OB.step?'on':'')+'"></i>'}).join('')+'</div>';
- if(OB.step==0){h+='<h1>Willkommen</h1><p class="lead">Wie gut kennst du dich aus? Du kannst das jederzeit im Profil ändern.</p><div class="ls">'+['a','m','p'].map(function(l){return '<button class="li" data-a="obl" data-v="'+l+'" style="min-height:72px"><span class="ic" style="width:48px;height:48px">'+PK['l'+(' amp'.indexOf(l))]+'</span><span class="nm"><b>'+LVN[l]+'</b><span style="white-space:normal">'+LVT[l]+'</span></span>'+(OB.lv==l?'<span class="val">✓</span>':'')+'</button>'}).join('')+'</div>'}
- if(OB.step==1){h+='<h1>Womit brühst du?</h1><p class="lead">Wähle alles, was du hast. Mehrere gehen.</p><div class="grid3">'+DEVO.map(function(t){return '<button class="tile'+(OB.dev.indexOf(t)>=0?' on':'')+'" data-a="obd" data-v="'+t+'"><span class="ic">'+devIc(t)+'</span>'+DEVC[t].n+(DEVC[t].sub?'<small>'+DEVC[t].sub+'</small>':'')+'</button>'}).join('')+'</div>'}
- if(OB.step==2){h+='<h1>Mühle, Waage, Kocher</h1><p class="lead">Daraus rechnet die App Mahlgrad, Gramm oder Messlöffel und Temperatur.</p><h2 class="sh">Mühle</h2><div class="grid3">'+GRO.map(function(t){return '<button class="tile'+(OB.gr.indexOf(t)>=0?' on':'')+'" data-a="obg" data-v="'+t+'"><span class="ic">'+PK[GRC[t].k]+'</span>'+GRC[t].n+'</button>'}).join('')+'</div>'+
+/* ---------- Intro + Einrichtung (ein Ablauf: beim ersten Start, danach im Profil „Intro ansehen“) ---------- */
+var OB={step:0,dev:['v60'],gr:['comandante'],sc:1,ke:1,lv:'m'},OBN=7;
+function obFrom(){var g=eqOf('muehle').map(function(e){return e.typ}).filter(function(t,i,a){return t&&a.indexOf(t)==i}),d=eqOf('geraet').map(function(e){return e.typ}).filter(function(t,i,a){return a.indexOf(t)==i}),k=eqOf('kocher');
+ return {step:0,again:true,dev:d.length?d:['v60'],gr:g.length?g:['pre'],sc:eqOf('waage').length?1:0,ke:k.length?(k.some(function(e){return e.temp})?1:0):1,lv:PR.stufe||'m'}}
+function obRows(L){return '<div class="ob-r">'+L.map(function(g){return '<div class="hk-r">'+(g[0].charAt(0)=='<'?'<span class="ic gi">'+g[0]+'</span>':gest(g[0]))+'<span><b>'+g[1]+'</b><span>'+g[2]+'</span></span></div>'}).join('')+'</div>'}
+function obSkip(s,dir){var a=OB.lv=='a';if(s==5&&a)s+=dir;return s}
+function drawOb(dir){if(OB.tour)return drawTour(dir);var o=$('ob'),s=OB.step,a=OB.lv=='a',h='<div class="pg ob-p'+(dir?(dir>0?' ob-f':' ob-b'):'')+'">';
+ if(s>0&&s<OBN-1)h+='<div class="obs">'+[1,2,3,4,5].filter(function(i){return !(a&&i==5)}).map(function(i){return '<i class="'+(i<=s?'on':'')+'"></i>'}).join('')+'</div>';
+ if(s==0)h+='<div class="ob-hi"><div class="ob-hallo">Hallo'+(PR.name?', '+esc(PR.name.trim()):'')+'.</div><p class="lead">'+(OB.again?'Hier kannst du alles noch einmal durchgehen und ändern.':'Lass uns dein Brühbuch zusammen einrichten. Dauert eine Minute.')+'</p><input class="ob-name" id="obName" value="'+esc(PR.name||'')+'" placeholder="Wie heißt du?" autocomplete="given-name" enterkeyhint="next" aria-label="Dein Name"></div>';
+ if(s==1){h+='<h1>Wie gut kennst du dich aus?</h1><p class="lead">Danach richtet sich, wie viel die App zeigt.</p><div class="ls">'+['a','m','p'].map(function(l){return '<button class="li" data-a="obl" data-v="'+l+'" style="min-height:72px"><span class="ic" style="width:48px;height:48px">'+PK['l'+(' amp'.indexOf(l))]+'</span><span class="nm"><b>'+LVN[l]+'</b><span style="white-space:normal">'+LVT[l]+'</span></span>'+(OB.lv==l?'<span class="val">✓</span>':'')+'</button>'}).join('')+'</div>'}
+ if(s==2){h+='<h1>Womit brühst du?</h1><p class="lead">Wähle alles, was du hast. Mehrere gehen.</p><div class="grid3">'+DEVO.map(function(t){return '<button class="tile'+(OB.dev.indexOf(t)>=0?' on':'')+'" data-a="obd" data-v="'+t+'"><span class="ic">'+devIc(t)+'</span>'+DEVC[t].n+(DEVC[t].sub?'<small>'+DEVC[t].sub+'</small>':'')+'</button>'}).join('')+'</div>'}
+ if(s==3){h+='<h1>Mühle, Waage, Kocher</h1><p class="lead">Daraus rechnet die App Mahlgrad, Gramm oder Messlöffel und Temperatur.</p><h2 class="sh">Mühle</h2><div class="grid3">'+GRO.map(function(t){return '<button class="tile'+(OB.gr.indexOf(t)>=0?' on':'')+'" data-a="obg" data-v="'+t+'"><span class="ic">'+PK[GRC[t].k]+'</span>'+GRC[t].n+'</button>'}).join('')+'</div>'+
   '<h2 class="sh">Waage</h2><div class="grid3" style="grid-template-columns:1fr 1fr"><button class="tile'+(OB.sc?' on':'')+'" data-a="obs" data-v="1"><span class="ic">'+PK.scale+'</span>Ich habe eine Waage</button><button class="tile'+(!OB.sc?' on':'')+'" data-a="obs" data-v="0"><span class="ic">'+PK.noscale+'</span>Ohne Waage<small>Messlöffel und ml</small></button></div>'+
   '<h2 class="sh">Wasserkocher</h2><div class="grid3" style="grid-template-columns:1fr 1fr"><button class="tile'+(OB.ke?' on':'')+'" data-a="obk" data-v="1"><span class="ic">'+PK.kettle+'</span>Mit Temperatur</button><button class="tile'+(!OB.ke?' on':'')+'" data-a="obk" data-v="0"><span class="ic">'+PK.pot+'</span>Ohne Temperatur</button></div>'}
- h+='<div class="sec" style="margin-top:18px">'+(OB.step?'<button class="pill" data-a="obback" style="height:50px">Zurück</button>':'<button class="pill" data-a="obskip" style="height:50px">Später</button>')+'<button class="pill acc" data-a="obnext" style="height:50px"'+(OB.step==1&&!OB.dev.length?' disabled':'')+'>'+(OB.step==2?'Fertig':'Weiter')+'</button></div><p class="note" style="text-align:center;margin-top:12px">Genaue Modelle, Filter und mehr trägst du danach im Profil ein.</p></div>';
- o.innerHTML=h;o.hidden=false}
-function obDone(skip){if(!skip){DB.eq=DB.eq.filter(function(e){return ['geraet','muehle','waage','kocher'].indexOf(e.kat)<0});OB.dev.forEach(function(t,i){var d=mkDev(t);if(!i)d.fav=true;DB.eq.push(d)});OB.gr.forEach(function(t,i){var g=mkGr(t);if(!i)g.fav=true;DB.eq.push(g)});if(OB.sc)DB.eq.push(mkSc(0));DB.eq.push(mkKe(OB.ke?0:3));
-  if(!eqOf('filter').length&&OB.dev.some(function(t){return DEVC[t].m=='filter'})){var f=mkFi();f.passt=OB.dev.filter(function(t){return DEVC[t].m=='filter'&&t!='chemex'});DB.eq.push(f)}PR.stufe=OB.lv}
- if(skip)seedDefaults();else DB.setup=true;save();DB.heute={};W=null;$('ob').hidden=true;$('ob').innerHTML='';render()}
+ if(s==4){h+='<h1>Das Wichtigste</h1><p class="lead">'+(a?'Mehr brauchst du nicht.':'Drei Dinge machen dein Rezept aus.')+'</p>';
+  h+=obRows(a?[['tap','Tassen antippen','Kaffee und Wasser rechnen sich mit.'],['tap','Brühen','Die App führt dich Schritt für Schritt.'],['tap','„So gießt du“','Zeigt vorher, wann du wie viel gießt.']]:
+   [[PK[OB.sc?'scale':'noscale'],'Kaffee und Wasser','Beides stellst du direkt ein, das Verhältnis passt sich an.'],[PK[(GRC[OB.gr[0]]||GRC.eigen).k],'Mahlgrad','Feiner schmeckt kräftiger, gröber heller. Der Startwert passt zu deiner Mühle.'],['<svg viewBox="0 0 48 48"><path class="ga" d="M4 26h40"/><path class="ga" d="M10 26V12h10M26 26v12h10"/><circle class="gd" cx="10" cy="26" r="3.5"/><circle class="gd" cx="26" cy="26" r="3.5"/></svg>','Die Linie','Jeder Aufguss: wann, wie viel und was die Waage danach zeigt.']])}
+ if(s==5){var G=[[OB.lv=='p'?'tap':'tap',OB.lv=='p'?'Zeile antippen':'Linie antippen',OB.lv=='p'?'Klappt auf, darin stellst du ein.':'Öffnet „Anpassen“.'],['sw','Zahlenleiste wischen','Dann den Wert antippen.'],];
+  if(OB.lv=='p')G.push(['tap','Punkt antippen','Zoom auf den Schritt. „Ganze Linie“ zoomt zurück.'],['x','Kleinen Griff am Fähnchen ziehen','Dauer des Aufgusses.']);
+  h+='<h1>So stellst du ein</h1><p class="lead">Die Punkte auf der Linie schiebst du mit dem Finger.</p><div class="line ob-demo" id="obDemo"></div><p class="ob-cap" id="obCap"></p>'+obRows(G)}
+ if(s==6)h+='<div class="ob-hi"><div class="ob-hallo">Fertig'+(PR.name?', '+esc(PR.name.trim()):'')+'.</div><p class="lead">Die Handgriffe kannst du jederzeit nachschauen:</p><p class="ob-wo">Profil → Handgriffe ansehen</p></div>';
+ var nx=s==0?(OB.again?'Weiter':'Los geht’s'):s==OBN-1?(OB.again?'Fertig':'Brühen'):'Weiter';
+ h+='<div class="ob-ctl">'+(s==0?'<button class="pill" data-a="obskip">'+(OB.again?'Schließen':'Später')+'</button>':'<button class="pill" data-a="obback">Zurück</button>')+'<button class="pill acc" data-a="obnext"'+(s==2&&!OB.dev.length?' disabled':'')+'>'+nx+'</button></div>'+
+  (s==3?'<p class="note" style="text-align:center;margin-top:12px">Genaue Modelle, Filter und mehr trägst du danach im Profil ein.</p>':'')+'</div>';
+ o.innerHTML=h;o.hidden=false;o.scrollTop=0;if(s==5)obDemo()}
+// Intro: kurze Vorführung der Linie, ein Finger schiebt einen Punkt hoch (Menge) und zur Seite (Zeit)
+// Linien-Vorführung: SVG wird EINMAL gebaut, danach ändern sich pro Bild nur Attribute (flüssig, auch auf dem iPhone).
+// Finger macht es vor; sobald man selbst den Punkt berührt, übernimmt man. opt.zoom: Antippen zoomt auf den Schritt.
+function lineDemo(el,opt){opt=opt||{};var NS='http://www.w3.org/2000/svg',T=200,x0=16,x1=324,ay=86,st={t:45,g:150,w0:0,w1:T,user:0,drag:null,zoom:0},P=[{t:0,g:45},st,{t:100,g:250}],t0=performance.now(),raf=0,cap=opt.cap?$(opt.cap):null;
+ function E(n,a,p){var e=document.createElementNS(NS,n);for(var k in a)e.setAttribute(k,a[k]);(p||svg).appendChild(e);return e}
+ var svg=document.createElementNS(NS,'svg');svg.setAttribute('viewBox','0 0 340 170');el.innerHTML='';el.appendChild(svg);
+ E('line',{'class':'lx',x1:x0,x2:x1,y1:ay,y2:ay});var tk=[];for(var q=0;q<=T;q+=10)tk.push({t:q,e:E('line',{'class':'lx'+(q%60?' sm':'')})});
+ var F=P.map(function(p,i){var up=i%2==0,g=E('g',{});return {g:g,pole:E('line',{'class':'lf',x1:0,x2:0,y1:ay,y2:ay+(up?-50:50)},g),t0:E('text',{'class':'l0',x:6,y:up?ay-44:ay+24},g),t1:E('text',{'class':'l1',x:6,y:up?ay-30:ay+38},g),
+  pt:E('g',{style:'fill:'+C(i)+';stroke:var(--card);stroke-width:1.5'},g)}});
+ F.forEach(function(f,i){f.pt.innerHTML='<g transform="translate(-7 '+(ay-7)+')">'+shape(i,14).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g>'});
+ var fe=E('g',{}),fp=E('line',{'class':'lf',x1:0,x2:0,y1:ay,y2:ay+50},fe),ft=E('text',{'class':'l2',x:-6,y:ay+40,'text-anchor':'end'},fe);ft.textContent=FERT.filter[0];
+ var bub=E('g',{'class':'bub',style:'--pc:'+C(1)}),br=E('rect',{x:-55,y:2,width:110,height:26,rx:13},bub),bt=E('text',{x:0,y:20,'text-anchor':'middle'},bub);
+ var fg=E('circle',{'class':'ob-fg',r:15,cx:0,cy:0}),zb=null;
+ if(opt.zoom){zb=document.createElement('button');zb.className='lzo';zb.textContent='Ganze Linie';zb.hidden=true;el.appendChild(zb);zb.onclick=function(){zoomTo(0);say('Zurück zur ganzen Linie')}}
+ function A(e,k,v){var c=e._c||(e._c={});if(c[k]!==v){c[k]=v;if(k=='o')e.style.opacity=v;else e.setAttribute(k,v)}}
+ function X(t){return x0+(x1-x0)*(t-st.w0)/(st.w1-st.w0)}
+ var last='';function say(s){if(cap&&s!=last){cap.textContent=s;last=s}}
+ function draw(fx,fy){tk.forEach(function(k){var x=X(k.t),v=x>=x0-1&&x<=x1+1&&(k.t%30==0||st.w1-st.w0<120);A(k.e,'x1',x);A(k.e,'x2',x);A(k.e,'y1',ay-(k.t%60?3:5));A(k.e,'y2',ay+(k.t%60?3:5));A(k.e,'o',v?1:0)});
+  P.forEach(function(p,i){var x=X(p.t),f=F[i],tx=mm(p.t),t1=(p.g-(i?P[i-1].g:0))+' g gießen';A(f.g,'transform','translate('+x+' 0)');A(f.g,'o',x<x0-4||x>x1+4?0:1);if(f.t0.textContent!=tx)f.t0.textContent=tx;if(f.t1.textContent!=t1)f.t1.textContent=t1});
+  var xe=X(190);A(fe,'transform','translate('+xe+' 0)');A(fe,'o',xe>x1+4?0:1);
+  var bx=cl(X(st.t),57,283),b=mm(st.t)+' · auf '+st.g+' g';A(bub,'transform','translate('+bx+' 0)');if(bt.textContent!=b)bt.textContent=b;
+  if(fx==null)A(fg,'o',0);else{A(fg,'o',.85);A(fg,'transform','translate('+fx+' '+fy+')')}}
+ var zt=null;function zoomTo(on){zt={f:[st.w0,st.w1],t:on?[cl(st.t-35,0,T-70),cl(st.t-35,0,T-70)+70]:[0,T],s:performance.now()};st.zoom=on;if(zb)zb.hidden=!on;if(!raf)loop()}
+ function ez(v){return v<.5?2*v*v:1-Math.pow(-2*v+2,2)/2}
+ function loop(){raf=0;if(!el.isConnected)return;var now=performance.now(),fx=null,fy=null;
+  if(zt){var k=reduce?1:cl((now-zt.s)/320,0,1),e=ez(k);st.w0=zt.f[0]+(zt.t[0]-zt.f[0])*e;st.w1=zt.f[1]+(zt.t[1]-zt.f[1])*e;if(k>=1)zt=null}
+  if(!st.user&&!reduce){var u=((now-t0)%4400)/4400,k1=ez(cl(u/.35,0,1)),k2=ez(cl((u-.4)/.35,0,1)),bk=ez(cl((u-.82)/.15,0,1));
+   st.g=Math.round((150+40*k1*(1-bk))/5)*5;st.t=Math.round((45+20*k2*(1-bk))/5)*5;fx=X(45+20*k2*(1-bk));fy=ay+8-40*k1*(1-bk)*.9;
+   say(u<.38?'Hoch ziehen: mehr Wasser':u<.8?'Zur Seite ziehen: später gießen':opt.zoom?'Jetzt du: zieh den Punkt, oder tipp ihn an':'Jetzt du: zieh den Punkt')}
+  draw(fx,fy);if(zt||(!st.user&&!reduce))raf=requestAnimationFrame(loop)}
+ // selbst ziehen
+ function pt(e){var r=svg.getBoundingClientRect(),s=340/r.width;return [(e.clientX-r.left)*s,(e.clientY-r.top)*s]}
+ svg.addEventListener('pointerdown',function(e){var p=pt(e);if(Math.hypot(p[0]-X(st.t),p[1]-ay)>30)return;e.preventDefault();st.user=1;st.drag={x:p[0],y:p[1],t:st.t,g:st.g,ax:null,moved:0};try{svg.setPointerCapture(e.pointerId)}catch(z){}draw()});
+ svg.addEventListener('pointermove',function(e){var d=st.drag;if(!d)return;var p=pt(e),dx=p[0]-d.x,dy=p[1]-d.y;if(!d.ax){if(Math.abs(dx)<8&&Math.abs(dy)<8)return;d.ax=Math.abs(dx)>=Math.abs(dy)?'x':'y'}d.moved=1;
+  if(d.ax=='x'){st.t=cl(Math.round((d.t+dx*(st.w1-st.w0)/(x1-x0))/5)*5,5,95);say(st.t>d.t?'Später gießen':'Früher gießen')}else{st.g=cl(Math.round((d.g-dy*1.2)/5)*5,50,245);say(st.g>d.g?'Mehr Wasser':'Weniger Wasser')}draw()});
+ svg.addEventListener('pointerup',function(){var d=st.drag;st.drag=null;if(d&&!d.moved&&opt.zoom){zoomTo(!st.zoom);say(st.zoom?'Zoom auf den Schritt: jetzt feiner ziehen':'Ganze Linie')}});
+ svg.addEventListener('touchstart',function(e){var t=e.touches[0],p=pt(t);if(Math.hypot(p[0]-X(st.t),p[1]-ay)<=30)e.preventDefault()},{passive:false});
+ loop()}
+function obDemo(){var el=$('obDemo');if(el)lineDemo(el,{cap:'obCap'})}
+// Aus dem Profil: nur die Handgriffe zum Ausprobieren (keine Einrichtung)
+var TOURS={a:['cups','brew'],m:['drag','ruler','row'],p:['drag','zoom','ruler','row']};
+function tourRuler(id,lo,hi,cur,u){var h='<div class="tr-ru" id="'+id+'">';for(var v=lo;v<=hi;v++)h+='<button class="tr-v'+(v==cur?' on':'')+'" data-a="trv" data-r="'+id+'" data-v="'+v+'">'+v+'</button>';return h+'</div>'}
+function drawTour(dir){var o=$('ob'),L=TOURS[lvl()],s=OB.step,k=L[s],h='<div class="pg ob-p'+(dir?(dir>0?' ob-f':' ob-b'):'')+'"><div class="obs">'+L.map(function(_,i){return '<i class="'+(i<=s?'on':'')+'"></i>'}).join('')+'</div>';
+ var cups=OB.cups||1,wa=Math.round(PR.tasse*cups/5)*5,ka=Math.round(wa/PR.ratio);
+ if(k=='cups')h+='<h1>Tassen antippen</h1><p class="lead">Kaffee und Wasser rechnen sich mit. Probier’s aus.</p><div class="cups">'+[1,2,3,4].map(function(n){return '<button class="cupb'+(cups==n?' on':'')+'" data-a="trc" data-n="'+n+'">'+cupIc(n,cups==n)+'<b>'+n+'</b>'+(n==1?'Tasse':'Tassen')+'</button>'}).join('')+'</div><div class="ez"><div><small>Kaffee</small><b class="tr-n">'+ka+' g</b></div><div><small>Wasser</small><b class="tr-n">'+wa+' g</b></div></div>';
+ if(k=='brew')h+='<h1>„So gießt du“</h1><p class="lead">Tipp drauf, dann siehst du, wann du wie viel gießt.</p><button class="ezm" data-a="trb" aria-expanded="'+!!OB.open+'">So gießt du'+chev+'</button><div class="tr-x'+(OB.open?' on':'')+'"><div><div class="line">'+(W?lineSVG():'')+'</div></div></div>';
+ if(k=='drag')h+='<h1>Punkte schieben</h1><p class="lead">Leg den Finger auf den Punkt und zieh.</p><div class="line ob-demo" id="obDemo"></div><p class="ob-cap" id="obCap"></p>';
+ if(k=='zoom')h+='<h1>Genauer einstellen</h1><p class="lead">Tipp einen Punkt an: Die Linie zoomt auf den Schritt.</p><div class="line ob-demo led" id="obDemo"></div><p class="ob-cap" id="obCap"></p>';
+ if(k=='ruler')h+='<h1>Zahlenleiste</h1><p class="lead">Wischen, dann den Wert antippen.</p><div class="ez" style="grid-template-columns:1fr"><div><small>Kaffee</small><b class="tr-n" id="trRv">'+(OB.rv||15)+' g</b></div></div>'+tourRuler('trR',8,30,OB.rv||15);
+ if(k=='row')h+='<h1>Zeilen aufklappen</h1><p class="lead">Tipp eine Zeile an, darin stellst du ein.</p><div class="ac"><div class="'+(OB.row?'ao':'')+'"><button class="ar" data-a="trw" aria-expanded="'+!!OB.row+'"><span class="ic">'+PK.hand+'</span><span class="nm"><b>Mahlgrad</b><span>Feiner = kräftiger</span></span><span class="big" id="trWv">'+(OB.wv||24)+' Klicks</span>'+chev+'</button><div class="tr-x'+(OB.row?' on':'')+'"><div>'+tourRuler('trW',14,34,OB.wv||24)+'</div></div></div></div>';
+ h+='<div class="ob-ctl"><button class="pill" data-a="'+(s?'obback':'obskip')+'">'+(s?'Zurück':'Schließen')+'</button><button class="pill acc" data-a="obnext">'+(s==L.length-1?'Fertig':'Weiter')+'</button></div></div>';
+ o.innerHTML=h;o.hidden=false;o.scrollTop=0;
+ if(k=='drag'||k=='zoom')lineDemo($('obDemo'),{cap:'obCap',zoom:k=='zoom'});
+ [].forEach.call(o.querySelectorAll('.tr-ru .on'),function(b){b.parentNode.scrollLeft=b.offsetLeft-b.parentNode.clientWidth/2+b.offsetWidth/2})}
+function tourClose(){$('ob').hidden=true;$('ob').innerHTML='';render()}
+function obName(){var n=$('obName');if(n){PR.name=n.value.trim().slice(0,40);save()}}
+function obGo(d){if(OB.tour){var n=OB.step+d;if(n<0)return;if(n>=TOURS[lvl()].length){tourClose();return}OB.step=n;drawTour(d);return}obName();var s=obSkip(OB.step+d,d);if(s<0)return;if(s>=OBN){obDone();return}if(d>0&&OB.step==2&&!OB.dev.length)return;OB.step=s;drawOb(d)}
+// Ausrüstung abgleichen: Neues dazu, Abgewähltes weg, Bestehendes (mit Modellen) bleibt
+function obDone(skip){obName();if(!skip){var keep=function(kat,typs,mk){var L=eqOf(kat);DB.eq=DB.eq.filter(function(e){return e.kat!=kat||typs.indexOf(e.typ)>=0});typs.forEach(function(t){if(!L.some(function(e){return e.typ==t}))DB.eq.push(mk(t))})};
+  keep('geraet',OB.dev,mkDev);keep('muehle',OB.gr,mkGr);
+  if(OB.sc&&!eqOf('waage').length)DB.eq.push(mkSc(0));if(!OB.sc)DB.eq=DB.eq.filter(function(e){return e.kat!='waage'});
+  var K=eqOf('kocher');if(!K.length||K.every(function(e){return !!e.temp!=!!OB.ke})){DB.eq=DB.eq.filter(function(e){return e.kat!='kocher'});DB.eq.push(mkKe(OB.ke?0:3))}
+  if(!eqOf('filter').length&&OB.dev.some(function(t){return DEVC[t].m=='filter'})){var f=mkFi();f.passt=OB.dev.filter(function(t){return DEVC[t].m=='filter'&&t!='chemex'});DB.eq.push(f)}PR.stufe=OB.lv;U.edit=false}
+ if(skip&&!OB.again)seedDefaults();else if(!skip)DB.setup=true;save();DB.heute={};W=null;$('ob').hidden=true;$('ob').innerHTML='';render()}
+// Wischen im Intro: nach links = weiter, nach rechts = zurück
+(function(){var x0=null,y0=0;document.addEventListener('touchstart',function(e){x0=e.target.closest('#ob')&&!e.target.closest('.rl')?e.touches[0].clientX:null;y0=e.touches[0].clientY},{passive:true});
+ document.addEventListener('input',function(e){if(e.target.id!='obName')return;var v=e.target.value.trim(),hd=document.querySelector('#ob .ob-hallo');if(hd)hd.textContent='Hallo'+(v?', '+v:'')+'.'});
+ document.addEventListener('keydown',function(e){if(e.key=='Enter'&&e.target.id=='obName'){e.preventDefault();e.target.blur();obGo(1)}});
+ document.addEventListener('touchend',function(e){if(x0==null)return;var dx=e.changedTouches[0].clientX-x0,dy=e.changedTouches[0].clientY-y0;x0=null;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)obGo(dx<0?1:-1)},{passive:true})})();
 
 /* ---------- Rahmen ---------- */
 function render(){theme();['br','rz','pr'].forEach(function(t){$('pg-'+t).hidden=U.tab!=t});[].forEach.call(document.querySelectorAll('.tabs button'),function(b){b.classList.toggle('on',b.dataset.t==U.tab);b.setAttribute('aria-selected',b.dataset.t==U.tab)});
@@ -1164,14 +1239,9 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'cups':W.cups=+d.n;applyCups();touch();drawBr();return;
  case 'str':W.str=d.s;applyCups();touch();drawBr();return;
  case 'brew':openBrew();return;
- case 'help':helpOpen();return;
- case 'hx':helpClose();return;
- case 'hnext':HP.play=0;if(HP.i>=helpStops().length-1){helpClose();return}helpShow(HP.i+1);return;
- case 'hprev':HP.play=0;helpShow(HP.i-1);return;
- case 'hplay':HP.play=!HP.play;if(HP.play&&HP.i>=helpStops().length-1)HP.i=0;helpShow(HP.i);helpTick();return;
- case 'hgo':HP.play=0;helpShow(d.n!=null?+d.n:helpStops().map(function(z){return z.id}).indexOf(d.h));return;
- case 'aopen':U.aOpen=!U.aOpen;drawBr(1);return;
- case 'edit':U.edit=!U.edit;if(U.edit)U.open=-1;drawBr();return;
+     case 'aopen':U.aOpen=!U.aOpen;drawBr(1);return;
+ case 'zout':if(LG)zoomOut(LG.T);drawBr(1);return;
+ case 'edit':ZA=null;U.edit=!U.edit;if(U.edit)U.open=-1;drawBr();return;
  case 'heute':openSh({k:'heute',only:d.only});return;
  case 'use':var uk=d.k;DB.heute[uk]=d.id;if(uk=='geraet'){DB.draft=null;W=null}save();if(U.sh)drawSh();render();return;
  case 'toeq':closeSh();U.tab='pr';render();window.scrollTo(0,0);return;
@@ -1221,17 +1291,22 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'tipok':var tp=tipOf();logBrew();applyTip(tp[2]);closeSh();closeBrew();toast(tp[0]+' · im Rezept übernommen');return;
  case 'ratesave':logBrew();closeSh();closeBrew();toast('Im Tagebuch');render();return;
  case 'obl':OB.lv=d.v;drawOb();return;
+ case 'intro':OB={tour:1,step:0};drawTour();return;
+ case 'trc':OB.cups=+d.n;drawTour();return;
+ case 'trb':OB.open=!OB.open;x.setAttribute('aria-expanded',OB.open);x.nextElementSibling.classList.toggle('on',OB.open);return;
+ case 'trw':OB.row=!OB.row;x.setAttribute('aria-expanded',OB.row);x.parentNode.classList.toggle('ao',OB.row);x.nextElementSibling.classList.toggle('on',OB.row);return;
+ case 'trv':[].forEach.call(x.parentNode.children,function(b){b.classList.toggle('on',b===x)});if(d.r=='trR'){OB.rv=+d.v;$('trRv').textContent=d.v+' g'}else{OB.wv=+d.v;$('trWv').textContent=d.v+' Klicks'}return;
  case 'obd':var i2=OB.dev.indexOf(d.v);if(i2>=0)OB.dev.splice(i2,1);else OB.dev.push(d.v);drawOb();return;
  case 'obg':var i3=OB.gr.indexOf(d.v);if(i3>=0)OB.gr.splice(i3,1);else OB.gr.push(d.v);if(!OB.gr.length)OB.gr=['pre'];drawOb();return;
  case 'obs':OB.sc=+d.v;drawOb();return;case 'obk':OB.ke=+d.v;drawOb();return;
- case 'obnext':if(OB.step<2){OB.step++;drawOb()}else obDone();return;
- case 'obback':OB.step--;drawOb();return;
- case 'obskip':obDone(true);return;
+ case 'obnext':obGo(1);return;
+ case 'obback':obGo(-1);return;
+ case 'obskip':if(OB.tour)tourClose();else obDone(true);return;
  }});
 document.addEventListener('input',function(ev){var x=ev.target;if(x.id=='eqName'){var e=byId(U.sh.id);if(e){e.name=x.value;save()}}if(x.id=='rzName'){var r=rzById(U.sh.id);if(r){r.name=x.value||r.name;if(W&&W.id==r.id)W.name=r.name;save()}}if(x.id=='meName'){PR.name=x.value;save()}});
 document.addEventListener('change',function(ev){var x=ev.target;if(x.id=='eqName'||x.id=='rzName'||x.id=='meName')render()});
 $('sh').addEventListener('click',function(e){if(e.target===this)closeSh()});
-document.addEventListener('keydown',function(e){if(e.key=='Escape'&&$('help')){helpClose();return}if(e.key=='Escape'){if(U.sh)closeSh();else if(!$('bw').hidden)closeBrew()}});
+document.addEventListener('keydown',function(e){if(e.key=='Escape'){if(U.sh)closeSh();else if(!$('bw').hidden)closeBrew()}});
 // −/+ für Feinschritte, gedrückt halten = schnell
 var hold=null,hn=0;
 function bump(k,i,dir){var c=getV(k,i),st=fine(k)*(hn>10&&k!='d'&&k!='grind'?5:1),nv;
