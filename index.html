@@ -248,6 +248,11 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .ewb+section .pg{padding-top:10px}
 .warnb{background:var(--warn)!important;color:#fff!important}
 .line.bwc{padding:4px 6px}
+/* Linie bearbeiten */
+.led{touch-action:pan-y}
+.lhit{fill:transparent;touch-action:none;cursor:grab}
+.seg.avw{margin-bottom:10px}
+.ar.st{cursor:default}
 
 </style></head>
 <body>
@@ -529,13 +534,13 @@ var GESCH={hell:['Fruchtig, hell',95],mitte:['Ausgewogen',93],dunkel:['Schokolad
 var WASS={leitung:'Leitungswasser',filter:'Gefiltert',flasche:'Flaschenwasser',rezept:'Eigenes Rezeptwasser'};
 
 /* ---------- Stufen: was jede Stufe zeigt (nur hier pflegen) ----------
- worte: Schritte in Worten · graph: Diagramm mit ziehbaren Punkten · linie: ruhige Zeitlinie
+ worte: Schritte in Worten · graph: altes Diagramm (aus, ersetzt durch die Linie) · linie: true = Hauptanzeige, 'wahl' = zuschaltbar · ziehen: Linie per Finger bearbeiten
  zeilen: Ausklapp-Zeilen (false / 'anpassen' = erst nach Antippen / true = immer) · loeffel: ohne Waage Messlöffel
  raster: Schritt für Mengen/Zeiten · dauer/fluss: Gießdauer und g/s · technik: Gießart · tds: Refraktometer */
 var STUFE={
- a:{worte:true, graph:false,linie:true, zeilen:'anpassen',loeffel:true, raster:5,dauer:false,fluss:false,technik:false,tds:false,bewerten:'einfach'},
- m:{worte:false,graph:false,linie:true, zeilen:'anpassen',loeffel:false,raster:5,dauer:false,fluss:false,technik:true, tds:false,bewerten:'sterne'},
- p:{worte:false,graph:true, linie:false,zeilen:true,      loeffel:false,raster:1,dauer:true, fluss:true, technik:true, tds:true, bewerten:'sterne'}};
+ a:{worte:true, graph:false,linie:'wahl',ziehen:false,zeilen:'anpassen',loeffel:true, raster:5,dauer:false,fluss:false,technik:false,tds:false,bewerten:'einfach'},
+ m:{worte:false,graph:false,linie:true, ziehen:true, zeilen:'anpassen',loeffel:false,raster:5,dauer:false,fluss:false,technik:true, tds:false,bewerten:'sterne'},
+ p:{worte:false,graph:false,linie:true, ziehen:true, zeilen:true,      loeffel:false,raster:1,dauer:true, fluss:true, technik:true, tds:true, bewerten:'sterne'}};
 function SG(k){return (STUFE[PR.stufe]||STUFE.m)[k]}
 
 /* ---------- Piktogramme ---------- */
@@ -698,7 +703,9 @@ function seedDefaults(){if(!eqOf('geraet').length)DB.eq.push(mkDev('v60'));if(!e
 function theme(){var t=PR.theme;if(t=='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',t)}
 
 /* ---------- Ruhige Linie (wie die Rezeptkarte aus dem Atlas) ---------- */
-function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl()=='a',Wd=340,ay=88,H=176,x0=8,x1=Wd-8,last=P[P.length-1],T=Math.max(end,last.t+last.d+10);
+var LG=null,LD=null;
+function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl()=='a',ed=!!o.edit,Wd=340,ay=ed?100:88,H=ed?194:176,x0=ed?16:8,x1=Wd-(ed?16:8),last=P[P.length-1],T=LD?LD.T:Math.max(end,last.t+last.d+10)*(ed?1.12:1);
+ if(ed)LG={x0:x0,x1:x1,T:T,W:Wd};
  function X(t){return +(x0+(x1-x0)*cl(t,0,T)/T).toFixed(1)}
  function fit(t,w){var n=Math.max(4,Math.floor(w/5.9));return t.length>n?t.slice(0,n-1)+'…':t}
  var s='<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="Brühverlauf"><line class="lx" x1="'+x0+'" x2="'+x1+'" y1="'+ay+'" y2="'+ay+'"/>';
@@ -714,9 +721,34 @@ function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl(
    '<g transform="translate('+(x-5)+' '+(ay-5)+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1">'+shape(k,10).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g>'}
   var an=e.end?'end':'start',tx=e.end?x-6:x+6,y1=e.up?ay-56:ay+28;
   s+='<text class="l0" x="'+tx+'" y="'+y1+'" text-anchor="'+an+'">'+esc(fit(e.tm,w))+'</text><text class="l1" x="'+tx+'" y="'+(y1+14)+'" text-anchor="'+an+'">'+esc(fit(e.l1,w))+'</text>'+(e.l2?'<text class="l2" x="'+tx+'" y="'+(y1+27)+'" text-anchor="'+an+'">'+esc(fit(e.l2,w))+'</text>':'')});
+ if(ed){P.forEach(function(p,k){var x=X(p.t),on=LD&&LD.i==k&&LD.k=='p';
+   s+='<g transform="translate('+(x-(on?9:7))+' '+(ay-(on?9:7))+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1.5">'+shape(k,on?18:14).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g><circle class="lhit" data-li="'+k+'" data-lk="p" cx="'+x+'" cy="'+ay+'" r="22"/>';
+   if(SG('dauer')){var up=k%2==0,x2=Math.max(X(p.t+p.d),x+5),fy=ay+(up?-9:9);s+='<circle cx="'+x2+'" cy="'+fy+'" r="3.5" style="fill:'+C(k)+'"/><circle class="lhit" data-li="'+k+'" data-lk="d" cx="'+(x2+8)+'" cy="'+fy+'" r="16"/>'}});
+  var xe=X(end);s+='<rect x="'+(xe-4)+'" y="'+(ay-4)+'" width="8" height="8" rx="2" fill="var(--ink)"/><circle class="lhit" data-li="-1" data-lk="e" cx="'+xe+'" cy="'+ay+'" r="22"/>';
+  if(LD){var bt,bx,bc;if(LD.k=='e'){bt=FERT[m][0]+' '+mm(end);bx=xe;bc='var(--ink)'}else{var q=P[LD.i];bt=LD.k=='d'?'Dauer '+q.d+' s':mm(q.t)+' · auf '+q.g+' '+unitW();bx=X(q.t);bc=C(LD.i)}
+   var bw=Math.max(96,bt.length*7.6+20);bx=cl(bx,bw/2+2,Wd-bw/2-2);s+='<g class="bub" style="--pc:'+bc+'"><rect x="'+(bx-bw/2)+'" y="2" width="'+bw+'" height="28" rx="14"/><text x="'+bx+'" y="21" text-anchor="middle">'+esc(bt)+'</text></g>'}
+  else s+='<text class="l2" x="'+x0+'" y="'+(H-4)+'">← → Zeit · ↑ ↓ Menge</text>'}
  if(o.now!=null){var xn=X(o.now);s+='<line x1="'+xn+'" x2="'+xn+'" y1="'+(ay-16)+'" y2="'+(ay+16)+'" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round"/>'}
  return s+'</svg>'}
 function lineCard(){return '<button class="line" data-a="edit" aria-label="Rezept anpassen">'+lineSVG()+'</button>'}
+function lineEdit(){return '<div class="line led" id="lineEd">'+lineSVG({edit:true})+'</div>'}
+// Linie ziehen: waagerecht = Zeit, senkrecht = Menge (Richtung rastet nach 10 px ein), Wert steht über dem Finger
+document.addEventListener('pointerdown',function(e){var h=e.target.closest('#lineEd .lhit');if(!h||!SG('ziehen'))return;e.preventDefault();
+ var i=+h.dataset.li,k=h.dataset.lk,r=$('lineEd').querySelector('svg').getBoundingClientRect(),q=W.P[i]||{};
+ LD={i:i,k:k,cx:e.clientX,cy:e.clientY,t:q.t,g:q.g,d:q.d,e:W.end,T:LG.T,sc:LG.W/r.width,gp:Math.max(.5,total()/240),ax:k=='p'?null:'x',last:''};U.open=i>=0?i:'e';U.k='g';try{h.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
+document.addEventListener('pointermove',function(e){if(!LD)return;var dx=(e.clientX-LD.cx)*LD.sc,dy=(e.clientY-LD.cy)*LD.sc,p=SG('raster')==1,dt=dx*LD.T/(LG.x1-LG.x0);
+ if(!LD.ax){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;LD.ax=Math.abs(dx)>=Math.abs(dy)?'x':'y';if(LD.i==0&&LD.ax=='x')LD.ax='y'}
+ function sn(v){return p?snap(v,1.5):Math.round(v/5)*5}
+ if(LD.k=='e')setV('e',0,sn(LD.e+dt));else if(LD.k=='d')setV('d',LD.i,Math.round(LD.d+dt));
+ else if(LD.ax=='x')setV('t',LD.i,sn(LD.t+dt));else setV('g',LD.i,p?snap(LD.g-dy*LD.gp,2.5):Math.round((LD.g-dy*LD.gp)/5)*5);
+ U.k=LD.ax=='x'?(LD.k=='d'?'d':'t'):'g';
+ var q=W.P[LD.i]||{},key=q.t+'/'+q.g+'/'+q.d+'/'+W.end;if(key!=LD.last&&PR.vib&&navigator.vibrate)try{navigator.vibrate(4)}catch(x){}LD.last=key;
+ if(!raf)raf=requestAnimationFrame(function(){raf=0;drawBr(1)})});
+['pointerup','pointercancel'].forEach(function(t){document.addEventListener(t,function(){if(!LD)return;LD=null;touch();drawBr(1)})});
+// Anfänger:in: Schritte als einfache Liste
+function stepList(){var h='<div class="ac">';W.P.forEach(function(q,i){h+='<div class="ar st">'+mk(i)+'<span class="nm"><b>'+nameOf(i)+'</b><span>'+aT(q.t).replace(/^n/,'N')+'</span></span><span class="big">'+aG(i)+'</span></div>'});
+ var F=FERT[meth()];return h+'<div class="ar st">'+ic0('✓')+'<span class="nm"><b>'+F[0]+'</b><span>'+F[1]+'</span></span><span class="big">'+mm(W.end)+' Min.</span></div></div>'}
+function aView(){return '<div class="seg avw">'+[[0,'Schritte'],[1,'Linie']].map(function(x){return '<button class="'+(!!PR.aLinie==!!x[0]?'on':'')+'" data-a="aview" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'}
 
 /* ---------- Diagramm mit ziehbaren Punkten ---------- */
 var CG=null,D=null,raf=0;
@@ -810,9 +842,9 @@ function applyCups(){var st=W.str||PR.staerke,r=PR.ratio+STR[st][1],wv=W.cups*PR
 function drawBr(keep){if(!W)loadW();var a=lvl()=='a',sl=[].map.call(document.querySelectorAll('#brx .rl'),function(r){return r.scrollLeft});
  var r=rzById(W.id),ch=changed();
  var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit),gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
- $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+'</div>'+(gr?gearList():'');
+ $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+'</div>'+(Z===true?gearList():'');
  var c=chartEl();c.hidden=!gr;if(gr)c.innerHTML=chartSVG({ghost:ch&&r?{P:r.P,end:r.end}:null})+(D?'':'<span class="chint">Punkte ziehen</span>');else c.innerHTML='';
- $('brRows').innerHTML=a?(ed?pourRows():lineCard()):ed?prepRows()+pourRows():kzRow()+gearList()+lineCard();
+ $('brRows').innerHTML=a?(ed?pourRows():aView()+(PR.aLinie?lineCard():stepList())):ed?(SG('ziehen')?lineEdit():'')+prepRows()+pourRows():kzRow()+gearList()+lineCard();
  $('brFoot').innerHTML=a?(ed?(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Fertig</button></div>':'<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Anpassen</button></div>'):ed?'<div class="foot"><span class="mut">'+FERT[meth()][0]+' nach</span><b style="font:700 15px var(--num)">'+mm(W.end)+'</b><span class="sp"></span><span class="mut">'+kaffee(W.dose)+' · '+ratio()+'</span><button class="lnk" data-a="add" data-i="'+(W.P.length-1)+'">+ Aufguss</button></div>'+(sv?'<div class="sec">'+sv+'</div>':'')+'<button class="go" data-a="brew">Brühen</button>':
   '<button class="go" data-a="brew">Brühen</button><div class="sec"><button class="pill" data-a="edit">Anpassen</button>'+(ch?'<button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'')+'</div>';
  if(keep){[].forEach.call(document.querySelectorAll('#brx .rl'),function(rl,k){if(sl[k]!=null)rl.scrollLeft=sl[k]});if(D)center()}else center()}
@@ -1047,6 +1079,7 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'cups':W.cups=+d.n;applyCups();touch();drawBr();return;
  case 'str':W.str=d.s;applyCups();touch();drawBr();return;
  case 'brew':openBrew();return;
+ case 'aview':PR.aLinie=d.v=='1';save();drawBr(1);return;
  case 'edit':U.edit=!U.edit;if(U.edit)U.open=-1;drawBr();return;
  case 'heute':openSh({k:'heute',only:d.only});return;
  case 'use':var uk=d.k;DB.heute[uk]=d.id;if(uk=='geraet'){DB.draft=null;W=null}save();if(U.sh)drawSh();render();return;
