@@ -39,6 +39,8 @@
  --pp-paper:#3b3129;--pp-steam:rgba(255,255,255,.32);--pp-scale:#2d2622;--pp-chip:rgba(30,25,22,.78);--pp-rim:rgba(255,255,255,.22)}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;touch-action:manipulation}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text}
 body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--f);font-size:14px;letter-spacing:-.01em;-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums;overscroll-behavior-y:none}
 button{font:inherit;color:inherit;touch-action:manipulation;-webkit-tap-highlight-color:transparent;cursor:pointer}
 button:focus-visible,input:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
@@ -249,7 +251,8 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .warnb{background:var(--warn)!important;color:#fff!important}
 .line.bwc{padding:4px 6px}
 /* Linie bearbeiten */
-.led{touch-action:pan-y}
+.led{touch-action:pan-y;position:relative}
+.lzo{position:absolute;right:10px;bottom:6px;border:0;border-radius:999px;background:var(--fill2);color:var(--ink);font:400 13px var(--f);padding:7px 12px;min-height:32px}
 .lhit{fill:transparent;touch-action:none;cursor:grab}
 .seg.avw{margin-bottom:10px}
 .ar.st{cursor:default}
@@ -740,7 +743,7 @@ function theme(){var t=PR.theme;if(t=='auto')document.documentElement.removeAttr
 /* ---------- Ruhige Linie (wie die Rezeptkarte aus dem Atlas) ---------- */
 var LG=null,LD=null;
 function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl()=='a',ed=!!o.edit,Wd=340,ay=ed?100:88,H=ed?194:176,x0=ed?16:8,x1=Wd-(ed?16:8),last=P[P.length-1],T=LD?LD.T:Math.max(end,last.t+last.d+10)*(ed?1.12:1),zw=ed?zoomWin(T):null,w0=zw?zw[0]:0,w1=zw?zw[1]:T,zm=w1-w0<T-1;
- if(ed)LG={x0:x0,x1:x1,T:T,W:Wd};
+ if(ed)LG={x0:x0,x1:x1,T:T,W:Wd,h:[]};
  function X(t){return +(x0+(x1-x0)*(zm?(t-w0)/(w1-w0):cl(t,0,T)/T)).toFixed(1)}
  function fit(t,w){var n=Math.max(4,Math.floor(w/5.9));return t.length>n?t.slice(0,n-1)+'…':t}
  var s='<svg viewBox="0 0 '+Wd+' '+H+'" role="img" aria-label="Brühverlauf"'+(zm?' class="zm"':'')+'>'+(zm?'<defs><clipPath id="lzc"><rect x="'+(x0-6)+'" y="0" width="'+(x1-x0+12)+'" height="'+H+'"/></clipPath></defs><g clip-path="url(#lzc)">':'')+'<line class="lx" x1="'+x0+'" x2="'+x1+'" y1="'+ay+'" y2="'+ay+'"/>';
@@ -758,13 +761,12 @@ function lineSVG(o){o=o||{};var P=o.P||W.P,end=o.end||W.end,m=o.m||meth(),a=lvl(
   s+='<text class="l0" x="'+tx+'" y="'+y1+'" text-anchor="'+an+'">'+esc(fit(e.tm,w))+'</text><text class="l1" x="'+tx+'" y="'+(y1+14)+'" text-anchor="'+an+'">'+esc(fit(e.l1,w))+'</text>'+(e.l2?'<text class="l2" x="'+tx+'" y="'+(y1+27)+'" text-anchor="'+an+'">'+esc(fit(e.l2,w))+'</text>':'')});
  if(zm)s+='</g>';
  if(ed){P.forEach(function(p,k){if(zm&&(p.t<w0-2||p.t>w1+2))return;var x=X(p.t),on=LD&&LD.i==k&&LD.k=='p';
-   s+='<g transform="translate('+(x-(on?9:7))+' '+(ay-(on?9:7))+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1.5">'+shape(k,on?18:14).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g><circle class="lhit" data-li="'+k+'" data-lk="p" cx="'+x+'" cy="'+ay+'" r="22"/>';
-   if(SG('dauer')){var up=k%2==0,x2=Math.max(X(p.t+p.d),x+5),fy=ay+(up?-9:9);s+='<circle cx="'+x2+'" cy="'+fy+'" r="3.5" style="fill:'+C(k)+'"/><circle class="lhit" data-li="'+k+'" data-lk="d" cx="'+(x2+8)+'" cy="'+fy+'" r="16"/>'}});
-  var xe=X(end);if(!zm||end<=w1+2)s+='<rect x="'+(xe-4)+'" y="'+(ay-4)+'" width="8" height="8" rx="2" fill="var(--ink)"/><circle class="lhit" data-li="-1" data-lk="e" cx="'+xe+'" cy="'+ay+'" r="22"/>';
+   s+='<g transform="translate('+(x-(on?9:7))+' '+(ay-(on?9:7))+')" style="fill:'+C(k)+';stroke:var(--card);stroke-width:1.5">'+shape(k,on?18:14).replace(/^<svg[^>]*>|<\/svg>$/g,'')+'</g><circle class="lhit" data-li="'+k+'" data-lk="p" cx="'+x+'" cy="'+ay+'" r="22"/>';LG.h.push({i:k,k:'p',x:x,y:ay});
+   if(SG('dauer')&&U.open===k){var up=k%2==0,x2=Math.max(X(p.t+p.d),x+5),fy=ay+(up?-9:9);s+='<circle cx="'+x2+'" cy="'+fy+'" r="3.5" style="fill:'+C(k)+'"/><circle class="lhit" data-li="'+k+'" data-lk="d" cx="'+(x2+8)+'" cy="'+fy+'" r="16"/>';LG.h.push({i:k,k:'d',x:x2+8,y:fy})}});
+  var xe=X(end);if(!zm||end<=w1+2)s+='<rect x="'+(xe-4)+'" y="'+(ay-4)+'" width="8" height="8" rx="2" fill="var(--ink)"/><circle class="lhit" data-li="-1" data-lk="e" cx="'+xe+'" cy="'+ay+'" r="22"/>',LG.h.push({i:-1,k:'e',x:xe,y:ay});
   if(LD){var bt,bx,bc;if(LD.k=='e'){bt=FERT[m][0]+' '+mm(end);bx=xe;bc='var(--ink)'}else{var q=P[LD.i];bt=LD.k=='d'?'Dauer '+q.d+' s':mm(q.t)+' · auf '+q.g+' '+unitW();bx=X(q.t);bc=C(LD.i)}
    var bw=Math.max(96,bt.length*7.6+20);bx=cl(bx,bw/2+2,Wd-bw/2-2);s+='<g class="bub" style="--pc:'+bc+'"><rect x="'+(bx-bw/2)+'" y="2" width="'+bw+'" height="28" rx="14"/><text x="'+bx+'" y="21" text-anchor="middle">'+esc(bt)+'</text></g>'}
-  else s+='<text class="l2" x="'+x0+'" y="'+(H-4)+'">← → Zeit · ↑ ↓ Menge</text>';
-  if(zm)s+='<text class="l2" x="'+x1+'" y="'+(H-4)+'" text-anchor="end">Zoom '+mm(w0)+'–'+mm(w1)+'</text>'}
+  else s+='<text class="l2" x="'+x0+'" y="'+(H-4)+'">← → Zeit · ↑ ↓ Menge</text>'}
  if(o.now!=null){var xn=X(o.now);s+='<line x1="'+xn+'" x2="'+xn+'" y1="'+(ay-16)+'" y2="'+(ay+16)+'" stroke="var(--acc)" stroke-width="2.5" stroke-linecap="round"/>'}
  return s+'</svg>'}
 function lineCard(){return '<button class="line" data-a="edit" aria-label="Rezept anpassen">'+lineSVG()+'</button>'}
@@ -774,21 +776,29 @@ function zoomWin(T){if(!ZA)return null;var p=reduce?1:cl((performance.now()-ZA.s
  var w=[f[0]+(t[0]-f[0])*e,f[1]+(t[1]-f[1])*e];if(p>=1&&!ZA.t){ZA=null;return null}return w}
 function zoomTo(c,T){var span=Math.min(T,70),a=cl(c-span/2,0,Math.max(0,T-span));ZA={f:ZA&&ZA.t?ZA.t:[0,T],t:[a,a+span],s:performance.now()}}
 function zoomOut(T){if(!ZA||!ZA.t)return;ZA={f:ZA.t,t:null,s:performance.now()}}
-function lineEdit(){return '<div class="line led" id="lineEd">'+lineSVG({edit:true})+'</div>'}
+function lineEdit(){var h=lineSVG({edit:true});return '<div class="line led" id="lineEd">'+h+(ZA&&ZA.t?'<button class="lzo" data-a="zout">Ganze Linie</button>':'')+'</div>'}
+// Griff am nächsten zum Finger (statt oberstes Element): weniger Fehltreffer, wenn Griffe dicht liegen
+function lineHit(e){var sv=e.target.closest&&e.target.closest('#lineEd svg');if(!sv||!LG||!LG.h)return null;var r=sv.getBoundingClientRect(),sc=LG.W/r.width,px=(e.clientX-r.left)*sc,py=(e.clientY-r.top)*sc,b=null,bd=28;
+ LG.h.forEach(function(h){var d=Math.hypot(h.x-px,h.y-py)-(h.k=='p'?4:0);if(d<bd){bd=d;b=h}});return b?{h:b,r:r}:null}
 // Linie ziehen: waagerecht = Zeit, senkrecht = Menge (Richtung rastet nach 10 px ein), Wert steht über dem Finger
-document.addEventListener('pointerdown',function(e){var h=e.target.closest('#lineEd .lhit');if(!h||!SG('ziehen'))return;e.preventDefault();
- var i=+h.dataset.li,k=h.dataset.lk,r=$('lineEd').querySelector('svg').getBoundingClientRect(),q=W.P[i]||{};
- var fine=SG('raster')==1;LD={i:i,k:k,cx:e.clientX,cy:e.clientY,t:q.t,g:q.g,d:q.d,e:W.end,T:LG.T,sc:LG.W/r.width,gp:Math.max(.25,total()/(fine?600:240)),ax:k=='p'?null:'x',last:''};
- if(fine){var ct=k=='e'?W.end:k=='d'?q.t+q.d:q.t;zoomTo(ct,LG.T);LD.zw=ZA.t}U.open=i>=0?i:'e';U.k='g';try{h.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
+// iOS: kein Markieren, keine Lupe, kein Scrollen, wenn der Finger einen Griff trifft
+document.addEventListener('touchstart',function(e){if(LD||(SG('ziehen')&&lineHit(e.touches[0]?{target:e.target,clientX:e.touches[0].clientX,clientY:e.touches[0].clientY}:e)))e.preventDefault()},{passive:false});
+document.addEventListener('pointerdown',function(e){if(!SG('ziehen'))return;var m=lineHit(e);if(!m)return;e.preventDefault();
+ var i=m.h.i,k=m.h.k,r=m.r,q=W.P[i]||{};
+ var fine=SG('raster')==1;LD={i:i,k:k,cx:e.clientX,cy:e.clientY,t:q.t,g:q.g,d:q.d,e:W.end,T:LG.T,sc:LG.W/r.width,gp:Math.max(.25,total()/(fine?600:240)),ax:null,last:''};
+ // Profi: Zoom bleibt stehen; nur neu zoomen, wenn der Griff nicht im Ausschnitt liegt
+ if(fine){var ct=k=='e'?W.end:k=='d'?q.t+q.d:q.t;if(!(ZA&&ZA.t&&ct>ZA.t[0]+3&&ct<ZA.t[1]-3))zoomTo(ct,LG.T);LD.zw=ZA.t}U.open=i>=0?i:'e';U.k='g';try{e.target.setPointerCapture(e.pointerId)}catch(x){}drawBr(1)});
 document.addEventListener('pointermove',function(e){if(!LD)return;var dx=(e.clientX-LD.cx)*LD.sc,dy=(e.clientY-LD.cy)*LD.sc,p=SG('raster')==1,dt=dx*(LD.zw?LD.zw[1]-LD.zw[0]:LD.T)/(LG.x1-LG.x0);
- if(!LD.ax){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;LD.ax=Math.abs(dx)>=Math.abs(dy)?'x':'y';if(LD.i==0&&LD.ax=='x')LD.ax='y'}
+ if(!LD.ax){if(Math.abs(dx)<10&&Math.abs(dy)<10)return;LD.ax=LD.k!='p'||Math.abs(dx)>=Math.abs(dy)?'x':'y';if(LD.k=='p'&&LD.i==0&&LD.ax=='x')LD.ax='y'}
  function sn(v){return p?snap(v,1.5):Math.round(v/5)*5}
  if(LD.k=='e')setV('e',0,sn(LD.e+dt));else if(LD.k=='d')setV('d',LD.i,Math.round(LD.d+dt));
  else if(LD.ax=='x')setV('t',LD.i,sn(LD.t+dt));else setV('g',LD.i,p?snap(LD.g-dy*LD.gp,2.5):Math.round((LD.g-dy*LD.gp)/5)*5);
  U.k=LD.ax=='x'?(LD.k=='d'?'d':'t'):'g';
  var q=W.P[LD.i]||{},key=q.t+'/'+q.g+'/'+q.d+'/'+W.end;if(key!=LD.last&&PR.vib&&navigator.vibrate)try{navigator.vibrate(4)}catch(x){}LD.last=key;
  if(!raf)raf=requestAnimationFrame(function(){raf=0;drawBr(1)})});
-['pointerup','pointercancel'].forEach(function(t){document.addEventListener(t,function(){if(!LD)return;var TT=LD.T;LD=null;zoomOut(TT);touch();drawBr(1)})});
+['pointerup','pointercancel'].forEach(function(t){document.addEventListener(t,function(){if(!LD)return;var TT=LD.T,q=W.P[LD.i]||{},ct=LD.k=='e'?W.end:LD.k=='d'?q.t+q.d:q.t;LD=null;
+ // Zoom bleibt nach dem Loslassen; läuft der Punkt aus dem Ausschnitt, fährt er mit
+ if(ZA&&ZA.t&&(ct<ZA.t[0]+3||ct>ZA.t[1]-3))zoomTo(ct,TT);touch();drawBr(1)})});
 // Anfänger:in: Schritte als einfache Liste
 function stepList(){var h='<div class="ac">';W.P.forEach(function(q,i){h+='<div class="ar st">'+mk(i)+'<span class="nm"><b>'+nameOf(i)+'</b><span>'+aT(q.t).replace(/^n/,'N')+'</span></span><span class="big">'+aG(i)+'</span></div>'});
  var F=FERT[meth()];return h+'<div class="ar st">'+ic0('✓')+'<span class="nm"><b>'+F[0]+'</b><span>'+F[1]+'</span></span><span class="big">'+mm(W.end)+' Min.</span></div></div>'}
@@ -885,7 +895,7 @@ function easyHead(){var d=dev();return '<div class="rh"><span class="ic eh">'+de
 function applyCups(){var st=W.str||PR.staerke,r=PR.ratio+STR[st][1],wv=W.cups*PR.tasse;scaleTo(Math.round(wv/5)*5);W.dose=Math.round(total()/r*2)/2}
 function drawBr(keep){if(!W)loadW();var a=lvl()=='a',sl=[].map.call(document.querySelectorAll('#brx .rl'),function(r){return r.scrollLeft});
  var r=rzById(W.id),ch=changed();
- var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit),gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
+ var Z=SG('zeilen'),ed=Z===true||(Z=='anpassen'&&U.edit);if(!ed||SG('raster')!=1)ZA=null;var gr=SG('graph'),sv=ch?'<button class="pill" data-a="discard">Verwerfen</button><button class="pill acc" data-a="saverz">Als Version '+((r?r.ver:1)+1)+' sichern</button>':'';
  $('brTop').innerHTML=a?easyHead()+easyTop():heuteBar()+'<div class="rh"><span class="t"><b>'+esc(W.name)+'</b><span>Version '+(r?r.ver:1)+(ch?' · geändert':'')+'</span></span>'+(Z=='anpassen'&&ed?'<button class="pill acc" data-a="edit">Fertig</button>':'<button class="pill" data-a="rzpick">Rezepte</button>')+HQ+'</div>'+(Z===true?gearList():'');
  var c=chartEl();c.hidden=!gr;if(gr)c.innerHTML=chartSVG({ghost:ch&&r?{P:r.P,end:r.end}:null})+(D?'':'<span class="chint">Punkte ziehen</span>');else c.innerHTML='';
  $('brRows').innerHTML=a?(ed?pourRows():''):ed?(SG('ziehen')?lineEdit():'')+prepRows()+pourRows():kzRow()+gearList()+lineCard();
@@ -913,7 +923,7 @@ function helpStops(){var a=lvl()=='a',g=grinder(),r=ratio(),P=W.P,L=[
  {id:'achse',t:'Zeit',x:'Jeder kleine Strich sind 30 Sekunden, ein großer eine Minute.'},
  {id:'flag',t:'Ein Aufguss',x:a?'Jedes Fähnchen ist ein Mal Gießen: wann, und wie viel.':'Jedes Fähnchen ist ein Aufguss: oben die Zeit von–bis, dann wie viel du gießt und auf welches Gewicht die Waage dann zeigt. Farbe und Form gehören zum Aufguss.'},
  {id:'end',t:FERT[meth()][0],x:meth()=='filter'?'Hier ist alles durchgelaufen. Genieß deine Tasse.':'Hier wird gedrückt.'}];
- if(SG('ziehen'))L.push({id:'ziehen',t:'Selbst ändern',x:'Unter „Anpassen“ ziehst du die Punkte: waagerecht ändert die Zeit, senkrecht die Menge. Der Wert steht über deinem Finger.'+(SG('raster')==1?' Beim Ziehen zoomt die Linie auf den Schritt.':'')});
+ if(SG('ziehen'))L.push({id:'ziehen',t:'Selbst ändern',x:'Unter „Anpassen“ ziehst du die Punkte: waagerecht ändert die Zeit, senkrecht die Menge. Der Wert steht über deinem Finger.'+(SG('raster')==1?' Tippst du einen Punkt an, zoomt die Linie auf den Schritt und bleibt dort, bis du „Ganze Linie“ tippst. Dort erscheint auch der Griff für die Dauer.':'')});
  return L}
 function helpWorld(){var g=grinder(),S=lineSVG(),xs=function(t){var last=W.P[W.P.length-1],T=Math.max(W.end,last.t+last.d+10);return 150+700*(8+324*cl(t,0,T)/T)/340};
  var f1=W.P[1]||W.P[0],fx=xs(f1.t);
@@ -1171,7 +1181,8 @@ document.addEventListener('click',function(ev){var x=ev.target.closest('[data-a]
  case 'hplay':HP.play=!HP.play;if(HP.play&&HP.i>=helpStops().length-1)HP.i=0;helpShow(HP.i);helpTick();return;
  case 'hgo':HP.play=0;helpShow(d.n!=null?+d.n:helpStops().map(function(z){return z.id}).indexOf(d.h));return;
  case 'aopen':U.aOpen=!U.aOpen;drawBr(1);return;
- case 'edit':U.edit=!U.edit;if(U.edit)U.open=-1;drawBr();return;
+ case 'zout':if(LG)zoomOut(LG.T);drawBr(1);return;
+ case 'edit':ZA=null;U.edit=!U.edit;if(U.edit)U.open=-1;drawBr();return;
  case 'heute':openSh({k:'heute',only:d.only});return;
  case 'use':var uk=d.k;DB.heute[uk]=d.id;if(uk=='geraet'){DB.draft=null;W=null}save();if(U.sh)drawSh();render();return;
  case 'toeq':closeSh();U.tab='pr';render();window.scrollTo(0,0);return;
