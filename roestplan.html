@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Röstplan</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Laden">
+<meta name="theme-color" content="#f7f6f3" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#151412" media="(prefers-color-scheme: dark)">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
+</head><body>
+<style>
+.home{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:-6px 0 2px -4px;padding:0 10px 0 4px;border-radius:999px;color:var(--accent);font-size:16px;font-weight:500;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.home svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.home:active{opacity:.55}
+</style>
+<style>
+/* Layout: one calm column, three tabs (Zahlen / Chargen / Liste) in a bottom bar. Helvetica Neue, warm greys, one colour per roast day. No outlined buttons. */
+:root{
+  --bg:#f7f6f3; --card:#ffffff; --fg:#1d1b19; --muted:#8a847d; --line:#ebe8e3; --soft:#f0eee9;
+  --accent:#7a5236;
+  --d1:#7a5236; --d2:#4c6a86; --d3:#6c7a3c;
+  --f:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
+  --bar:62px;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151412;--card:#1e1c1a;--fg:#f1eee9;--muted:#9c958d;--line:#2b2825;--soft:#262320;--accent:#d4a27c;--d1:#d4a27c;--d2:#8fb0cf;--d3:#b2c27a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151412;--card:#1e1c1a;--fg:#f1eee9;--muted:#9c958d;--line:#2b2825;--soft:#262320;--accent:#d4a27c;--d1:#d4a27c;--d2:#8fb0cf;--d3:#b2c27a;color-scheme:dark}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
+body{font-weight:300;background:var(--bg);color:var(--fg);font-family:var(--f);font-size:17px;line-height:1.4;-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+main{max-width:520px;margin:0 auto;padding:0 16px calc(var(--bar) + 32px + env(safe-area-inset-bottom,0px))}
+.top{display:flex;justify-content:space-between;align-items:baseline;padding:2px 0 14px}
+main{padding-top:14px!important}
+h1{font-size:34px;font-weight:200;letter-spacing:-.02em;margin:0}
+.top span{color:var(--muted);font-size:15px;font-weight:300}
+button,input{font-family:inherit;font-size:17px;font-weight:300;color:var(--fg)}
+button{cursor:pointer;touch-action:manipulation;background:none;border:0;padding:0}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.note{font-size:15px;color:var(--muted);margin:12px 0 0}
+.note.warn{color:var(--fg)}
+.note.warn::before{content:"Achtung: ";font-weight:400;color:var(--accent)}
+.note:empty{display:none}
+.card{background:var(--card);border-radius:14px;padding:0 16px}
+.lbl{font-size:13px;font-weight:400;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;margin:24px 0 8px}
+.link{color:var(--accent);font-weight:400;min-height:44px}
+/* Import */
+.imp{display:flex;gap:10px}
+.imp label{position:relative;flex:1;display:flex;align-items:center;justify-content:center;gap:8px;min-height:52px;border-radius:12px;background:var(--card);font-weight:400;cursor:pointer}
+.imp label.main{background:var(--accent);color:var(--card)}
+.imp input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.imp svg{flex:none}
+/* Zahlen */
+.zr{display:grid;grid-template-columns:minmax(0,1fr) 68px 72px;gap:6px;align-items:center;min-height:56px;border-bottom:1px solid var(--line)}
+.zr:last-child{border-bottom:0}
+.zr .nm{min-width:0;width:100%;height:44px;border:0;background:none;padding:0;text-overflow:ellipsis;font-size:16px}
+.zr .n{width:72px;height:42px;border:0;border-radius:9px;background:var(--soft);text-align:right;padding:0 8px}
+.sz{display:flex;background:var(--soft);border-radius:9px;padding:2px}
+.sz button{flex:1;height:34px;border-radius:7px;font-size:15px;color:var(--muted)}
+.sz button[aria-pressed="true"]{background:var(--card);color:var(--fg);font-weight:400;box-shadow:0 1px 2px rgba(0,0,0,.1)}
+.zr.unsure .n{background:transparent;box-shadow:inset 0 0 0 2px var(--accent)}
+.zr.unsure .nm{color:var(--accent)}
+.cap{font-size:13px;color:var(--muted);margin:0 0 8px}
+.zfoot{display:flex;justify-content:space-between;padding:14px 16px 4px;font-weight:400}
+.zfoot span:last-child{color:var(--muted)}
+.row2{display:flex;justify-content:space-between;align-items:center;margin-top:8px;padding:0 16px}
+.loss{display:flex;justify-content:space-between;align-items:center;min-height:56px}
+.loss .step{display:flex;align-items:center;gap:2px}
+.loss button{width:44px;height:44px;border-radius:50%;font-size:22px;color:var(--accent)}
+.loss output{min-width:48px;text-align:center}
+/* Segmented (text style) */
+.seg{display:flex;background:var(--soft);border-radius:11px;padding:3px}
+.seg button{flex:1;min-height:40px;border-radius:9px;font-size:15px;font-weight:400;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--card);color:var(--fg);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+/* Day picker */
+.dpick{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.dpick button{text-align:left;padding:10px 12px;border-radius:12px;background:var(--card);min-height:62px;line-height:1.2}
+.dpick b{display:flex;align-items:center;gap:6px;font-weight:400;font-size:16px}
+.dpick b i{width:10px;height:10px;border-radius:50%;background:var(--dc)}
+.dpick small{display:block;color:var(--muted);font-size:13px;margin-top:3px}
+.dpick button[aria-pressed="true"]{background:var(--dc);color:var(--card)}
+.dpick button[aria-pressed="true"] b i{background:var(--card)}
+.dpick button[aria-pressed="true"] small{color:var(--card);opacity:.85}
+.hint{font-size:14px;color:var(--muted);margin:10px 0 0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.hint .link{font-size:14px;min-height:36px}
+/* Chargen list */
+.cs{padding:12px 0;border-bottom:1px solid var(--line)}
+.cs:last-child{border-bottom:0}
+.cs .hh{display:flex;align-items:center;gap:6px}
+.cs .h{display:flex;flex:1;min-width:0;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;min-height:36px}
+.cs .h b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cs .adj{display:flex;gap:4px;flex:none}
+.cs .adj button{width:36px;height:36px;border-radius:50%;background:var(--soft);font-size:20px;line-height:1;color:var(--accent)}
+.cs .h b{font-weight:400}
+.cs .h span{color:var(--muted);font-size:14px;white-space:nowrap}
+.bs{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.b{position:relative;width:54px;height:44px;border-radius:10px;background:var(--soft);font-weight:400;font-size:16px;color:var(--fg)}
+.b.on{background:var(--dc);color:var(--card)}
+.b sup{position:absolute;top:3px;right:5px;font-size:10px;font-weight:400;opacity:.9}
+/* Liste */
+.dayh{display:flex;justify-content:space-between;align-items:baseline;margin:24px 0 8px}
+.dayh b{display:flex;align-items:center;gap:8px;font-size:22px;font-weight:300}
+.dayh b i{width:12px;height:12px;border-radius:50%;background:var(--dc)}
+.dayh span{color:var(--muted);font-size:15px}
+.lr{display:flex;justify-content:space-between;gap:12px;min-height:52px;align-items:center;border-bottom:1px solid var(--line)}
+.lr:last-child{border-bottom:0}
+.lr span{color:var(--muted);white-space:nowrap}
+.empty{color:var(--muted);padding:14px 0}
+.exp{display:flex;gap:10px;margin-top:28px}
+.exp button{flex:1;min-height:52px;border-radius:12px;background:var(--card);font-weight:400}
+.exp button.main{background:var(--accent);color:var(--card)}
+/* Tab bar */
+nav{position:fixed;left:0;right:0;bottom:0;z-index:10;background:color-mix(in srgb,var(--bg) 92%,transparent);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom,0px)}
+nav .in{max-width:520px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);height:var(--bar)}
+nav button{font-weight:400;font-size:15px;color:var(--muted);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+nav button small{font-size:12px;font-weight:400}
+nav button[aria-selected="true"]{color:var(--accent);font-weight:400}
+section[hidden]{display:none!important}
+.ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
+.ov img{max-height:75vh;max-width:100%;border-radius:8px;background:#fff}
+.ov p{color:#fff;margin:0;text-align:center}
+.ov button{min-height:46px;padding:0 24px;border-radius:12px;background:#fff;color:#111;font-weight:400}
+</style>
+
+<main>
+  <a class="home" href="./" aria-label="Zurück zur Startseite"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Übersicht</a>
+  <div class="top"><h1>Röstplan</h1><span id="wk"></span></div>
+
+  <section id="t-zahlen">
+    <div class="imp">
+      <label id="photoBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span><input type="file" id="photoIn" accept="image/*"></label>
+      <label class="main" id="fileBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg><span>Datei</span><input type="file" id="fileIn" accept=".pdf,.csv,.xlsx,.xls,.ods,.txt,image/*"></label>
+    </div>
+    <p class="note" id="srcInfo"></p>
+    <p class="note warn" id="warnBox"></p>
+    <div class="lbl">Verkauf letzte Woche</div>
+    <p class="cap">Je Sorte: Chargengröße 3 oder 5 kg und verkaufte Menge in kg (Gesamt KG).</p>
+    <div class="card" id="zBody"></div>
+    <div class="zfoot"><span>Gesamt</span><span id="zTot"></span></div>
+    <div class="row2"><button class="link" id="addRow">+ Sorte hinzufügen</button></div>
+    <div class="lbl">Einstellung</div>
+    <div class="card"><div class="loss"><span>Röstverlust</span><span class="step"><button data-loss="-1" aria-label="Röstverlust verringern">−</button><output id="lossOut"></output><button data-loss="1" aria-label="Röstverlust erhöhen">+</button></span></div></div>
+  </section>
+
+  <section id="t-chargen" hidden>
+    <div class="lbl" style="margin-top:0">Mehr rösten als verkauft</div>
+    <div class="seg" id="modes"><button data-x="0">Genau</button><button data-x="10">+10 %</button><button data-x="20">+20 %</button><button data-x="30">+30 %</button></div>
+    <p class="note" id="extraNote"></p>
+    <div class="lbl">Tippe Chargen an für</div>
+    <div class="dpick" id="dpick"></div>
+    <div class="hint"><span id="openInfo"></span><button class="link" id="allOpen"></button></div>
+    <div class="lbl">Alle Chargen</div>
+    <div class="card" id="cList"></div>
+    <div class="row2" style="padding:0"><button class="link" id="clearAll">Verteilung zurücksetzen</button></div>
+  </section>
+
+  <section id="t-liste" hidden>
+    <div id="lList"></div>
+    <div class="exp"><button class="main" id="saveImg">Als Bild sichern</button><button id="copyTxt">Text kopieren</button></div>
+    <p class="note" id="expMsg" role="status"></p>
+  </section>
+</main>
+
+<nav aria-label="Bereiche"><div class="in" role="tablist">
+  <button role="tab" data-tab="zahlen" aria-selected="true">Zahlen<small id="tb1"></small></button>
+  <button role="tab" data-tab="chargen" aria-selected="false">Chargen<small id="tb2"></small></button>
+  <button role="tab" data-tab="liste" aria-selected="false">Liste<small id="tb3"></small></button>
+</div></nav>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script>
+/* ===================== CORE (pure, tested) ===================== */
+const Core = (() => {
+  // All weights in grams (integers) to avoid rounding errors.
+  const soldGrams = s => s.totalG | 0;
+  // Green coffee needed to end up with soldG roasted, loss in whole percent.
+  const greenNeed = (soldG, loss) => soldG <= 0 ? 0 : Math.ceil(soldG * 100 / (100 - loss));
+  // Every sort roasts in one batch size only (3 or 5 kg), never mixed: n = rounded-up number of batches.
+  // extra = percent more than sold (whole number), adj = manual +/- batches for this sort.
+  function autoBatches(s, loss, extra, adj) {
+    const size = s.size === 3 ? 3 : 5, sold = soldGrams(s);
+    if (sold <= 0) return [];
+    const n = Math.max(0, Math.ceil(greenNeed(sold, loss) * (100 + (extra | 0)) / (size * 100000)) + (adj | 0));
+    return Array(n).fill(size);
+  }
+  // Assign whole sorts to days, biggest first onto the lightest day (no sort is split).
+  function assignDays(rows, n) {
+    const load = Array(n).fill(0), out = {};
+    rows.filter(r => r.kg > 0).slice().sort((a, b) => b.kg - a.kg || a.idx - b.idx)
+      .forEach(r => { let d = 0; for (let i = 1; i < n; i++) if (load[i] < load[d]) d = i; out[r.id] = d; load[d] += r.kg; });
+    return out;
+  }
+  const sumKg = b => b.reduce((x, y) => x + y, 0);
+  return { soldGrams, greenNeed, autoBatches, assignDays, sumKg };
+})();
+
+/* ===================== REPORT (pure, tested) ===================== */
+const Report = (() => {
+  const num = t => {
+    const s = String(t).replace(/[−–—]/g, "-").replace(/[±+]/g, "").replace(/\s/g, "");
+    if (!/\d/.test(s)) return null;
+    const n = parseFloat(s.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."));
+    return isNaN(n) ? null : n;
+  };
+  // items: [{s, x, w, y}] -> rows of cell strings, left to right, top to bottom
+  function rows(items) {
+    const it = items.filter(i => String(i.s).trim()).slice().sort((a, b) => a.y - b.y || a.x - b.x);
+    const out = []; let cur = null, cy = null;
+    for (const i of it) {
+      if (cy === null || Math.abs(i.y - cy) > 3) { cur = []; out.push(cur); cy = i.y; }
+      cur.push(i);
+    }
+    return out.map(r => {
+      r.sort((a, b) => a.x - b.x);
+      const cells = []; let end = null;
+      for (const i of r) {
+        if (cells.length && i.x - end < 6) cells[cells.length - 1] += " " + String(i.s).trim();
+        else cells.push(String(i.s).trim());
+        end = i.x + (i.w || 0);
+      }
+      return cells;
+    });
+  }
+  const UNIT = /^(250\s*g|1000\s*g|3000\s*g|10\s*kg|unverp)/i;
+  // One row per product with its "Gesamt KG" (first number right of the name); packaging lines are skipped.
+  function parse(rs) {
+    let started = false, woche = null, gesamt = null; const sorten = [];
+    for (const r of rs) {
+      const label = r[0] || "", rest = r.slice(1);
+      if (!started) {
+        const m = r.join(" ").match(/Verkaufswoche\s+KW\s*(\d+)/i); if (m) woche = "KW " + m[1];
+        if (/Produkt\s*\/\s*Gebinde/i.test(label)) started = true;
+        continue;
+      }
+      if (/^Summe/i.test(label)) { gesamt = num(rest[0]); break; }
+      if (UNIT.test(label) || !label || !rest.length) continue;
+      sorten.push({ name: label, kg: num(rest[0]) || 0, unsicher: false });
+    }
+    return sorten.length ? { woche, gesamt_kg: gesamt, sorten } : null;
+  }
+  return { num, rows, parse };
+})();
+
+/* ===================== STATE ===================== */
+/* Sortiment aus Panea Röstplanung KW 41/2026: Name und "Gesamt KG" der Woche */
+const SAMPLE = [
+  ["Panea Espresso",30.30],["Mogiana Filter",10.75],["CHINENNAHALLY Espresso",10.50],["Igarapé Decaf Omniroast",4.75],
+  ["TOLIMA Espresso",3.00],["MUTETELI Espresso",3.25],["HUILA Espresso",4.25],["SAN CRISTÓBAL Filter",2.00],
+  ["JAGUAR PROJECT Filter",2.50],["MARISCAL Espresso",2.00],["MESGO Filter",2.00],["SIGUATEPEQUE Espresso",3.25],
+  ["KINAZI Filter",2.20],["PLANADAS Decaf Omniroast",2.50],["Gamboa Filter",1.50],["Kerinci Filter",1.00]
+];
+let uid = 1;
+const newId = () => "s" + Date.now().toString(36) + (uid++);
+const freshState = () => ({
+  v: 4, week: "KW 41", source: "preset",
+  sorts: SAMPLE.map(([n, kg]) => ({ id: newId(), name: n, totalG: Math.round(kg * 1000), size: 5, unsure: false })),
+  loss: 16, extra: 0, adj: {}, assign: {}, active: 0, warn: ""
+});
+let S;
+try { S = JSON.parse(localStorage.getItem("roestplan.v4")); } catch (_) { S = null; }
+if (!S || !Array.isArray(S.sorts)) {
+  S = freshState();
+  let old = null; try { old = JSON.parse(localStorage.getItem("roestplan.v3")); } catch (_) {}
+  if (old && Array.isArray(old.sorts) && old.source && old.source !== "sample" && old.source !== "preset")
+    Object.assign(S, { week: old.week, source: old.source, loss: old.loss || 16,
+      sorts: old.sorts.map(x => ({ id: x.id, name: x.name, totalG: (x.kg1 | 0) * 1000 + (x.g250 | 0) * 250 + (x.extraG | 0), unsure: !!x.unsure })) });
+}
+S.sorts.forEach(x => { if (x.size !== 3 && x.size !== 5) x.size = 5; });
+S.extra = S.extra || 0; S.adj = S.adj || {};
+S.assign = S.assign || {}; S.active = S.active || 0;
+function save() { try { localStorage.setItem("roestplan.v4", JSON.stringify(S)); } catch (_) {} }
+
+const DAYS = 3;
+const $ = id => document.getElementById(id);
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const kgFmt = (g, d = 1) => (g / 1000).toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
+const intFmt = n => n.toLocaleString("de-DE");
+const dc = d => `--dc:var(--d${d + 1})`;
+
+/* Every batch is one item; S.assign maps "sortId#index" -> day (0..2). */
+function computeBatches() {
+  const rows = S.sorts.map(s => {
+    const batches = Core.autoBatches(s, S.loss, S.extra, S.adj[s.id]);
+    return { id: s.id, name: s.name || "Ohne Namen", sold: Core.soldGrams(s), batches: batches.map((kg, i) => ({ key: s.id + "#" + i, kg, day: S.assign[s.id + "#" + i] })) };
+  });
+  return rows;
+}
+function cleanAssign(rows) {
+  const valid = new Set(rows.flatMap(r => r.batches.map(b => b.key)));
+  Object.keys(S.assign).forEach(k => { if (!valid.has(k)) delete S.assign[k]; });
+}
+function dayTotals(rows) {
+  const t = Array.from({ length: DAYS }, () => ({ n: 0, kg: 0 })), open = { n: 0, kg: 0 };
+  rows.forEach(r => r.batches.forEach(b => { const x = b.day == null ? open : t[b.day]; x.n++; x.kg += b.kg; }));
+  return { t, open };
+}
+const batchText = kgs => {
+  const f = kgs.filter(x => x === 5).length, t = kgs.filter(x => x === 3).length;
+  return [f ? f + " × 5 kg" : "", t ? t + " × 3 kg" : ""].filter(Boolean).join(" + ");
+};
+function dayLists(rows) {
+  const days = Array.from({ length: DAYS }, () => []), open = [];
+  rows.forEach(r => {
+    for (let d = 0; d < DAYS; d++) { const k = r.batches.filter(b => b.day === d).map(b => b.kg); if (k.length) days[d].push({ name: r.name, kgs: k }); }
+    const o = r.batches.filter(b => b.day == null).map(b => b.kg); if (o.length) open.push({ name: r.name, kgs: o });
+  });
+  return { days, open };
+}
+
+/* ===================== ZAHLEN ===================== */
+const kgInput = g => g ? (g / 1000).toLocaleString("de-DE", { minimumFractionDigits: 0, maximumFractionDigits: 3 }) : "0";
+function renderZahlen() {
+  $("zBody").innerHTML = S.sorts.map(s => `
+    <div class="zr${s.unsure ? " unsure" : ""}" data-id="${s.id}">
+      <input class="nm" id="nm-${s.id}" data-f="name" value="${esc(s.name)}" placeholder="Name der Sorte" aria-label="Sortenname" autocomplete="off" enterkeyhint="done">
+      <span class="sz" role="group" aria-label="${esc(s.name)}: Chargengröße"><button data-sz="3" aria-pressed="${s.size === 3}" aria-label="3-kg-Chargen">3</button><button data-sz="5" aria-pressed="${s.size === 5}" aria-label="5-kg-Chargen">5</button></span>
+      <input class="n" id="kg-${s.id}" data-f="totalG" inputmode="decimal" value="${kgInput(s.totalG)}" aria-label="${esc(s.name)}: verkaufte kg" enterkeyhint="done">
+    </div>`).join("");
+  $("srcInfo").textContent = { preset: "Verkauf KW 41 aus deiner Röstplanung übernommen. Für eine neue Woche Datei oder Foto laden.", photo: "Aus dem Foto gelesen. Bitte kurz prüfen.", file: "Aus der Datei gelesen. Bitte kurz prüfen." }[S.source] || "";
+  $("warnBox").textContent = S.warn || "";
+  $("lossOut").textContent = S.loss + " %";
+  updTotals();
+}
+function updTotals() {
+  $("zTot").textContent = kgFmt(S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), 2) + " kg";
+  $("wk").textContent = S.week;
+  updBadges();
+}
+$("zBody").addEventListener("input", e => {
+  const tr = e.target.closest(".zr"); if (!tr) return;
+  const s = S.sorts.find(x => x.id === tr.dataset.id); const f = e.target.dataset.f;
+  if (f === "name") s.name = e.target.value;
+  else { const v = parseFloat(e.target.value.replace(",", ".")); s.totalG = isNaN(v) || v < 0 ? 0 : Math.round(v * 1000); }
+  if (s.unsure) { s.unsure = false; tr.classList.remove("unsure"); }
+  if (S.source === "sample" || S.source === "preset") { S.source = "manual"; $("srcInfo").textContent = ""; }
+  updTotals(); save();
+});
+$("zBody").addEventListener("click", e => {
+  const b = e.target.closest("button[data-sz]"); if (!b) return;
+  const tr = b.closest(".zr"), s = S.sorts.find(x => x.id === tr.dataset.id); s.size = +b.dataset.sz;
+  tr.querySelectorAll("button[data-sz]").forEach(x => x.setAttribute("aria-pressed", x === b)); S.assign = {}; delete S.adj[s.id]; save(); updBadges();
+});
+$("zBody").addEventListener("focusout", e => {
+  const tr = e.target.closest(".zr"); if (!tr || tr.contains(e.relatedTarget)) return;
+  const s = S.sorts.find(x => x.id === tr.dataset.id);
+  if (s && !s.name.trim() && !s.totalG) { S.sorts = S.sorts.filter(x => x !== s); save(); renderZahlen(); }
+});
+$("addRow").addEventListener("click", () => {
+  const s = { id: newId(), name: "", totalG: 0, size: 5, unsure: false }; S.sorts.push(s); save(); renderZahlen();
+  $("nm-" + s.id).focus();
+});
+document.querySelector(".loss .step").addEventListener("click", e => {
+  const b = e.target.closest("button[data-loss]"); if (!b) return;
+  S.loss = Math.min(30, Math.max(5, S.loss + +b.dataset.loss)); save(); $("lossOut").textContent = S.loss + " %"; updBadges();
+});
+
+document.addEventListener("keydown", e => { if (e.key === "Enter" && e.target.tagName === "INPUT") { e.preventDefault(); e.target.blur(); } });
+document.addEventListener("pointerdown", e => { const a = document.activeElement; if (a && a.tagName === "INPUT" && e.target.tagName !== "INPUT" && !e.target.closest("label")) a.blur(); });
+
+/* ===================== CHARGEN ===================== */
+function renderChargen() {
+  document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.x === S.extra));
+  const rows = computeBatches(); cleanAssign(rows);
+  const { t, open } = dayTotals(rows);
+  $("dpick").innerHTML = t.map((x, d) => `<button data-d="${d}" style="${dc(d)}" aria-pressed="${d === S.active}"><b><i></i>Tag ${d + 1}</b><small>${x.n} Ch. · ${intFmt(x.kg)} kg</small></button>`).join("");
+  $("openInfo").textContent = open.n ? `${open.n} Chargen noch offen` : "Alle Chargen sind verteilt.";
+  $("allOpen").textContent = open.n ? `Alle offenen auf Tag ${S.active + 1}` : "";
+  $("allOpen").hidden = !open.n;
+  const base = S.sorts.reduce((a, x) => a + Core.autoBatches(x, S.loss, 0, 0).length, 0), now = rows.reduce((a, r) => a + r.batches.length, 0);
+  $("extraNote").textContent = now === base ? "" : (now > base ? "+" : "−") + Math.abs(now - base) + " Chargen gegenüber „Genau“ (" + base + ")";
+  const vis = rows.filter(r => r.sold > 0);
+  $("cList").innerHTML = vis.length ? vis.map(r => `
+    <div class="cs" data-id="${r.id}">
+      <div class="hh"><button class="h" data-act="sort" aria-label="Alle Chargen von ${esc(r.name)} auf Tag ${S.active + 1}"><b>${esc(r.name)}</b><span>${r.batches.length ? batchText(r.batches.map(b => b.kg)) : "keine"}${S.adj[r.id] ? " (" + (S.adj[r.id] > 0 ? "+" : "−") + Math.abs(S.adj[r.id]) + ")" : ""}</span></button>
+        <span class="adj"><button data-adj="-1" aria-label="Eine Charge weniger ${esc(r.name)}">−</button><button data-adj="1" aria-label="Eine Charge mehr ${esc(r.name)}">+</button></span></div>
+      <div class="bs">${r.batches.map(b => `<button class="b${b.day != null ? " on" : ""}" data-k="${b.key}" ${b.day != null ? `style="${dc(b.day)}"` : ""} aria-label="${b.kg} kg${b.day != null ? ", Tag " + (b.day + 1) : ", offen"}">${b.kg} kg${b.day != null ? `<sup>${b.day + 1}</sup>` : ""}</button>`).join("")}</div>
+    </div>`).join("") : `<div class="empty">Noch keine Verkaufszahlen.</div>`;
+  updBadges();
+}
+$("modes").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.extra = +b.dataset.x; S.adj = {}; save(); renderChargen(); });
+$("dpick").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.active = +b.dataset.d; save(); renderChargen(); });
+$("allOpen").addEventListener("click", () => { computeBatches().forEach(r => r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = S.active; })); save(); renderChargen(); });
+$("clearAll").addEventListener("click", () => { S.assign = {}; save(); renderChargen(); });
+$("cList").addEventListener("click", e => {
+  const btn = e.target.closest("button"); if (!btn) return;
+  if (btn.dataset.adj) {
+    const id = btn.closest(".cs").dataset.id, r = computeBatches().find(x => x.id === id), d = +btn.dataset.adj;
+    if (d < 0 && !r.batches.length) return;
+    S.adj[id] = (S.adj[id] || 0) + d; if (!S.adj[id]) delete S.adj[id];
+  } else if (btn.dataset.k) {
+    const k = btn.dataset.k;
+    if (S.assign[k] === S.active) delete S.assign[k]; else S.assign[k] = S.active;
+  } else if (btn.dataset.act === "sort") {
+    const r = computeBatches().find(x => x.id === btn.closest(".cs").dataset.id);
+    const allHere = r.batches.every(b => b.day === S.active);
+    r.batches.forEach(b => { if (allHere) delete S.assign[b.key]; else S.assign[b.key] = S.active; });
+  }
+  save(); renderChargen();
+});
+
+/* ===================== LISTE ===================== */
+function renderListe() {
+  const rows = computeBatches(); cleanAssign(rows);
+  const { days, open } = dayLists(rows); const { t } = dayTotals(rows);
+  let h = "";
+  days.forEach((list, d) => {
+    if (!list.length) return;
+    h += `<div class="dayh" style="${dc(d)}"><b><i></i>Tag ${d + 1}</b><span>${t[d].n} Chargen · ${intFmt(t[d].kg)} kg roh</span></div>
+      <div class="card">${list.map(x => `<div class="lr"><b style="font-weight:300">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
+  });
+  if (open.length) h += `<div class="dayh"><b>Noch nicht verteilt</b><span>${open.reduce((a, x) => a + x.kgs.length, 0)} Chargen</span></div>
+      <div class="card">${open.map(x => `<div class="lr"><b style="font-weight:300">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
+  if (!h) h = `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
+  $("lList").innerHTML = h;
+}
+
+/* ===================== EXPORT ===================== */
+const msg = t => { $("expMsg").textContent = t; };
+function planText() {
+  const rows = computeBatches(); const { days, open } = dayLists(rows); const { t } = dayTotals(rows);
+  let out = "Röstplan " + S.week + "\n";
+  days.forEach((list, d) => { if (!list.length) return; out += "\nTag " + (d + 1) + " (" + t[d].n + " Chargen, " + intFmt(t[d].kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
+  if (open.length) { out += "\nNoch nicht verteilt\n"; open.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); }
+  return out;
+}
+$("copyTxt").addEventListener("click", () => {
+  const t = planText();
+  try { navigator.clipboard.writeText(t).then(() => msg("Kopiert."), () => msg("Kopieren hat nicht geklappt.")); }
+  catch (_) { msg("Kopieren hat nicht geklappt."); }
+});
+function drawImage() {
+  const rows = computeBatches(); const { days, open } = dayLists(rows); const { t } = dayTotals(rows);
+  const groups = days.map((l, d) => ({ title: "Tag " + (d + 1), sub: t[d].n + " Chargen · " + intFmt(t[d].kg) + " kg roh", list: l, col: ["#7a5236", "#4c6a86", "#6c7a3c"][d] })).filter(g => g.list.length);
+  if (open.length) groups.push({ title: "Noch nicht verteilt", sub: "", list: open, col: "#8a847d" });
+  const W = 1080, pad = 72, lh = 76;
+  let h = pad + 100; groups.forEach(g => h += 120 + g.list.length * lh); h += pad;
+  const c = document.createElement("canvas"); c.width = W; c.height = h; const x = c.getContext("2d");
+  const F = '"Helvetica Neue", Helvetica, Arial, sans-serif';
+  x.fillStyle = "#f7f6f3"; x.fillRect(0, 0, W, h);
+  x.fillStyle = "#1d1b19"; x.font = "200 60px " + F; x.fillText("Röstplan " + S.week, pad, pad + 50);
+  let y = pad + 100;
+  groups.forEach(g => {
+    y += 56; x.fillStyle = g.col; x.beginPath(); x.arc(pad + 10, y - 13, 10, 0, 7); x.fill();
+    x.fillStyle = "#1d1b19"; x.font = "300 40px " + F; x.fillText(g.title, pad + 34, y);
+    x.fillStyle = "#8a847d"; x.font = "300 28px " + F; x.textAlign = "right"; x.fillText(g.sub, W - pad, y); x.textAlign = "left";
+    y += 28; x.fillStyle = "#ffffff"; x.fillRect(pad - 20, y, W - 2 * pad + 40, g.list.length * lh + 8); y += 4;
+    g.list.forEach((r, i) => {
+      x.strokeStyle = "#c9c3bb"; x.lineWidth = 2.5; x.beginPath(); x.roundRect ? x.roundRect(pad, y + 22, 30, 30, 6) : x.rect(pad, y + 22, 30, 30); x.stroke();
+      x.fillStyle = "#1d1b19"; x.font = "400 32px " + F;
+      let name = r.name; while (x.measureText(name).width > 520 && name.length > 4) name = name.slice(0, -2);
+      if (name !== r.name) name = name.trim() + "…";
+      x.fillText(name, pad + 52, y + 48);
+      x.fillStyle = "#5c5751"; x.font = "300 30px " + F; x.textAlign = "right"; x.fillText(batchText(r.kgs), W - pad, y + 48); x.textAlign = "left";
+      if (i < g.list.length - 1) { x.fillStyle = "#ebe8e3"; x.fillRect(pad + 52, y + lh - 1, W - 2 * pad - 52, 2); }
+      y += lh;
+    });
+    y += 4;
+  });
+  return c;
+}
+$("saveImg").addEventListener("click", async () => {
+  const c = drawImage();
+  const blob = await new Promise(r => c.toBlob(r, "image/png"));
+  const name = "roestplan-" + S.week.replace(/\W+/g, "-").toLowerCase() + ".png";
+  const dl = await getCap("downloads");
+  if (dl) {
+    try { await dl.save({ filename: name, data: blob }); msg("Bild gespeichert."); return; }
+    catch (e) { if (e && e.code === "declined") { msg("Abgebrochen."); return; } }
+  }
+  const ov = document.createElement("div"); ov.className = "ov";
+  ov.innerHTML = `<img alt="Röstplan als Bild" src="${c.toDataURL("image/png")}"><p>Bild lange drücken und „In Fotos sichern“ wählen.</p><button>Schließen</button>`;
+  ov.querySelector("button").onclick = () => ov.remove(); document.body.appendChild(ov);
+});
+
+/* ===================== IMPORT ===================== */
+const caps = {};
+function getCap(name) {
+  if (!(name in caps)) caps[name] = (window.claude && claude.use) ? claude.use(name).catch(() => null) : Promise.resolve(null);
+  return caps[name];
+}
+const IGNORE = ["first roast", "fazenda santa cristina"];
+const ignored = n => IGNORE.some(x => n.toLowerCase().startsWith(x));
+const PROMPT_HEAD = `Du liest den wöchentlichen Verkaufsbericht einer kleinen Kaffeerösterei.
+Gib für jede Kaffeesorte die verkaufte Gesamtmenge in kg zurück (Spalte "Gesamt KG", sonst die Summe aller Packungsgrößen in kg, Dezimalzahl).
+Regeln:
+- Summen-, Gesamt- und Zwischensummenzeilen sind keine Sorten.
+- Wenn eine Zahl schlecht lesbar ist, setze "unsicher": true.
+- Nutze einen der bekannten Sortennamen, wenn eindeutig dieselbe Sorte gemeint ist, sonst den Namen aus dem Bericht.
+- Steht im Bericht eine Gesamtmenge in kg, gib sie als "gesamt_kg" zurück, sonst null. Steht eine Kalenderwoche drin, gib sie als "woche" zurück (z. B. "KW 41"), sonst null.
+Antworte nur mit JSON in genau dieser Form:
+{"woche":"KW 41","gesamt_kg":183.5,"sorten":[{"name":"Panea Espresso","kg":30.3,"unsicher":false}]}
+Bekannte Sortennamen: `;
+function applyImport(res, source) {
+  const list = Array.isArray(res?.sorten) ? res.sorten : [];
+  const all = list.map(r => ({ name: String(r.name || "").trim(), totalG: Math.max(0, Math.round((+r.kg || 0) * 1000)), unsure: !!r.unsicher }))
+    .filter(r => r.name && !/^(summe|gesamt|total|zwischensumme)/i.test(r.name));
+  if (!all.length) throw new Error("Keine Sorten gefunden");
+  const totAll = all.reduce((x, r) => x + Core.soldGrams(r), 0);
+  const clean = all.filter(r => !ignored(r.name));
+  const byName = new Map(S.sorts.map(s => [s.name.toLowerCase(), s]));
+  S.sorts = clean.map(r => { const o = byName.get(r.name.toLowerCase()); return { id: o?.id || newId(), size: o?.size === 3 ? 3 : 5, ...r }; });
+  S.assign = {}; S.adj = {}; S.source = source;
+  S.week = res.woche ? String(res.woche).slice(0, 20) : "KW " + isoWeek(new Date(Date.now() - 6 * 864e5));
+  const nU = S.sorts.filter(s => s.unsure).length;
+  const w = [];
+  if (typeof res.gesamt_kg === "number" && Math.abs(res.gesamt_kg * 1000 - totAll) > 1) w.push(`Im Bericht steht ${String(res.gesamt_kg).replace(".", ",")} kg gesamt, gelesen wurden ${kgFmt(totAll, 2)} kg. Bitte die Zeilen vergleichen.`);
+  if (nU) w.push(nU === 1 ? "1 Wert ist unsicher gelesen und markiert." : nU + " Werte sind unsicher gelesen und markiert.");
+  S.warn = w.join(" ");
+  save(); renderZahlen();
+}
+function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); }
+function setBusy(lbl, on, text) {
+  const sp = lbl.querySelector("span"); lbl.toggleAttribute("aria-busy", on);
+  if (on) { lbl.dataset.t = sp.textContent; sp.textContent = text; } else if (lbl.dataset.t) sp.textContent = lbl.dataset.t;
+}
+const errText = e => ({ not_granted: "Auslesen wurde nicht erlaubt. Du kannst die Zahlen unten eintippen.", rate_limited: "Gerade zu viele Anfragen. Bitte gleich nochmal versuchen.", image_rejected: "Dieses Bild geht nicht. Bitte ein anderes Foto nehmen.", invalid_json: "Konnte die Tabelle nicht sicher lesen. Bitte nochmal oder schärferes Foto.", images_unavailable: "Fotos auslesen geht hier nicht. Nutze eine Datei oder tippe die Zahlen ein.", sampling_disabled: "Auslesen ist hier nicht verfügbar. Bitte Zahlen eintippen." }[e?.code] || (e?.message === "Keine Sorten gefunden" ? "Im Bericht wurden keine Sorten gefunden." : "Auslesen hat nicht geklappt. Prüfe die Verbindung und versuche es nochmal."));
+async function readImage(file, lbl) {
+  const sample = await getCap("sample");
+  if (!sample) { S.warn = "Fotos auslesen geht nur in der Claude-Version. Hier bitte PDF, Excel oder CSV laden – oder die Zahlen unten eintippen."; renderZahlen(); return; }
+  setBusy(lbl, true, "Liest…");
+  try {
+    const res = await sample.json(PROMPT_HEAD + S.sorts.map(s => s.name).join(", ") + "\n\nDas Bild ist ein Foto oder Bildschirmfoto des Berichts.", { images: [file], modelTier: "default", cache: false });
+    applyImport(res, "photo");
+  } catch (e) { S.warn = errText(e); renderZahlen(); }
+  finally { setBusy(lbl, false); }
+}
+function localParse(rowsAoa) {
+  const norm = v => String(v ?? "").trim();
+  let hi = -1, ck = -1, cn = 0;
+  for (let i = 0; i < Math.min(rowsAoa.length, 30) && hi < 0; i++) {
+    const r = rowsAoa[i].map(norm), k = r.findIndex(t => /^gesamt\s*kg$/i.test(t));
+    if (k >= 0) { hi = i; ck = k; const n = r.findIndex(t => /sorte|artikel|produkt|bezeichnung|name|kaffee/i.test(t)); cn = n >= 0 ? n : 0; }
+  }
+  if (hi < 0) return null;
+  const sorten = [];
+  for (const r of rowsAoa.slice(hi + 1)) {
+    const name = norm(r[cn]); if (!name || /summe|gesamt|total/i.test(name) || /^(250\s*g|1000\s*g|3000\s*g|10\s*kg|unverp)/i.test(name)) continue;
+    const kg = Report.num(r[ck]); if (kg == null) continue;
+    sorten.push({ name, kg, unsicher: false });
+  }
+  return sorten.length ? { woche: null, gesamt_kg: null, sorten } : null;
+}
+const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const loadScript = src => new Promise((ok, err) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = () => err(new Error("load")); document.head.appendChild(el); });
+async function pdfRows(file) {
+  if (!window.pdfjsLib) { await loadScript(PDFJS); await loadScript(PDFJS_WORKER); }
+  pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
+  const doc = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const items = [];
+  for (let p = 1; p <= doc.numPages; p++) {
+    const tc = await (await doc.getPage(p)).getTextContent();
+    tc.items.forEach(i => items.push({ s: i.str, x: i.transform[4], w: i.width, y: p * 100000 - i.transform[5] }));
+  }
+  return Report.rows(items);
+}
+async function readPdf(file, lbl) {
+  setBusy(lbl, true, "Liest…");
+  try {
+    let rs;
+    try { rs = await pdfRows(file); }
+    catch (_) { S.warn = "Das PDF konnte hier nicht gelesen werden. Bitte als Bildschirmfoto oder Excel/CSV laden."; renderZahlen(); return; }
+    const res = Report.parse(rs);
+    if (res) { applyImport(res, "file"); return; }
+    const sample = await getCap("sample");
+    if (!sample) { S.warn = "Die Tabelle im PDF wurde nicht erkannt. Bitte Zahlen unten eintippen."; renderZahlen(); return; }
+    const txt = rs.map(r => r.join(" ; ")).join("\n").slice(0, 20000);
+    applyImport(await sample.json(PROMPT_HEAD + S.sorts.map(s => s.name).join(", ") + "\n\nDer Bericht als Text (Spalten mit ; getrennt):\n" + txt, { modelTier: "default", cache: false }), "file");
+  } catch (e) { S.warn = errText(e); renderZahlen(); }
+  finally { setBusy(lbl, false); }
+}
+async function readFile(file, lbl) {
+  if (/^image\//.test(file.type)) return readImage(file, lbl);
+  if (file.type === "application/pdf" || /\.pdf$/i.test(file.name)) return readPdf(file, lbl);
+  if (!window.XLSX) { S.warn = "Die Datei-Funktion konnte nicht geladen werden. Bitte Internet prüfen."; renderZahlen(); return; }
+  setBusy(lbl, true, "Liest…");
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = XLSX.read(buf, { type: "array" });
+    const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: "" });
+    const loc = localParse(aoa);
+    if (loc) { applyImport(loc, "file"); return; }
+    const sample = await getCap("sample");
+    if (!sample) { S.warn = "Spalte „Gesamt KG“ nicht gefunden. Bitte Zahlen unten eintippen."; renderZahlen(); return; }
+    const csv = aoa.slice(0, 300).map(r => r.join(" ; ")).join("\n");
+    applyImport(await sample.json(PROMPT_HEAD + S.sorts.map(s => s.name).join(", ") + "\n\nDer Bericht als Tabelle (Spalten mit ; getrennt):\n" + csv, { modelTier: "default", cache: false }), "file");
+  } catch (e) { S.warn = errText(e); renderZahlen(); }
+  finally { setBusy(lbl, false); }
+}
+$("photoIn").addEventListener("change", e => { const f = e.target.files[0]; e.target.value = ""; if (f) readImage(f, $("photoBtn")); });
+$("fileIn").addEventListener("change", e => { const f = e.target.files[0]; e.target.value = ""; if (f) readFile(f, $("fileBtn")); });
+
+/* ===================== TABS ===================== */
+function updBadges() {
+  const rows = computeBatches(); const { open } = dayTotals(rows);
+  const n = rows.reduce((a, r) => a + r.batches.length, 0);
+  $("tb1").textContent = kgFmt(S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), 0) + " kg";
+  $("tb2").textContent = n + " Chargen";
+  $("tb3").textContent = open.n ? open.n + " offen" : "fertig";
+}
+document.querySelector("nav").addEventListener("click", e => {
+  const b = e.target.closest("button[data-tab]"); if (!b) return;
+  document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
+  ["zahlen", "chargen", "liste"].forEach(t => $("t-" + t).hidden = t !== b.dataset.tab);
+  if (b.dataset.tab === "chargen") renderChargen(); else if (b.dataset.tab === "liste") renderListe(); else renderZahlen();
+  window.scrollTo(0, 0);
+});
+renderZahlen();
+</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body></html>
