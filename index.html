@@ -63,6 +63,39 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   .tumble{animation:tumble 9s linear infinite;transform-origin:150px 104px;transform-box:view-box}
   @keyframes tumble{to{transform:rotate(360deg)}}
 }
+/* Handy: alle drei Kacheln ohne Scrollen sichtbar, Bilder füllen den freien Platz (Ausschnitt mittig) */
+@media (max-width:899px){
+  .wrap{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+  h1{margin-bottom:16px}
+  .tiles{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
+  .tile{flex:1 1 0;display:flex;flex-direction:column;min-height:136px;border-radius:22px}
+  .art{flex:1 1 0;min-height:0;aspect-ratio:auto;height:auto}
+  .meta{padding:11px 14px 12px 18px}
+  .meta h2{font-size:20px}
+  .meta p{font-size:14px;margin-top:1px}
+  .go{width:34px;height:34px}
+  .foot{margin-top:12px}
+}
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
+:root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
+:root[data-theme=dark]{--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}
+.lgx{position:fixed;left:50%;right:auto;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;z-index:40;display:flex;gap:2px;padding:4px;border:0;border-radius:999px;isolation:isolate;overflow:visible;
+ background:var(--lgx-solid);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:inset 0 1px 0 var(--lgx-hl),0 0 0 .5px var(--lgx-edge),0 16px 40px -18px rgba(40,25,10,.45)}
+.lgx .in{display:flex;gap:2px;flex:1;min-width:0}
+.lgx button{position:relative;z-index:2;flex:1;max-width:none;min-width:0;min-height:52px;padding:4px 0;border:0;border-radius:999px;background:none!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:600;line-height:1.2;color:var(--ink2,var(--muted));transition:color .25s,transform .35s cubic-bezier(.3,1.6,.5,1);touch-action:none}
+.lgx button svg{width:24px;height:24px;margin:0}
+.lgx button[aria-selected="true"]{color:var(--accent)}
+.lgx button.lgx-near{transform:scale(1.06)}
+.lgx-th{position:absolute;z-index:1;left:0;top:0;border-radius:999px;pointer-events:none;will-change:transform;box-shadow:var(--lgx-thumb-sh);transform-origin:50% 50%}
+.lgx-th::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 90% at var(--hx,30%) 0%,rgba(255,255,255,.95),rgba(255,255,255,0) 55%);opacity:var(--ho,.55);mix-blend-mode:soft-light}
+.lgx-th::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,var(--ro,0)),0 10px 26px -8px rgba(40,25,10,var(--so,0))}
+.lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
+@media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
+@media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+.lgx.solo{width:auto}
+.lgx.solo button{padding:4px 28px}
+.wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
 </style>
 </head><body>
 <div class="wrap">
@@ -71,7 +104,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 
   <div class="tiles">
     <a class="tile" href="tagesabschluss.html" aria-labelledby="t1">
-      <svg class="art" viewBox="0 0 340 170" aria-hidden="true">
+      <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c1a)"/><stop offset="1" stop-color="var(--c1b)"/></linearGradient>
           <linearGradient id="coin" x1="0" x2="1"><stop offset="0" stop-color="#B98A3E"/><stop offset=".45" stop-color="#E9C982"/><stop offset="1" stop-color="#A9782F"/></linearGradient>
@@ -112,7 +145,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     </a>
 
     <a class="tile" href="roestplan.html" aria-labelledby="t2">
-      <svg class="art" viewBox="0 0 340 170" aria-hidden="true">
+      <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c2a)"/><stop offset="1" stop-color="var(--c2b)"/></linearGradient>
           <radialGradient id="glow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#E8A25A" stop-opacity=".55"/><stop offset="1" stop-color="#E8A25A" stop-opacity="0"/></radialGradient>
@@ -155,7 +188,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       <div class="meta"><div><h2 id="t2">Röstplan</h2><p id="s2">Verkauf rein · Chargen planen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <a class="tile" href="bruehbuch.html" aria-labelledby="t3">
-      <svg class="art" viewBox="0 0 340 170" aria-hidden="true">
+      <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c3a)"/><stop offset="1" stop-color="var(--c3b)"/></linearGradient>
           <linearGradient id="brew" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9744E"/><stop offset="1" stop-color="#5B3523"/></linearGradient>
@@ -241,6 +274,39 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     } else if (rz) t = rz + (rz === 1 ? " Rezept" : " Rezepte");
     if (t) document.getElementById("s3").innerHTML = t;
   }
+})();
+</script>
+<nav class="lgx solo" aria-label="Bereiche"><button type="button" class="lgx-home" aria-selected="true" onclick="location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button></nav>
+<script>
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139: Linse gleitet federnd, ziehbar, Schimmer ---------- */
+(function(){
+ var bar=document.querySelector(".lgx");if(!bar)return;
+ var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches,cl=function(v,a,b){return Math.max(a,Math.min(b,v))};
+ var DK=function(){var t=document.documentElement.getAttribute("data-theme");return t?t=="dark":matchMedia("(prefers-color-scheme: dark)").matches};
+ var th=document.createElement("i");th.className="lgx-th";bar.prepend(th);
+ var L=[].slice.call(bar.querySelectorAll("button"));
+ var x=0,y=0,w=0,h=0,vx=0,tx=0,ty=0,tw=0,thh=0,press=0,raf=0,drag=false,hl=30,first=true,last=0,pid=null,sx0=0,moved=false;
+ function target(){return L.filter(function(l){return l.getAttribute("aria-selected")=="true"})[0]||L[0]}
+ function setT(lb){tx=lb.offsetLeft;ty=lb.offsetTop;tw=lb.offsetWidth;thh=lb.offsetHeight;if(first||reduce){x=tx;y=ty;w=tw;h=thh;first=false;draw()}kick()}
+ function draw(){var st=Math.min(Math.abs(vx)/900,.32),p=1+press*.14,dk=DK();
+  th.style.width=w+"px";th.style.height=h+"px";th.style.transform="translate("+x.toFixed(2)+"px,"+y+"px) scale("+((1+st)*p).toFixed(3)+","+((1-st*.55)*p).toFixed(3)+")";
+  hl+=((50-cl(vx/18,-40,40))-hl)*.2;th.style.setProperty("--hx",hl.toFixed(1)+"%");th.style.setProperty("--ho",(.55+press*.4+st).toFixed(2));
+  th.style.background=dk?"linear-gradient(180deg,rgba(255,255,255,"+(.30-.16*press).toFixed(2)+"),rgba(255,255,255,"+(.14-.08*press).toFixed(2)+"))":"linear-gradient(180deg,rgba(255,255,255,"+(.98-.62*press).toFixed(2)+"),rgba(255,255,255,"+(.72-.5*press).toFixed(2)+"))";
+  th.style.setProperty("--ro",(press*.7).toFixed(2));th.style.setProperty("--so",(press*.35).toFixed(2))}
+ function step(t){var dt=Math.min(.033,(t-(last||t))/1000)||.016;last=t;var k=drag?900:260,dm=drag?2*Math.sqrt(900)*.9:2*Math.sqrt(260)*.62;
+  vx+=(k*(tx-x)-dm*vx)*dt;x+=vx*dt;w+=(tw-w)*Math.min(1,dt*14);h+=(thh-h)*Math.min(1,dt*14);press+=((drag?1:0)-press)*Math.min(1,dt*12);draw();
+  if(Math.abs(tx-x)>.3||Math.abs(vx)>2||Math.abs(press-(drag?1:0))>.01)raf=requestAnimationFrame(step);else{raf=0;last=0;x=tx;vx=0;draw()}}
+ function kick(){if(reduce){x=tx;y=ty;w=tw;h=thh;press=0;draw();return}if(!raf){last=0;raf=requestAnimationFrame(step)}}
+ addEventListener("resize",function(){first=true;setT(target())});
+ function nearest(px){var b=L[0],bd=1e9,r=bar.getBoundingClientRect();L.forEach(function(l){var dd=Math.abs(px-r.left-(l.offsetLeft+l.offsetWidth/2));if(dd<bd){bd=dd;b=l}});return b}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;sx0=e.clientX;moved=false;drag=true;var lb=nearest(e.clientX);tx=lb.offsetLeft;tw=lb.offsetWidth;kick()});
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-sx0)>8&&!moved){moved=true;try{bar.setPointerCapture(pid)}catch(z){}}
+  if(!moved)return;var r=bar.getBoundingClientRect();tx=cl(e.clientX-r.left-tw/2,0,bar.offsetWidth-tw);var lb=nearest(e.clientX);L.forEach(function(l){l.classList.toggle("lgx-near",l===lb)});kick()});
+ function up(e){if(e.pointerId!==pid)return;pid=null;drag=false;L.forEach(function(l){l.classList.remove("lgx-near")});if(moved){var lb=nearest(e.clientX);lb.click()}setT(target())}
+ bar.addEventListener("pointerup",up);bar.addEventListener("pointercancel",function(e){if(e.pointerId!==pid)return;pid=null;drag=false;moved=false;setT(target())});
+ new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
+ if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
+ requestAnimationFrame(function(){setT(target())});
 })();
 </script>
 <script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>

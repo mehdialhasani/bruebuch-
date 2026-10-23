@@ -15,11 +15,6 @@
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 </head><body>
 <style>
-.home{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:-6px 0 2px -4px;padding:0 10px 0 4px;border-radius:999px;color:var(--accent);font-size:16px;font-weight:500;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.home svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.home:active{opacity:.55}
-</style>
-<style>
 /* Layout wie Tagesabschluss: eine Spalte, Karten mit feiner Linie, drei Seiten (Zahlen / Chargen / Liste) über eine schwebende Glas-Leiste unten. Farbschema Crema, Helvetica Neue. */
 :root{
   --bg:#F3EEE7; --card:#FBF8F3; --fg:#2B211B; --muted:#7A6A5D; --line:#E3D9CC; --soft:#F3EEE7;
@@ -45,9 +40,10 @@
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
 body{background:var(--bg);color:var(--fg);font:16px/1.5 var(--f);-webkit-tap-highlight-color:transparent;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
 main{max-width:620px;margin:0 auto;padding:18px 16px calc(110px + env(safe-area-inset-bottom,0px))}
-.top{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:0 0 16px}
+.top{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:0 0 16px}
 h1{font:700 32px/1.05 var(--f);letter-spacing:-.02em;margin:0}
 .top span{color:var(--muted);font-size:14px}
+.top span:empty{display:none}
 button,input{font-family:inherit;font-size:16px;color:var(--fg)}
 button{cursor:pointer;touch-action:manipulation;background:none;border:0;padding:0;font-weight:600}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
@@ -140,10 +136,26 @@ section[hidden]{display:none!important}
 .ov img{max-height:75vh;max-width:100%;border-radius:8px;background:#fff}
 .ov p{color:#fff;margin:0;text-align:center}
 .ov button{min-height:46px;padding:0 24px;border-radius:11px;background:#fff;color:#111}
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
+:root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
+:root[data-theme=dark]{--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}
+.lgx{position:fixed;left:50%;right:auto;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;z-index:40;display:flex;gap:2px;padding:4px;border:0;border-radius:999px;isolation:isolate;overflow:visible;
+ background:var(--lgx-solid);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:inset 0 1px 0 var(--lgx-hl),0 0 0 .5px var(--lgx-edge),0 16px 40px -18px rgba(40,25,10,.45)}
+.lgx .in{display:flex;gap:2px;flex:1;min-width:0}
+.lgx button{position:relative;z-index:2;flex:1;max-width:none;min-width:0;min-height:52px;padding:4px 0;border:0;border-radius:999px;background:none!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:600;line-height:1.2;color:var(--ink2,var(--muted));transition:color .25s,transform .35s cubic-bezier(.3,1.6,.5,1);touch-action:none}
+.lgx button svg{width:24px;height:24px;margin:0}
+.lgx button[aria-selected="true"]{color:var(--accent)}
+.lgx button.lgx-near{transform:scale(1.06)}
+.lgx-th{position:absolute;z-index:1;left:0;top:0;border-radius:999px;pointer-events:none;will-change:transform;box-shadow:var(--lgx-thumb-sh);transform-origin:50% 50%}
+.lgx-th::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 90% at var(--hx,30%) 0%,rgba(255,255,255,.95),rgba(255,255,255,0) 55%);opacity:var(--ho,.55);mix-blend-mode:soft-light}
+.lgx-th::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,var(--ro,0)),0 10px 26px -8px rgba(40,25,10,var(--so,0))}
+.lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
+@media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
+@media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
 </style>
 
 <main>
-  <a class="home" href="./" aria-label="Zurück zur Startseite"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Übersicht</a>
   <div class="top"><h1>Röstplan</h1><span id="wk"></span></div>
 
   <section id="t-zahlen">
@@ -181,7 +193,8 @@ section[hidden]{display:none!important}
   </section>
 </main>
 
-<nav aria-label="Bereiche"><div class="in" role="tablist">
+<nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
+  <button type="button" class="lgx-home" onclick="location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
   <button role="tab" data-tab="zahlen" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Zahlen<small id="tb1"></small></button>
   <button role="tab" data-tab="chargen" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4c-3 3-3 13 0 16"/></svg>Chargen<small id="tb2"></small></button>
   <button role="tab" data-tab="liste" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 5.5l1 1 1.8-2M4 11.5l1 1 1.8-2M4 17.5l1 1 1.8-2"/></svg>Liste<small id="tb3"></small></button>
@@ -625,6 +638,39 @@ document.querySelector("nav").addEventListener("click", e => {
   window.scrollTo(0, 0);
 });
 renderZahlen();
+</script>
+
+<script>
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139: Linse gleitet federnd, ziehbar, Schimmer ---------- */
+(function(){
+ var bar=document.querySelector(".lgx");if(!bar)return;
+ var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches,cl=function(v,a,b){return Math.max(a,Math.min(b,v))};
+ var DK=function(){var t=document.documentElement.getAttribute("data-theme");return t?t=="dark":matchMedia("(prefers-color-scheme: dark)").matches};
+ var th=document.createElement("i");th.className="lgx-th";bar.prepend(th);
+ var L=[].slice.call(bar.querySelectorAll("button"));
+ var x=0,y=0,w=0,h=0,vx=0,tx=0,ty=0,tw=0,thh=0,press=0,raf=0,drag=false,hl=30,first=true,last=0,pid=null,sx0=0,moved=false;
+ function target(){return L.filter(function(l){return l.getAttribute("aria-selected")=="true"})[0]||L[0]}
+ function setT(lb){tx=lb.offsetLeft;ty=lb.offsetTop;tw=lb.offsetWidth;thh=lb.offsetHeight;if(first||reduce){x=tx;y=ty;w=tw;h=thh;first=false;draw()}kick()}
+ function draw(){var st=Math.min(Math.abs(vx)/900,.32),p=1+press*.14,dk=DK();
+  th.style.width=w+"px";th.style.height=h+"px";th.style.transform="translate("+x.toFixed(2)+"px,"+y+"px) scale("+((1+st)*p).toFixed(3)+","+((1-st*.55)*p).toFixed(3)+")";
+  hl+=((50-cl(vx/18,-40,40))-hl)*.2;th.style.setProperty("--hx",hl.toFixed(1)+"%");th.style.setProperty("--ho",(.55+press*.4+st).toFixed(2));
+  th.style.background=dk?"linear-gradient(180deg,rgba(255,255,255,"+(.30-.16*press).toFixed(2)+"),rgba(255,255,255,"+(.14-.08*press).toFixed(2)+"))":"linear-gradient(180deg,rgba(255,255,255,"+(.98-.62*press).toFixed(2)+"),rgba(255,255,255,"+(.72-.5*press).toFixed(2)+"))";
+  th.style.setProperty("--ro",(press*.7).toFixed(2));th.style.setProperty("--so",(press*.35).toFixed(2))}
+ function step(t){var dt=Math.min(.033,(t-(last||t))/1000)||.016;last=t;var k=drag?900:260,dm=drag?2*Math.sqrt(900)*.9:2*Math.sqrt(260)*.62;
+  vx+=(k*(tx-x)-dm*vx)*dt;x+=vx*dt;w+=(tw-w)*Math.min(1,dt*14);h+=(thh-h)*Math.min(1,dt*14);press+=((drag?1:0)-press)*Math.min(1,dt*12);draw();
+  if(Math.abs(tx-x)>.3||Math.abs(vx)>2||Math.abs(press-(drag?1:0))>.01)raf=requestAnimationFrame(step);else{raf=0;last=0;x=tx;vx=0;draw()}}
+ function kick(){if(reduce){x=tx;y=ty;w=tw;h=thh;press=0;draw();return}if(!raf){last=0;raf=requestAnimationFrame(step)}}
+ addEventListener("resize",function(){first=true;setT(target())});
+ function nearest(px){var b=L[0],bd=1e9,r=bar.getBoundingClientRect();L.forEach(function(l){var dd=Math.abs(px-r.left-(l.offsetLeft+l.offsetWidth/2));if(dd<bd){bd=dd;b=l}});return b}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;sx0=e.clientX;moved=false;drag=true;var lb=nearest(e.clientX);tx=lb.offsetLeft;tw=lb.offsetWidth;kick()});
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-sx0)>8&&!moved){moved=true;try{bar.setPointerCapture(pid)}catch(z){}}
+  if(!moved)return;var r=bar.getBoundingClientRect();tx=cl(e.clientX-r.left-tw/2,0,bar.offsetWidth-tw);var lb=nearest(e.clientX);L.forEach(function(l){l.classList.toggle("lgx-near",l===lb)});kick()});
+ function up(e){if(e.pointerId!==pid)return;pid=null;drag=false;L.forEach(function(l){l.classList.remove("lgx-near")});if(moved){var lb=nearest(e.clientX);lb.click()}setT(target())}
+ bar.addEventListener("pointerup",up);bar.addEventListener("pointercancel",function(e){if(e.pointerId!==pid)return;pid=null;drag=false;moved=false;setT(target())});
+ new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
+ if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
+ requestAnimationFrame(function(){setT(target())});
+})();
 </script>
 <script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
 </body></html>

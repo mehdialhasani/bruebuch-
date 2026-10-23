@@ -443,23 +443,50 @@ h2.sh{font-size:13px;font-weight:600;color:var(--mut);text-transform:none;margin
 .sx-mo.on{box-shadow:inset 0 0 0 1.5px var(--acc)}
 .sx-aro{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}.sx-aro i{font-style:normal;font-size:13px;padding:4px 10px;border-radius:999px;background:var(--bg);color:var(--ink2)}
 
+/* ---------- Einheitlich mit Tagesabschluss + Röstplan (laden-v4): Farben, Schrift, Knöpfe, Karten, Leiste ---------- */
+:root{--bg:#F3EEE7;--card:#FBF8F3;--ink:#2B211B;--ink2:#5E4F44;--mut:#7A6A5D;--hair:#E3D9CC;--acc:#8A5A3B;--acc-ink:#FFFFFF;--acc-soft:#EEDFD0;
+ --fill:rgba(138,90,59,.08);--fill2:rgba(138,90,59,.13);--warn:#A33A2A;--ok:#5B7A3E;--bar:#FBF8F3;--shadow:rgba(60,40,25,.16)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--bg:#17120F;--card:#211A16;--ink:#EFE7DF;--ink2:#C9BDB1;--mut:#AD9E91;--hair:#3A2F28;--acc:#D3A27C;--acc-ink:#1A120D;--acc-soft:#3A2A1F;
+ --fill:rgba(211,162,124,.10);--fill2:rgba(211,162,124,.17);--warn:#F08C7A;--ok:#A9C88A;--bar:#211A16;--shadow:rgba(0,0,0,.45)}}
+:root[data-theme=dark]{--bg:#17120F;--card:#211A16;--ink:#EFE7DF;--ink2:#C9BDB1;--mut:#AD9E91;--hair:#3A2F28;--acc:#D3A27C;--acc-ink:#1A120D;--acc-soft:#3A2A1F;
+ --fill:rgba(211,162,124,.10);--fill2:rgba(211,162,124,.17);--warn:#F08C7A;--ok:#A9C88A;--bar:#211A16;--shadow:rgba(0,0,0,.45)}
+body{font-size:15px;line-height:1.4;letter-spacing:0}
+.pg{max-width:620px;padding-top:max(18px,env(safe-area-inset-top))}
+/* Kopf: großer Titel, Untertitel darunter */
+h1{font:700 32px/1.05 var(--f);letter-spacing:-.02em;margin:0 0 16px}
+.pg>h1:has(+.sub){margin-bottom:0}
+.sub{color:var(--mut);font-size:14px;margin:3px 0 16px}
+.ob h1{font-size:28px;margin:6px 0 4px}
+/* Abschnittstitel wie Tagesabschluss */
+h2.sh,.sx-h2{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--mut);margin:24px 2px 8px}
+/* Karten: feine Linie, 16 px Ecken */
+.ac,.ls,.chart,.easy,.me,.line,.tip,.empty,.ez>div,.sx-dv,.sx-fq,.sx-fe,.sx-fr,.sx-hero,.sx-scene,.ob-r,.li.more,.kz div,.sx-pad{border:1px solid var(--hair);border-radius:16px}
+.sx-hero .kz div,.sx-fr .kz div{border-color:transparent}
+.ac,.ls,.chart,.line,.easy,.me,.ez,.kz,.cups{margin-bottom:12px}
+/* Knöpfe: Hauptknopf (gefüllt), Zweitknopf (Karte mit Linie), Textlink */
+.go{height:50px;border-radius:11px;font-size:16px;font-weight:600;color:var(--acc-ink)}
+.pill{min-height:44px;height:auto;padding:0 16px;border:1px solid var(--hair);border-radius:11px;background:var(--card);font-size:15px;font-weight:600}
+.pill.acc{background:var(--acc);border-color:var(--acc);color:var(--acc-ink)}
+.bctl .pill{height:50px;border-radius:11px}.ob-ctl .pill{height:50px}
+.kp button.on,.tr-v.on,.tch .chip.on,.sx-wrap .chip.on:not([style*="--pc"]){color:var(--acc-ink)}
+.lnk{min-height:44px;font-size:15px;font-weight:600}
+/* Umschalter wie Tagesabschluss/Röstplan */
+.seg{padding:2px;border:1px solid var(--hair);border-radius:10px;background:var(--bg)}
+.seg button{height:auto;min-height:36px;border-radius:8px;font-size:15px;font-weight:500;color:var(--mut)}
+.seg button.on{background:var(--card);color:var(--ink);font-weight:600;box-shadow:0 1px 3px var(--shadow)}
+.ewb .seg button{min-height:32px;font-size:13px}
+.pm{border:1px solid var(--hair);border-radius:10px;background:var(--bg);color:var(--mut);font-weight:400}
+.x{background:transparent;color:var(--mut)}
 </style></head>
 <body>
-<style>
-.home{display:inline-flex;align-items:center;gap:4px;min-height:44px;margin:-6px 0 2px -4px;padding:0 10px 0 4px;border-radius:999px;color:var(--accent);font-size:16px;font-weight:500;text-decoration:none;-webkit-tap-highlight-color:transparent}
-.home svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-.home:active{opacity:.55}
-.homebar{max-width:460px;margin:0 auto;padding:max(8px,env(safe-area-inset-top,0px)) 16px 0}
-.home{--accent:var(--acc);font-family:var(--f)}
-body>section>.pg{padding-top:2px!important}
-</style>
-<div class="homebar"><a class="home" href="./" aria-label="Zurück zur Startseite"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg>Übersicht</a></div>
+<style>body>section>.pg{padding-top:calc(18px + env(safe-area-inset-top,0px))}</style>
 <section id="pg-st"><div class="pg" id="stx"></div></section>
 <section id="pg-br" hidden><div class="pg" id="brx"><div id="brTop"></div><div class="chart" id="chart"></div><div id="brRows"></div><div id="brFoot"></div></div></section>
 <section id="pg-rz" hidden><div class="pg" id="rzx"></div></section>
 <section id="pg-pr" hidden><div class="pg" id="prx"></div></section>
 <nav class="tabs" role="tablist">
- <button data-a="tab" data-t="st" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 13 14 5l9.5 8"/><path d="M7 11.5V23h14V11.5"/><path d="M11.5 23v-6h5v6"/></svg>Start</button>
+ <button type="button" class="lgx-home" onclick="location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
+ <button data-a="tab" data-t="st" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12.5" cy="12.5" r="6.5"/><path d="M17.5 17.5 23 23"/></svg>Finden</button>
  <button data-a="tab" data-t="br" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h18l-7 11h-4z"/><path d="M11 19v3h6v-3"/><path d="M8 25h12"/><path d="M12 3c-1 1.5 1 2.5 0 4M16 3c-1 1.5 1 2.5 0 4"/></svg>Brühen</button>
  <button data-a="tab" data-t="rz" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="16" height="20" rx="3"/><path d="M10 10h8M10 14h8M10 18h5"/></svg>Rezepte</button>
  <button data-a="tab" data-t="pr" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="14" cy="10" r="4.5"/><path d="M5.5 24c1-4.5 4.5-7 8.5-7s7.5 2.5 8.5 7"/></svg>Profil</button>
@@ -1492,7 +1519,7 @@ function sxWhen(at){var d=new Date(at),n=new Date(),t=String(d.getHours()).padSt
 function sxStars(n){if(!n)return '';var s='';for(var i=0;i<5;i++)s+=i<n?'★':'☆';return ' <span class="sx-st" aria-label="'+n+' von 5 Sternen">'+s+'</span>'}
 var sxChev='<svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" style="transform:rotate(-90deg)"><path d="M6 9l6 6 6-6"/></svg>';
 function sxRow(r){return '<button class="ar sx-ar" data-a="sxgo" data-id="'+r.id+'"><span class="nm"><b>'+esc(r.name)+'</b><span>'+sxNums(r)+'</span></span>'+sxChev+'</button>'}
-function sxHead(t){return '<span class="sx-k">'+sxHi()+'</span><h1>'+t+'</h1>'}
+function sxHead(t){return '<h1>'+t+'</h1><p class="sub">'+sxHi()+'</p>'}
 /* A · erst Gerät, dann Rezept */
 function sxA(){var e=sxDev(),L=sxDevs(),h=sxHead('Womit brühst du?')+'<div class="sx-devs n'+Math.min(3,L.length)+'">';
  L.forEach(function(d){h+='<button class="sx-dv'+(d.id==e.id?' on':'')+'" data-a="sxdev" data-id="'+d.id+'"><span class="ic">'+devIc(d.typ)+'</span><b>'+esc(d.name)+'</b><span>'+sxNr(rzOf(d.typ).length||1)+'</span></button>'});
