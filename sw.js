@@ -1,5 +1,5 @@
 // Laden-App: offline-fähig. Bei jeder neuen Version CACHE hochzählen.
-const CACHE = "laden-v2";
+const CACHE = "laden-v3";
 const LOCAL = ["./", "index.html", "tagesabschluss.html", "roestplan.html", "bruehbuch.html", "manifest.webmanifest",
   "icon-180.png", "icon-192.png", "icon-512.png"];
 const CDN = ["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
