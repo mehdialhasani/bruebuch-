@@ -15,7 +15,7 @@
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 </head><body>
 <style>
-/* Layout wie Tagesabschluss: eine Spalte, Karten mit feiner Linie, drei Seiten (Zahlen / Chargen / Liste) über eine schwebende Glas-Leiste unten. Farbschema Crema, Helvetica Neue. */
+/* Layout wie Tagesabschluss: eine Spalte, Karten mit feiner Linie, vier Seiten (Zahlen / Chargen / Liste / Verlauf) über eine schwebende Glas-Leiste unten. Farbschema Crema, Helvetica Neue. */
 :root{
   --bg:#F3EEE7; --card:#FBF8F3; --fg:#2B211B; --muted:#7A6A5D; --line:#E3D9CC; --soft:#F3EEE7;
   --accent:#8A5A3B; --accent-ink:#FFFFFF; --accent-soft:#EEDFD0;
@@ -132,6 +132,26 @@ nav button[aria-selected="true"]{background:var(--accent-soft);color:var(--accen
 @media (max-width:360px){nav button{min-width:0;padding-inline:12px}}
 section[hidden]{display:none!important}
 @media (prefers-reduced-motion:no-preference){section:not([hidden]){animation:fade .22s ease}@keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+/* Leeren + Verlauf */
+.acts{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
+.link.danger{color:var(--warn)}
+.ask{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.ask p{margin:0 0 12px;font-size:15px}
+.ask .exp{margin-top:0}
+.ask .exp button.main{background:var(--warn);border-color:var(--warn);color:var(--card)}
+.vh{padding:4px 0;border-bottom:1px solid var(--line)}
+.vh:last-child{border-bottom:0}
+.vh>button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;min-height:60px;text-align:left}
+.vh>button b{display:block;font-weight:600}
+.vh>button small{display:block;color:var(--muted);font-size:14px;font-weight:400}
+.vh>button svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--muted);stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.vh>button[aria-expanded="true"] svg{transform:rotate(90deg)}
+.vd{padding:0 0 14px}
+.vd .card{background:var(--bg)}
+.vd .dayh{margin:16px 0 6px}
+.vd .dayh b{font-size:17px}
+.vd .exp{margin-top:14px}
+@media (prefers-reduced-motion:reduce){.vh>button svg{transition:none}}
 .ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 .ov img{max-height:75vh;max-width:100%;border-radius:8px;background:#fff}
 .ov p{color:#fff;margin:0;text-align:center}
@@ -190,6 +210,16 @@ section[hidden]{display:none!important}
     <div id="lList"></div>
     <div class="exp"><button class="main" id="saveImg">Als Bild sichern</button><button id="copyTxt">Text kopieren</button></div>
     <p class="note" id="expMsg" role="status"></p>
+    <div class="acts"><button class="link" id="keepBtn">Im Verlauf sichern</button><button class="link danger" id="clearBtn">Liste leeren</button></div>
+    <div class="ask" id="clearAsk" hidden>
+      <p>Liste wirklich leeren? Sie wird vorher im Verlauf gesichert. Die Sorten bleiben, die Mengen werden auf 0 gesetzt.</p>
+      <div class="exp"><button id="clearNo">Abbrechen</button><button class="main" id="clearYes">Leeren</button></div>
+    </div>
+  </section>
+
+  <section id="t-verlauf" hidden>
+    <p class="cap">Gesicherte Listen, die neueste oben. Beim Leeren und vor dem Laden eines neuen Berichts wird die alte Liste automatisch gesichert.</p>
+    <div class="card" id="vList"></div>
   </section>
 </main>
 
@@ -198,6 +228,7 @@ section[hidden]{display:none!important}
   <button role="tab" data-tab="zahlen" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Zahlen<small id="tb1"></small></button>
   <button role="tab" data-tab="chargen" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4c-3 3-3 13 0 16"/></svg>Chargen<small id="tb2"></small></button>
   <button role="tab" data-tab="liste" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 5.5l1 1 1.8-2M4 11.5l1 1 1.8-2M4 17.5l1 1 1.8-2"/></svg>Liste<small id="tb3"></small></button>
+  <button role="tab" data-tab="verlauf" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>Verlauf<small id="tb4"></small></button>
 </div></nav>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -349,7 +380,7 @@ function renderZahlen() {
       <span class="sz" role="group" aria-label="${esc(s.name)}: Chargengröße"><button data-sz="3" aria-pressed="${s.size === 3}" aria-label="3-kg-Chargen">3</button><button data-sz="5" aria-pressed="${s.size === 5}" aria-label="5-kg-Chargen">5</button></span>
       <input class="n" id="kg-${s.id}" data-f="totalG" inputmode="decimal" value="${kgInput(s.totalG)}" aria-label="${esc(s.name)}: verkaufte kg" enterkeyhint="done">
     </div>`).join("");
-  $("srcInfo").textContent = { preset: "Verkauf KW 41 aus deiner Röstplanung übernommen. Für eine neue Woche Datei oder Foto laden.", photo: "Aus dem Foto gelesen. Bitte kurz prüfen.", file: "Aus der Datei gelesen. Bitte kurz prüfen." }[S.source] || "";
+  $("srcInfo").textContent = { preset: "Verkauf KW 41 aus deiner Röstplanung übernommen. Für eine neue Woche Datei oder Foto laden.", photo: "Aus dem Foto gelesen. Bitte kurz prüfen.", file: "Aus der Datei gelesen. Bitte kurz prüfen.", cleared: "Liste geleert, die alte ist im Verlauf. Für die neue Woche Datei laden oder Mengen eintippen." }[S.source] || "";
   $("warnBox").textContent = S.warn || "";
   $("lossOut").textContent = S.loss + " %";
   updTotals();
@@ -365,7 +396,7 @@ $("zBody").addEventListener("input", e => {
   if (f === "name") s.name = e.target.value;
   else { const v = parseFloat(e.target.value.replace(",", ".")); s.totalG = isNaN(v) || v < 0 ? 0 : Math.round(v * 1000); }
   if (s.unsure) { s.unsure = false; tr.classList.remove("unsure"); }
-  if (S.source === "sample" || S.source === "preset") { S.source = "manual"; $("srcInfo").textContent = ""; }
+  if (S.source === "sample" || S.source === "preset" || S.source === "cleared") { S.source = "manual"; $("srcInfo").textContent = ""; }
   updTotals(); save();
 });
 $("zBody").addEventListener("click", e => {
@@ -432,27 +463,31 @@ $("cList").addEventListener("click", e => {
 });
 
 /* ===================== LISTE ===================== */
-function renderListe() {
-  const rows = computeBatches(); cleanAssign(rows);
-  const { days, open } = dayLists(rows); const { t } = dayTotals(rows);
+const listTotals = list => ({ n: list.reduce((a, x) => a + x.kgs.length, 0), kg: list.reduce((a, x) => a + Core.sumKg(x.kgs), 0) });
+function listHtml(days, open) {
   let h = "";
   days.forEach((list, d) => {
-    if (!list.length) return;
-    h += `<div class="dayh" style="${dc(d)}"><b><i></i>Tag ${d + 1}</b><span>${t[d].n} Chargen · ${intFmt(t[d].kg)} kg roh</span></div>
+    if (!list.length) return; const t = listTotals(list);
+    h += `<div class="dayh" style="${dc(d)}"><b><i></i>Tag ${d + 1}</b><span>${t.n} Chargen · ${intFmt(t.kg)} kg roh</span></div>
       <div class="card">${list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
   });
-  if (open.length) h += `<div class="dayh"><b>Noch nicht verteilt</b><span>${open.reduce((a, x) => a + x.kgs.length, 0)} Chargen</span></div>
+  if (open.length) h += `<div class="dayh"><b>Noch nicht verteilt</b><span>${listTotals(open).n} Chargen</span></div>
       <div class="card">${open.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
-  if (!h) h = `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
-  $("lList").innerHTML = h;
+  return h;
+}
+function renderListe() {
+  const rows = computeBatches(); cleanAssign(rows);
+  const { days, open } = dayLists(rows);
+  $("lList").innerHTML = listHtml(days, open) || `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
+  $("clearAsk").hidden = true;
 }
 
 /* ===================== EXPORT ===================== */
 const msg = t => { $("expMsg").textContent = t; };
-function planText() {
-  const rows = computeBatches(); const { days, open } = dayLists(rows); const { t } = dayTotals(rows);
-  let out = "Röstplan " + S.week + "\n";
-  days.forEach((list, d) => { if (!list.length) return; out += "\nTag " + (d + 1) + " (" + t[d].n + " Chargen, " + intFmt(t[d].kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
+function planText(snap) {
+  const { days, open } = snap || dayLists(computeBatches()), week = snap ? snap.week : S.week;
+  let out = "Röstplan " + week + "\n";
+  days.forEach((list, d) => { if (!list.length) return; const t = listTotals(list); out += "\nTag " + (d + 1) + " (" + t.n + " Chargen, " + intFmt(t.kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
   if (open.length) { out += "\nNoch nicht verteilt\n"; open.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); }
   return out;
 }
@@ -505,6 +540,63 @@ $("saveImg").addEventListener("click", async () => {
   ov.querySelector("button").onclick = () => ov.remove(); document.body.appendChild(ov);
 });
 
+/* ===================== VERLAUF ===================== */
+/* Eigener Schlüssel, roestplan.v4 bleibt unverändert. Jeder Eintrag hält Eingaben (Sorten, Verlust, Zuschlag) und die fertige Liste, für spätere Vergleiche. */
+const VK = "roestplan.verlauf";
+let V; try { V = JSON.parse(localStorage.getItem(VK)); } catch (_) { V = null; }
+if (!Array.isArray(V)) V = [];
+const saveV = () => { try { localStorage.setItem(VK, JSON.stringify(V)); return true; } catch (_) { return false; } };
+function snapshot() {
+  const rows = computeBatches(); const { days, open } = dayLists(rows);
+  const all = days.flat().concat(open);
+  if (!all.length) return null;
+  const tot = listTotals(all);
+  return { id: "v" + Date.now().toString(36), at: new Date().toISOString(), week: S.week, loss: S.loss, extra: S.extra,
+    sorts: S.sorts.filter(s => Core.soldGrams(s) > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: s.size })),
+    soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open };
+}
+const sig = v => JSON.stringify([v.week, v.loss, v.extra, v.sorts, v.days, v.open]);
+// Sichert die aktuelle Liste; gleiche Liste wie der letzte Eintrag wird nicht doppelt gespeichert. Rückgabe: "neu", "gleich", "leer" oder "fehler".
+function keep() {
+  const v = snapshot(); if (!v) return "leer";
+  if (V.length && sig(V[0]) === sig(v)) return "gleich";
+  V.unshift(v); if (!saveV()) { V.shift(); return "fehler"; }
+  updBadges(); return "neu";
+}
+const dateFmt = iso => { const d = new Date(iso), o = { weekday: "short", day: "numeric", month: "short" }; if (d.getFullYear() !== new Date().getFullYear()) o.year = "numeric"; return d.toLocaleDateString("de-DE", o) + ", " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); };
+let vOpen = null;
+function renderVerlauf() {
+  $("vList").innerHTML = V.length ? V.map(v => `
+    <div class="vh" data-id="${v.id}">
+      <button aria-expanded="${v.id === vOpen}"><span><b>${esc(v.week || "Ohne Woche")}</b><small>${v.n} Chargen · ${intFmt(v.kg)} kg roh · ${esc(dateFmt(v.at))}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      ${v.id === vOpen ? `<div class="vd"><p class="cap" style="margin:0">Verkauf ${kgFmt(v.soldG, 2)} kg · Röstverlust ${v.loss} %${v.extra ? " · +" + v.extra + " %" : ""}</p>${listHtml(v.days, v.open)}
+        <div class="exp"><button data-copy="${v.id}">Text kopieren</button></div><p class="note" role="status"></p></div>` : ""}
+    </div>`).join("") : `<div class="empty">Noch keine Listen gesichert. Auf der Seite „Liste“ kannst du die aktuelle Liste sichern oder leeren.</div>`;
+}
+$("vList").addEventListener("click", e => {
+  const cp = e.target.closest("button[data-copy]");
+  if (cp) {
+    const v = V.find(x => x.id === cp.dataset.copy), m = cp.closest(".vd").querySelector(".note");
+    try { navigator.clipboard.writeText(planText(v)).then(() => m.textContent = "Kopiert.", () => m.textContent = "Kopieren hat nicht geklappt."); }
+    catch (_) { m.textContent = "Kopieren hat nicht geklappt."; }
+    return;
+  }
+  const b = e.target.closest(".vh>button"); if (!b) return;
+  const id = b.closest(".vh").dataset.id; vOpen = vOpen === id ? null : id; renderVerlauf();
+});
+const keepMsg = { neu: "Im Verlauf gesichert.", gleich: "Diese Liste ist schon im Verlauf.", leer: "Keine Chargen, nichts zu sichern.", fehler: "Sichern hat nicht geklappt, der Speicher ist voll." };
+$("keepBtn").addEventListener("click", () => msg(keepMsg[keep()]));
+$("clearBtn").addEventListener("click", () => { $("clearAsk").hidden = false; msg(""); $("clearYes").focus(); });
+$("clearNo").addEventListener("click", () => { $("clearAsk").hidden = true; });
+$("clearYes").addEventListener("click", () => {
+  const r = keep();
+  if (r === "fehler") { $("clearAsk").hidden = true; msg("Nicht geleert: Sichern im Verlauf hat nicht geklappt."); return; }
+  S.sorts.forEach(s => { s.totalG = 0; s.unsure = false; });
+  S.assign = {}; S.adj = {}; S.warn = ""; S.source = "cleared";
+  save(); renderListe(); renderZahlen();
+  msg(r === "leer" ? "Liste geleert." : "Liste geleert. Die alte Liste ist im Verlauf.");
+});
+
 /* ===================== IMPORT ===================== */
 const caps = {};
 function getCap(name) {
@@ -528,6 +620,7 @@ function applyImport(res, source) {
   const all = list.map(r => ({ name: String(r.name || "").trim(), totalG: Math.max(0, Math.round((+r.kg || 0) * 1000)), unsure: !!r.unsicher }))
     .filter(r => r.name && !/^(summe|gesamt|total|zwischensumme)/i.test(r.name));
   if (!all.length) throw new Error("Keine Sorten gefunden");
+  keep();  // alte Liste vor dem Überschreiben sichern
   const totAll = all.reduce((x, r) => x + Core.soldGrams(r), 0);
   const clean = all.filter(r => !ignored(r.name));
   const byName = new Map(S.sorts.map(s => [s.name.toLowerCase(), s]));
@@ -629,12 +722,13 @@ function updBadges() {
   $("tb1").textContent = kgFmt(S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), 0) + " kg";
   $("tb2").textContent = n + " Chargen";
   $("tb3").textContent = open.n ? open.n + " offen" : "fertig";
+  $("tb4").textContent = V.length === 1 ? "1 Liste" : V.length + " Listen";
 }
 document.querySelector("nav").addEventListener("click", e => {
   const b = e.target.closest("button[data-tab]"); if (!b) return;
   document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
-  ["zahlen", "chargen", "liste"].forEach(t => $("t-" + t).hidden = t !== b.dataset.tab);
-  if (b.dataset.tab === "chargen") renderChargen(); else if (b.dataset.tab === "liste") renderListe(); else renderZahlen();
+  ["zahlen", "chargen", "liste", "verlauf"].forEach(t => $("t-" + t).hidden = t !== b.dataset.tab);
+  if (b.dataset.tab === "chargen") renderChargen(); else if (b.dataset.tab === "liste") renderListe(); else if (b.dataset.tab === "verlauf") renderVerlauf(); else renderZahlen();
   window.scrollTo(0, 0);
 });
 renderZahlen();
