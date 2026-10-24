@@ -151,6 +151,8 @@ section[hidden]{display:none!important}
 .vd .dayh{margin:16px 0 6px}
 .vd .dayh b{font-size:17px}
 .vd .exp{margin-top:14px}
+.vd .exp button.del{color:var(--warn)}
+.vd .ask{background:var(--bg)}
 @media (prefers-reduced-motion:reduce){.vh>button svg{transition:none}}
 .ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
 .ov img{max-height:75vh;max-width:100%;border-radius:8px;background:#fff}
@@ -570,7 +572,10 @@ function renderVerlauf() {
     <div class="vh" data-id="${v.id}">
       <button aria-expanded="${v.id === vOpen}"><span><b>${esc(v.week || "Ohne Woche")}</b><small>${v.n} Chargen · ${intFmt(v.kg)} kg roh · ${esc(dateFmt(v.at))}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
       ${v.id === vOpen ? `<div class="vd"><p class="cap" style="margin:0">Verkauf ${kgFmt(v.soldG, 2)} kg · Röstverlust ${v.loss} %${v.extra ? " · +" + v.extra + " %" : ""}</p>${listHtml(v.days, v.open)}
-        <div class="exp"><button data-copy="${v.id}">Text kopieren</button></div><p class="note" role="status"></p></div>` : ""}
+        <div class="exp"><button data-copy="${v.id}">Text kopieren</button><button class="del" data-del="${v.id}">Löschen</button></div>
+        <div class="ask" data-ask="${v.id}" hidden><p>Diese Liste aus dem Verlauf löschen? Das lässt sich nicht rückgängig machen.</p>
+          <div class="exp"><button data-delno="${v.id}">Abbrechen</button><button class="main" data-delyes="${v.id}">Löschen</button></div></div>
+        <p class="note" role="status"></p></div>` : ""}
     </div>`).join("") : `<div class="empty">Noch keine Listen gesichert. Auf der Seite „Liste“ kannst du die aktuelle Liste sichern oder leeren.</div>`;
 }
 $("vList").addEventListener("click", e => {
@@ -580,6 +585,15 @@ $("vList").addEventListener("click", e => {
     try { navigator.clipboard.writeText(planText(v)).then(() => m.textContent = "Kopiert.", () => m.textContent = "Kopieren hat nicht geklappt."); }
     catch (_) { m.textContent = "Kopieren hat nicht geklappt."; }
     return;
+  }
+  const dl = e.target.closest("button[data-del],button[data-delno]");
+  if (dl) { const a = dl.closest(".vd").querySelector(".ask"); a.hidden = !!dl.dataset.delno; if (!a.hidden) a.querySelector("[data-delyes]").focus(); return; }
+  const dy = e.target.closest("button[data-delyes]");
+  if (dy) {
+    const i = V.findIndex(x => x.id === dy.dataset.delyes); if (i < 0) return;
+    const [gone] = V.splice(i, 1);
+    if (!saveV()) { V.splice(i, 0, gone); dy.closest(".vd").querySelector(".note").textContent = "Löschen hat nicht geklappt."; return; }
+    vOpen = null; renderVerlauf(); updBadges(); return;
   }
   const b = e.target.closest(".vh>button"); if (!b) return;
   const id = b.closest(".vh").dataset.id; vOpen = vOpen === id ? null : id; renderVerlauf();
