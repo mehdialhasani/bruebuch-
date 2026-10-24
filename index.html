@@ -76,6 +76,18 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   .go{width:34px;height:34px}
   .foot{margin-top:12px}
 }
+/* Datensicherung für alle drei Apps */
+.bk{display:inline-flex;gap:2px;align-items:center}
+.bk button,.bk label{font:600 13px var(--f);color:var(--accent);background:none;border:0;padding:0 6px;min-height:36px;display:inline-flex;align-items:center;cursor:pointer}
+.foot .bk{vertical-align:middle;margin:-12px 0}
+.bkask>.bk{display:flex;justify-content:center;gap:8px}
+.bkask .bk button{border:1px solid var(--line);border-radius:999px;padding:0 16px;background:var(--bg);font-size:14px}
+.bk input{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none}
+.bk label:focus-within,.bk button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.bkask{margin:10px auto 0;max-width:420px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px 14px;font-size:15px;text-align:center}
+.bkask p{margin:0 0 10px}.bkask .bk{margin:0}
+.bkask .bk button.main{background:var(--accent);color:var(--paper);border-color:var(--accent)}
+.bkmsg{margin:6px 0 0;text-align:center;color:var(--accent);font-size:14px;min-height:1.2em}
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
 :root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
@@ -230,7 +242,9 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     </a>
   </div>
 
-  <p class="foot">Alle Daten bleiben auf diesem Handy.</p>
+  <p class="foot">Alle Daten bleiben auf diesem Handy. <span class="bk"><button type="button" id="bkSave">Sichern</button>·<label>Laden<input type="file" id="bkIn" accept=".json,application/json"></label></span></p>
+  <div class="bkask" id="bkAsk" hidden><p id="bkQ"></p><div class="bk"><button type="button" id="bkNo">Abbrechen</button><button type="button" class="main" id="bkYes">Laden</button></div></div>
+  <p class="bkmsg" id="bkMsg" role="status"></p>
 </div>
 
 <script>
@@ -265,7 +279,8 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   // Brühbuch: letzter Brühvorgang oder Anzahl Rezepte
   const bb = get("bruehbuch-v1");
   if (bb && bb.setup) {
-    const l = Array.isArray(bb.log) && bb.log[0], rz = Array.isArray(bb.rz) ? bb.rz.length : 0;
+    // frühere Beispiel-Tassen nicht als „zuletzt“ zeigen
+    const l = Array.isArray(bb.log) && bb.log.filter(x => !(x.tip === "Beispiel" && x.grind == null && x.tds == null && x.taste === "ok"))[0], rz = Array.isArray(bb.rz) ? bb.rz.length : 0;
     let t = "";
     if (l && l.at) {
       const d = new Date(l.at), days = Math.round((new Date(iso(now) + "T12:00:00") - new Date(iso(d) + "T12:00:00")) / 864e5);
@@ -274,9 +289,38 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     } else if (rz) t = rz + (rz === 1 ? " Rezept" : " Rezepte");
     if (t) document.getElementById("s3").innerHTML = t;
   }
+
+  // Datensicherung: alle Daten der drei Apps in einer Datei (Schlüssel bleiben unverändert)
+  const KEYS = k => /^(kasse\.|roestplan|bruehbuch)/.test(k);
+  const $ = id => document.getElementById(id), say = t => { $("bkMsg").textContent = t; };
+  $("bkSave").onclick = async () => {
+    const data = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (KEYS(k)) data[k] = localStorage.getItem(k); }
+    const name = "laden-sicherung-" + iso(new Date()) + ".json";
+    const blob = new Blob([JSON.stringify({ app: "laden", v: 1, at: new Date().toISOString(), data })], { type: "application/json" });
+    try { const file = new File([blob], name, { type: "application/json" });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: "Laden-Sicherung" }); say("Gesichert."); return; } }
+    catch (e) { if (e && e.name === "AbortError") { say("Abgebrochen."); return; } }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click();
+    setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000); say("Sicherung erstellt: " + name);
+  };
+  let pending = null;
+  $("bkIn").onchange = async e => {
+    const f = e.target.files[0]; e.target.value = ""; if (!f) return;
+    let d; try { d = JSON.parse(await f.text()); } catch (_) { d = null; }
+    if (!d || d.app !== "laden" || !d.data || typeof d.data !== "object") { say("Das ist keine Laden-Sicherung."); return; }
+    pending = Object.fromEntries(Object.entries(d.data).filter(([k, v]) => KEYS(k) && typeof v === "string"));
+    const when = new Date(d.at); $("bkQ").textContent = "Sicherung vom " + (isNaN(when) ? "?" : when.toLocaleDateString("de-DE", { day: "numeric", month: "long", year: "numeric" })) + " laden? Die Daten auf diesem Handy werden dadurch ersetzt.";
+    $("bkAsk").hidden = false; say(""); $("bkYes").focus();
+  };
+  $("bkNo").onclick = () => { pending = null; $("bkAsk").hidden = true; };
+  $("bkYes").onclick = () => {
+    if (!pending) return;
+    try { Object.entries(pending).forEach(([k, v]) => localStorage.setItem(k, v)); } catch (_) { say("Laden hat nicht geklappt, der Speicher ist voll."); return; }
+    pending = null; $("bkAsk").hidden = true; say("Sicherung geladen."); setTimeout(() => location.reload(), 900);
+  };
 })();
 </script>
-<nav class="lgx solo" aria-label="Bereiche"><button type="button" class="lgx-home" aria-selected="true" onclick="location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button></nav>
+<nav class="lgx solo" aria-label="Bereiche"><button type="button" class="lgx-home" aria-selected="true" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button></nav>
 <script>
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139: Linse gleitet federnd, ziehbar, Schimmer ---------- */
 (function(){

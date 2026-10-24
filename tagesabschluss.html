@@ -138,6 +138,14 @@ button.danger{color:var(--bad)}
 .hi .body{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
 .banner{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;border-radius:12px;border:1.5px dashed var(--accent);font-size:15px}
 .editing{font-size:14px;padding:8px 12px;border-radius:10px;background:var(--accent-soft)}
+/* Monatsübersicht Trinkgeld im Verlauf */
+.mhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.mhead select{width:auto;flex:0 1 auto;padding:7px 10px;font-size:15px}
+.mrow{display:grid;grid-template-columns:minmax(0,1fr) 56px 78px 78px;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line);font-variant-numeric:tabular-nums}
+.mrow>span:nth-child(n+2){text-align:right}
+.mrow.th{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);padding-top:0}
+.mrow.ft{font-weight:700;border-bottom:0}
+.mrow .ec{color:var(--accent)}
 
 .tabbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;gap:2px;padding:5px;border-radius:999px;
   background:var(--glass);-webkit-backdrop-filter:blur(24px) saturate(180%);backdrop-filter:blur(24px) saturate(180%);border:1px solid var(--glass-line);box-shadow:0 10px 34px var(--shadow)}
@@ -261,13 +269,15 @@ button.danger{color:var(--bad)}
 <section class="page" id="p-verlauf" hidden>
   <div class="top"><div><h1>Verlauf</h1><p class="sub">Gespeicherte Abschlüsse der letzten sechs Monate.</p></div></div>
   <div id="oldAsk"></div>
+  <div class="card" id="month" hidden></div>
+  <textarea class="fallback" id="fbM" hidden readonly aria-label="Text zum Kopieren"></textarea>
   <div class="hist" id="hist"></div>
   <div class="toast" role="status"></div>
 </section>
 </div>
 
 <nav class="tabbar lgx" role="tablist" aria-label="Seiten">
-  <button type="button" class="lgx-home" onclick="location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
+  <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
   <button class="tab" role="tab" data-page="abrechnung" aria-selected="true">
     <svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="2.8"/><path d="M5 6v4.5c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8V6M5 10.5V15c0 1.5 3.1 2.8 7 2.8s7-1.3 7-2.8v-4.5"/></svg>Abrechnung</button>
   <button class="tab" role="tab" data-page="trinkgeld" aria-selected="false">
@@ -308,6 +318,10 @@ const migrate=s=>{const old=s&&!s.v;const b=Object.assign(blank(),s||{});delete 
 let S=store.get("kasse.draft",null);S=S?migrate(S):example();
 let hist=(store.get("kasse.history",[])||[]).map(h=>{const st=migrate(h.state),r=calc(st);return{...h,cash:r.cash,diff:r.diff,take:r.take,tip:r.tipTotal,tipCard:r.tipCard,tipBar:r.tipBar,state:st}});
 let editingId=null;
+// Gibt es Eingaben, die noch nicht im Verlauf gespeichert sind? (Beispielzahlen und leere Tage zählen nicht)
+function dirty(){if(S.example)return false;const cur=JSON.stringify({...S,example:false});
+  if(cur===JSON.stringify({...blank(),keep:S.keep,date:S.date,tipMode:S.tipMode}))return false;
+  const h=hist.find(x=>x.date===S.date);return !h||JSON.stringify({...h.state,example:false})!==cur}
 
 function calc(st){
   const sum=o=>Object.entries(o||{}).reduce((a,[d,n])=>a+ +d*(n||0),0);
@@ -461,20 +475,41 @@ function copy(L,fb){const txt=bonText(L),f=$(fb);const fall=()=>{f.hidden=false;
 $("copyA").onclick=()=>copy(LA,"fbA");$("copyT").onclick=()=>copy(LT,"fbT");
 
 document.querySelectorAll(".saveBtn").forEach(b=>b.onclick=()=>{
+  if(S.example){toast("Das sind Beispielzahlen. Erst oben „Leeren und loslegen“ tippen.");return}
+  const moved=editingId&&hist.find(h=>h.id===editingId&&h.date!==S.date);if(moved)hist=hist.filter(h=>h!==moved);
   const r=calc(S),snap=JSON.parse(JSON.stringify(S));snap.example=false;
   const entry={id:Date.now(),date:S.date,cash:r.cash,diff:r.diff,take:r.take,tip:r.tipTotal,tipCard:r.tipCard,tipBar:r.tipBar,state:snap};
   const i=hist.findIndex(h=>h.date===S.date);if(i>=0){entry.id=hist[i].id;hist[i]=entry}else hist.unshift(entry);
   hist.sort((a,b)=>b.date.localeCompare(a.date));store.set("kasse.history",hist);editingId=entry.id;renderQuick();update();
-  toast(i>=0?"Abschluss für diesen Tag aktualisiert.":"Abschluss gespeichert.")});
+  toast(moved?"Abschluss auf "+shortDate(S.date)+" verschoben.":i>=0?"Abschluss für diesen Tag aktualisiert.":"Abschluss gespeichert.")});
 
 let armNew=false;
-$("newDay").onclick=()=>{const b=$("newDay");if(!armNew){armNew=true;b.textContent="Wirklich leeren?";setTimeout(()=>{armNew=false;b.textContent="Neuer Tag"},3000);return}
+$("newDay").onclick=()=>{const b=$("newDay");if(!armNew){armNew=true;const d=dirty();b.textContent=d?"Nicht gespeichert! Leeren?":"Wirklich leeren?";if(d)toast("Dieser Tag ist noch nicht gespeichert. Nochmal tippen leert ihn trotzdem.");setTimeout(()=>{armNew=false;b.textContent="Neuer Tag"},d?4500:3000);return}
   armNew=false;b.textContent="Neuer Tag";const base=S.keep;S=blank();if(base)S.keep=base;editingId=null;fillForm();update();window.scrollTo(0,0);toast("Neuer Tag, alle Felder leer.")};
 $("exClear").onclick=()=>{S=blank();editingId=null;fillForm();update()};
 
 const cutoff=()=>{const d=new Date();d.setMonth(d.getMonth()-6);return iso(d)};
-let openId=null,delArm=null,oldAsked=false;
+let openId=null,delArm=null,oldAsked=false,editArm=null,selMonth=null;
+function monthData(m){const P={};let days=0;
+  hist.filter(h=>h.date.slice(0,7)===m).forEach(h=>{days++;calc(h.state).staff.forEach(s=>{if(!(s.min>0))return;const n=s.name||"?",k=n.toLowerCase();
+    const p=P[k]||(P[k]={name:n,min:0,card:0,bar:0});p.min+=s.min;p.card+=s.shareCard||0;p.bar+=s.shareBar||0})});
+  return{days,list:Object.values(P).sort((a,b)=>b.min-a.min||a.name.localeCompare(b.name))}}
+const monthName=m=>new Date(m+"-15T12:00").toLocaleDateString("de-DE",{month:"long",year:"numeric"});
+function monthLines(m){const d=monthData(m),L=[{t:"TRINKGELD "+monthName(m).toUpperCase()},{t:d.days+(d.days===1?" Tag":" Tage")},{hr:1}];
+  d.list.forEach(p=>{L.push({a:p.name+" · "+hTxt(p.min),b:""});L.push({a:"  EC",b:fmt(p.card)});L.push({a:"  Bar",b:fmt(p.bar)});L.push({a:"  Zusammen",b:fmt(p.card+p.bar)})});
+  return L}
+function renderMonth(){const box=$("month"),ms=[...new Set(hist.map(h=>h.date.slice(0,7)))].sort().reverse();box.hidden=!ms.length;if(!ms.length)return;
+  if(!ms.includes(selMonth))selMonth=ms[0];const d=monthData(selMonth),n2=c=>fmt(c).replace(" €","");
+  const tot=d.list.reduce((a,p)=>({min:a.min+p.min,card:a.card+p.card,bar:a.bar+p.bar}),{min:0,card:0,bar:0});
+  box.innerHTML=`<div class="mhead"><h2>Trinkgeld im Monat</h2><select id="mSel" aria-label="Monat">${ms.map(m=>`<option value="${m}"${m===selMonth?" selected":""}>${monthName(m)}</option>`).join("")}</select></div>`+
+    (d.list.length?`<p class="hint" style="margin-top:-6px">${d.days} ${d.days===1?"gespeicherter Tag":"gespeicherte Tage"}, je Person zusammengezählt.</p><div><div class="mrow th"><span>Name</span><span>Std.</span><span class="ec">EC €</span><span>Bar €</span></div>`+
+    d.list.map(p=>`<div class="mrow"><span>${esc(p.name)}</span><span>${(Math.round(p.min/60*100)/100).toLocaleString("de-DE")}</span><span class="ec">${n2(p.card)}</span><span>${n2(p.bar)}</span></div>`).join("")+
+    `<div class="mrow ft"><span>Summe</span><span>${(Math.round(tot.min/60*100)/100).toLocaleString("de-DE")}</span><span class="ec">${n2(tot.card)}</span><span>${n2(tot.bar)}</span></div></div><div class="actions"><button class="ghost small" id="copyM">Text kopieren</button></div>`
+    :`<p class="hint">In diesem Monat ist noch niemand mit Stunden eingetragen.</p>`)}
+$("month").addEventListener("change",e=>{if(e.target.id==="mSel"){selMonth=e.target.value;renderMonth()}});
+$("month").addEventListener("click",e=>{if(e.target.id==="copyM")copy(monthLines(selMonth),"fbM")});
 function renderHist(){
+  renderMonth();
   const old=hist.filter(h=>h.date<cutoff());
   $("oldAsk").innerHTML=old.length&&!oldAsked?`<div class="q"><b>?</b><span>${old.length===1?"Ein Abschluss ist":old.length+" Abschlüsse sind"} älter als sechs Monate. Löschen?
     <span class="actions" style="margin-top:8px"><button class="small primary" data-old="del">Löschen</button><button class="small ghost" data-old="keep">Behalten</button></span></span></div>`:"";
@@ -488,7 +523,8 @@ $("p-verlauf").addEventListener("click",e=>{
   const o=e.target.closest("[data-old]"),op=e.target.closest("[data-open]"),ed=e.target.closest("[data-edit]"),d=e.target.closest("[data-del]");
   if(o){if(o.dataset.old==="del"){const c=cutoff();hist=hist.filter(h=>h.date>=c);store.set("kasse.history",hist);toast("Alte Abschlüsse gelöscht.")}oldAsked=true;renderHist();return}
   if(op){const id=+op.dataset.open;openId=openId===id?null:id;delArm=null;renderHist();return}
-  if(ed){const h=hist.find(x=>x.id==ed.dataset.edit);if(h){S=migrate(JSON.parse(JSON.stringify(h.state)));editingId=h.id;fillForm();update();show("abrechnung")}return}
+  if(ed){const id=+ed.dataset.edit;if(dirty()&&editArm!==id){editArm=id;ed.textContent="Aktueller Tag nicht gespeichert. Trotzdem?";toast("Der Tag, den du gerade zählst, ist noch nicht gespeichert und würde ersetzt.");setTimeout(()=>{if(editArm===id){editArm=null;renderHist()}},4500);return}
+    editArm=null;const h=hist.find(x=>x.id==ed.dataset.edit);if(h){S=migrate(JSON.parse(JSON.stringify(h.state)));editingId=h.id;fillForm();update();show("abrechnung")}return}
   if(d){const id=+d.dataset.del;if(delArm===id){hist=hist.filter(x=>x.id!==id);store.set("kasse.history",hist);delArm=null;openId=null;if(editingId===id)editingId=null;toast("Gelöscht.")}
     else{delArm=id;setTimeout(()=>{if(delArm===id){delArm=null;renderHist()}},3000)}renderHist()}});
 
@@ -527,6 +563,26 @@ const h0=(location.hash||"").slice(1);show(PAGES.includes(h0)?h0:store.get("kass
  new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
  if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
  requestAnimationFrame(function(){setT(target())});
+})();
+</script>
+<style>
+.lgx-home svg{transition:transform .5s linear}
+.lgx-home.lgx-arm svg{transform:scale(1.25)}
+.lgx-home.lgx-ready{color:var(--accent)!important}
+@media (prefers-reduced-motion:reduce){.lgx-home svg{transition:none}.lgx-home.lgx-arm svg{transform:none}}
+</style>
+<script>
+(function(){
+ var HOLD=500,home=document.querySelector(".lgx-home");if(!home)return;var bar=home.closest("nav");if(!bar)return;
+ var pid=null,x0=0,moved=false,t=null,armed=false,ready=false,block=false;
+ function isHome(px){var b=null,bd=1e9;[].forEach.call(bar.querySelectorAll("button"),function(l){var r=l.getBoundingClientRect(),d=Math.abs(px-(r.left+r.width/2));if(d<bd){bd=d;b=l}});return b===home}
+ function reset(){clearTimeout(t);t=null;armed=ready=false;home.classList.remove("lgx-arm","lgx-ready")}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;x0=e.clientX;moved=false;block=false;reset()},true);
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-x0)>8)moved=true;if(!moved)return;
+  if(isHome(e.clientX)){if(!armed){armed=true;home.classList.add("lgx-arm");t=setTimeout(function(){ready=true;home.classList.add("lgx-ready");try{navigator.vibrate&&navigator.vibrate(12)}catch(z){}},HOLD)}}else reset()},true);
+ bar.addEventListener("pointerup",function(e){if(e.pointerId!==pid)return;pid=null;if(moved&&isHome(e.clientX)&&!ready)block=true;reset()},true);
+ bar.addEventListener("pointercancel",function(){pid=null;reset()},true);
+ window.lgxHomeOk=function(){var b=block;block=false;return !b};
 })();
 </script>
 <script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>

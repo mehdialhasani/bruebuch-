@@ -485,7 +485,7 @@ h2.sh,.sx-h2{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:
 <section id="pg-rz" hidden><div class="pg" id="rzx"></div></section>
 <section id="pg-pr" hidden><div class="pg" id="prx"></div></section>
 <nav class="tabs" role="tablist">
- <button type="button" class="lgx-home" onclick="location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
+ <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
  <button data-a="tab" data-t="st" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12.5" cy="12.5" r="6.5"/><path d="M17.5 17.5 23 23"/></svg>Finden</button>
  <button data-a="tab" data-t="br" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 8h18l-7 11h-4z"/><path d="M11 19v3h6v-3"/><path d="M8 25h12"/><path d="M12 3c-1 1.5 1 2.5 0 4M16 3c-1 1.5 1 2.5 0 4"/></svg>Brühen</button>
  <button data-a="tab" data-t="rz" role="tab"><svg viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="16" height="20" rx="3"/><path d="M10 10h8M10 14h8M10 18h5"/></svg>Rezepte</button>
@@ -711,7 +711,7 @@ window.PourScene=function(host,R){
 })();
 
 </script>
-<script>window.SX_DEMO=1</script>
+<script>window.SX_DEMO=0 /* Beispiel-Tassen nur zum Ausprobieren im Entwurf, in App und Artifact aus */</script>
 <script>
 (function(){
 'use strict';
@@ -810,6 +810,8 @@ DB=load()||fresh();
 var PR=DB.profil;
 ['vorlauf','vib','wach','std','gesch','wasser','theme'].forEach(function(k){if(PR[k]==null)PR[k]=fresh().profil[k]});
 if(DB.heute&&DB.heute.waage==='none')delete DB.heute.waage;
+// Früher automatisch angelegte Beispiel-Tassen aus dem Tagebuch entfernen (echte Tassen bleiben)
+(function(){var n=DB.log.length;DB.log=DB.log.filter(function(l){return !(l.tip==='Beispiel'&&l.grind==null&&l.tds==null&&l.taste==='ok'&&l.body==='ok')});if(DB.log.length!==n)save()})();
 
 /* ---------- Ausrüstung ---------- */
 function mkDev(typ){return {id:uid(),kat:'geraet',typ:typ,name:DEVC[typ].n}}
@@ -1255,7 +1257,7 @@ function drawSh(){var o=U.sh,h='';if(!o)return closeSh();var e=o.id&&byId(o.id);
  var im=$('imp');if(im)im.onchange=function(){var f=im.files[0];if(!f)return;var fr=new FileReader();fr.onload=function(){importJSON(fr.result)};fr.readAsText(f)}}
 function sure(x){if(x.dataset.ok)return true;x.dataset.ok='1';x.textContent='Nochmal tippen zum Löschen';x.classList.add('warnb');return false}
 function segR(f,L){return '<div class="seg">'+L.map(function(x){return '<button class="'+(RT[f]==x[0]?'on':'')+'" data-a="rset" data-f="'+f+'" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>'}
-function rzSub(r){var tot=r.P[r.P.length-1].g;return de(r.dose)+' g · '+tot+' g · '+r.P.length+(r.P.length==1?' Aufguss':' Aufgüsse')+' · '+mm(r.end)+' · Version '+r.ver}
+function rzSub(r){var tot=r.P[r.P.length-1].g;return de(r.dose)+' g · '+tot+' g · '+r.P.length+(r.P.length==1?' Aufguss':' Aufgüsse')+' · '+mm(r.end)+(r.ver>1?' · V'+r.ver:'')}
 function owned(kat,typ){var L=eqOf(kat);if(kat=='waage'||kat=='kocher'){var c=(kat=='waage'?SCC:KEC)[+typ];return c&&!/^Eigene/.test(c[0])?L.filter(function(e){return e.name==c[0]})[0]:null}
  if(typ=='eigen')return null;return L.filter(function(e){return e.typ==typ})[0]||null}
 function typesOwned(){var L=[];eqOf('geraet').forEach(function(e){if(L.indexOf(e.typ)<0)L.push(e.typ)});return L.length?L:['v60']}
@@ -1273,7 +1275,10 @@ function atlasData(){try{var s=localStorage.getItem('coffee-atlas-rezepte-v1');i
 function importJSON(txt){var d;try{d=JSON.parse(txt)}catch(e){toast('Datei nicht lesbar');return}
  if(d&&d.v&&d.profil&&d.eq){DB=d;PR=DB.profil;save();W=null;closeSh();boot();toast('Sicherung geladen');return}
  var out=[];collect(d,out);if(!out.length){toast('Keine Rezepte in der Datei');return}var n=fromAtlas(out);closeSh();render();toast(n+' Rezepte übernommen')}
-function exportJSON(){var b=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'}),a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='bruehbuch-sicherung-'+new Date().toISOString().slice(0,10)+'.json';document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500)}
+function exportJSON(){var n='bruehbuch-sicherung-'+new Date().toISOString().slice(0,10)+'.json',b=new Blob([JSON.stringify(DB,null,1)],{type:'application/json'});
+ /* iPhone (Home-Bildschirm): Teilen-Blatt statt Download, sonst öffnet sich die Datei ohne Weg zurück */
+ try{var f=new File([b],n,{type:'application/json'});if(navigator.canShare&&navigator.share&&navigator.canShare({files:[f]})){navigator.share({files:[f],title:'Brühbuch-Sicherung'}).catch(function(e){if(!e||e.name!='AbortError')dl()});return}}catch(e){}
+ dl();function dl(){var a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=n;document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},1500)}}
 
 /* ---------- Seite Rezepte ---------- */
 function drawRz(){var T=typesOwned(),f=U.rzf,h='<h1>Rezepte</h1><div class="tch" style="margin-bottom:10px">'+[['alle','Alle']].concat(T.map(function(t){return [t,DEVC[t].n]})).map(function(x){return '<button class="chip'+(f==x[0]?' on':'')+'" data-a="rzf" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div><div class="ls">';
@@ -1287,7 +1292,7 @@ function drawRz(){var T=typesOwned(),f=U.rzf,h='<h1>Rezepte</h1><div class="tch"
 
 /* ---------- Seite Profil ---------- */
 function prefRow(f,lab,val,t){return '<button class="li" data-a="pref" data-f="'+f+'"'+(t?' data-typ="'+t+'"':'')+'><span class="nm"><b>'+lab+'</b></span><span class="val">'+val+'</span>'+arrow+'</button>'}
-function drawPr(){var h='<h1>Profil</h1><div class="me"><div class="av">'+esc((PR.name||'Ich').trim().charAt(0).toUpperCase())+'</div><div class="nm"><input id="meName" value="'+esc(PR.name)+'" placeholder="Dein Name" autocomplete="off" data-a="mename" aria-label="Name"><span class="note">'+DB.rz.length+' Rezepte · '+DB.log.length+' Tassen im Tagebuch</span></div></div>';
+function drawPr(){var h='<h1>Profil</h1><div class="me"><div class="av">'+esc((PR.name||'Ich').trim().charAt(0).toUpperCase())+'</div><div class="nm"><input id="meName" value="'+esc(PR.name)+'" placeholder="Namen eintragen" autocomplete="off" data-a="mename" aria-label="Name"><span class="note">'+DB.rz.length+' Rezepte · '+DB.log.length+' Tassen im Tagebuch</span></div></div>';
  h+='<h2 class="sh">Stufe</h2><div class="lvl">'+['a','m','p'].map(function(l){return '<button class="lvb'+(PR.stufe==l?' on':'')+'" data-a="pset" data-f="stufe" data-v="'+l+'">'+PK['l'+(' amp'.indexOf(l))]+LVN[l]+'</button>'}).join('')+'</div><p class="note" style="margin:0 4px">'+LVT[PR.stufe]+'</p>';
  h+='<div class="ls" style="margin-top:10px"><button class="li" data-a="intro"><span class="nm"><b>Handgriffe ansehen</b><span>Zum Ausprobieren</span></span>'+arrow+'</button></div>';
  h+='<h2 class="sh">Meine Ausrüstung</h2><div class="ls">';
@@ -1662,9 +1667,10 @@ function sxE(){var lv=lvl(),e=fdDev(),c0=fdCalc(),h=sxHead('Rezept finden');
  h+=fdRow('dev','Gerät',esc(e.name),'<div class="sx-wrap">'+sxDevs().map(function(d){return '<button class="chip'+(e.id==d.id?' on':'')+'" data-a="sxf" data-k="dev" data-v="'+d.id+'">'+esc(d.name)+'</button>'}).join('')+'</div>');
  if(lv!='a')h+=fdRow('meth','Methode',FME[c0.me].s+(c0.me==c0.auto?' · passt':''),'<div class="sx-ml">'+[c0.me].concat(c0.alt).map(function(k){var M=FME[k];return '<button class="sx-mo'+(k==c0.me?' on':'')+'" data-a="sxf" data-k="meth" data-v="'+k+'"><b>'+M.n+(k==c0.auto?' <i>passt am besten</i>':'')+'</b><span>Passt, wenn '+M.p+'.</span></button>'}).join('')+'</div>');
  h+=fdRow('n','Tassen',(FD.n||1)+' × '+PR.tasse+' ml','<div class="sx-wrap">'+[1,2,3,4].map(function(n){return '<button class="chip'+((FD.n||1)==n?' on':'')+'" data-a="sxf" data-k="n" data-v="'+n+'">'+n+'</button>'}).join('')+'</div>');
- h+='</div><div class="sx-h2">Dein Kaffee</div><div class="ac sx-fin">';
+ // Ergebnis direkt nach Gerät und Tassen, die Angaben zum Kaffee darunter (feinere Anpassung)
+ h+='</div><div id="sxFR">'+sxER()+'</div><div class="sx-h2">Dein Kaffee</div><div class="ac sx-fin">';
  (lv=='a'?['r']:['r','p','o','v','a']).forEach(function(k){h+=fdRow(k,FDX[k].t,FD[k]?FDX[k].o[FD[k]]:'',fdChips(k,FDX[k].o,FD[k],true))});
- return h+'</div><div id="sxFR">'+sxER()+'</div>'}
+ return h+'</div>'}
 function fdBars(cup){return '<div class="sx-cup">'+Object.keys(cup).map(function(k){var v=Math.round(cup[k]*2)/2,s='';for(var i=1;i<=5;i++)s+='<i class="'+(v>=i?'on':v>=i-.5?'half':'')+'"></i>';return '<div><span>'+k+'</span><b>'+s+'</b></div>'}).join('')+'</div>'}
 function sxER(){var c=fdCalc(),a=c.lv=='a',h='<div class="sx-fr"><div class="sx-fh"><span class="ic">'+devIc(c.typ)+'</span><span class="t"><b>'+esc(c.nm)+'</b><span>'+FME[c.me].n+'</span></span></div>';
  h+='<div class="seg sx-tabs">'+[['rz','Rezept'],['warum','Warum'],['adj','Anpassen']].map(function(x){return '<button class="'+(FD.tab==x[0]?'on':'')+'" data-a="sxft" data-v="'+x[0]+'">'+x[1]+'</button>'}).join('')+'</div>';
@@ -1737,5 +1743,25 @@ boot();
 if('serviceWorker' in navigator&&location.protocol=='https:')navigator.serviceWorker.register('sw.js').catch(function(){});
 })();
 
+</script>
+<style>
+.lgx-home svg{transition:transform .5s linear}
+.lgx-home.lgx-arm svg{transform:scale(1.25)}
+.lgx-home.lgx-ready{color:var(--accent)!important}
+@media (prefers-reduced-motion:reduce){.lgx-home svg{transition:none}.lgx-home.lgx-arm svg{transform:none}}
+</style>
+<script>
+(function(){
+ var HOLD=500,home=document.querySelector(".lgx-home");if(!home)return;var bar=home.closest("nav");if(!bar)return;
+ var pid=null,x0=0,moved=false,t=null,armed=false,ready=false,block=false;
+ function isHome(px){var b=null,bd=1e9;[].forEach.call(bar.querySelectorAll("button"),function(l){var r=l.getBoundingClientRect(),d=Math.abs(px-(r.left+r.width/2));if(d<bd){bd=d;b=l}});return b===home}
+ function reset(){clearTimeout(t);t=null;armed=ready=false;home.classList.remove("lgx-arm","lgx-ready")}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;x0=e.clientX;moved=false;block=false;reset()},true);
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-x0)>8)moved=true;if(!moved)return;
+  if(isHome(e.clientX)){if(!armed){armed=true;home.classList.add("lgx-arm");t=setTimeout(function(){ready=true;home.classList.add("lgx-ready");try{navigator.vibrate&&navigator.vibrate(12)}catch(z){}},HOLD)}}else reset()},true);
+ bar.addEventListener("pointerup",function(e){if(e.pointerId!==pid)return;pid=null;if(moved&&isHome(e.clientX)&&!ready)block=true;reset()},true);
+ bar.addEventListener("pointercancel",function(){pid=null;reset()},true);
+ window.lgxHomeOk=function(){var b=block;block=false;return !b};
+})();
 </script>
 </body></html>

@@ -64,7 +64,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 /* Zahlen */
 .zr{display:grid;grid-template-columns:minmax(0,1fr) 68px 76px;gap:8px;align-items:center;min-height:58px;border-bottom:1px solid var(--line)}
 .zr:last-child{border-bottom:0}
-.zr .nm{min-width:0;width:100%;height:44px;border:0;background:none;padding:0;text-overflow:ellipsis;font-size:16px}
+.zr .nm{min-width:0;width:100%;height:44px;border:0;background:none;padding:0;text-overflow:ellipsis;font-size:15px;letter-spacing:-.01em}
 .zr .n{width:76px;height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);text-align:right;padding:0 10px}
 .sz{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px}
 .sz button{flex:1;height:34px;border-radius:8px;font-size:15px;font-weight:500;color:var(--muted)}
@@ -100,7 +100,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .cs:last-child{border-bottom:0}
 .cs .hh{display:flex;align-items:center;gap:6px}
 .cs .h{display:flex;flex:1;min-width:0;justify-content:space-between;align-items:baseline;gap:10px;text-align:left;min-height:36px}
-.cs .h b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.cs .h b{min-width:0;overflow-wrap:anywhere;font-weight:600}
 .cs .h span{color:var(--muted);font-size:14px;font-weight:400;white-space:nowrap}
 .cs .adj{display:flex;gap:4px;flex:none}
 .cs .adj button{width:36px;height:36px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-size:18px;font-weight:400;line-height:1;color:var(--muted)}
@@ -132,6 +132,13 @@ nav button[aria-selected="true"]{background:var(--accent-soft);color:var(--accen
 @media (max-width:360px){nav button{min-width:0;padding-inline:12px}}
 section[hidden]{display:none!important}
 @media (prefers-reduced-motion:no-preference){section:not([hidden]){animation:fade .22s ease}@keyframes fade{from{opacity:.4;transform:translateY(4px)}to{opacity:1;transform:none}}}
+/* Einstellungen: Woche + Rösttage */
+.card .loss+.loss{border-top:1px solid var(--line)}
+.loss .wk{width:120px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);text-align:right;padding:0 10px}
+.dsel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
+.dsel select{font:inherit;font-size:13px;color:var(--fg);height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 2px;width:100%;min-width:0}
+.loss.days{flex-wrap:wrap;gap:8px;padding:9px 0}
+.row2 .link+.link{margin-left:auto}
 /* Leeren + Verlauf */
 .acts{display:flex;justify-content:space-between;align-items:center;margin-top:8px}
 .link.danger{color:var(--warn)}
@@ -154,10 +161,19 @@ section[hidden]{display:none!important}
 .vd .exp button.del{color:var(--warn)}
 .vd .ask{background:var(--bg)}
 @media (prefers-reduced-motion:reduce){.vh>button svg{transition:none}}
-.ov{position:fixed;inset:0;z-index:20;background:rgba(0,0,0,.75);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px}
-.ov img{max-height:75vh;max-width:100%;border-radius:8px;background:#fff}
-.ov p{color:#fff;margin:0;text-align:center}
-.ov button{min-height:46px;padding:0 24px;border-radius:11px;background:#fff;color:#111}
+.auto{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;min-height:50px;margin-top:12px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-size:15px;font-weight:600}
+.auto svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* Bild-Ansicht: liegt über der Leiste, Schließen oben rechts immer erreichbar, Tippen daneben schließt auch */
+.ov{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  padding:calc(64px + env(safe-area-inset-top,0px)) 16px calc(16px + env(safe-area-inset-bottom,0px));overscroll-behavior:contain}
+.ov img{max-height:100%;min-height:0;max-width:100%;object-fit:contain;border-radius:8px;background:#fff;flex:0 1 auto}
+.ov.share img{-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.ov p{color:#fff;margin:0;text-align:center;font-size:15px}
+.ov .ovb{display:flex;gap:8px;width:100%;max-width:420px;flex:none}
+.ov .ovb button{flex:1;min-height:50px;padding:0 16px;border-radius:11px;background:#fff;color:#111;font-size:15px;font-weight:600}
+.ov .ovb button.sec{background:rgba(255,255,255,.16);color:#fff}
+.ov .ovx{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.2);color:#fff;display:grid;place-items:center}
+.ov .ovx svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
 :root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
@@ -182,8 +198,13 @@ section[hidden]{display:none!important}
 
   <section id="t-zahlen">
     <div class="imp">
-      <label id="photoBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span><input type="file" id="photoIn" accept="image/*"></label>
-      <label class="main" id="fileBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg><span>Datei</span><input type="file" id="fileIn" accept=".pdf,.csv,.xlsx,.xls,.ods,.txt,image/*"></label>
+      <label id="photoBtn" hidden><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg><span>Foto</span><input type="file" id="photoIn" accept="image/*"></label>
+      <label class="main" id="fileBtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg><span>Datei</span><input type="file" id="fileIn" accept="application/pdf,.pdf,text/csv,.csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,.xlsx,application/vnd.ms-excel,.xls,application/vnd.oasis.opendocument.spreadsheet,.ods,text/plain,.txt,image/*"></label>
+    </div>
+    <div class="acts" style="margin-top:4px;justify-content:flex-end"><button class="link danger" id="clearBtn0">Liste leeren</button></div>
+    <div class="ask" id="clearAsk0" hidden>
+      <p>Liste wirklich leeren? Sie wird vorher im Verlauf gesichert. Die Sorten bleiben, die Mengen werden auf 0 gesetzt.</p>
+      <div class="exp"><button id="clearNo0">Abbrechen</button><button class="main" id="clearYes0">Leeren</button></div>
     </div>
     <p class="note" id="srcInfo"></p>
     <p class="note warn" id="warnBox"></p>
@@ -193,7 +214,9 @@ section[hidden]{display:none!important}
     <div class="zfoot"><span>Gesamt</span><span id="zTot"></span></div>
     <div class="row2"><button class="link" id="addRow">+ Sorte hinzufügen</button></div>
     <div class="lbl">Einstellung</div>
-    <div class="card"><div class="loss"><span>Röstverlust</span><span class="step"><button data-loss="-1" aria-label="Röstverlust verringern">−</button><output id="lossOut"></output><button data-loss="1" aria-label="Röstverlust erhöhen">+</button></span></div></div>
+    <div class="card"><div class="loss"><span>Röstverlust</span><span class="step"><button data-loss="-1" aria-label="Röstverlust verringern">−</button><output id="lossOut"></output><button data-loss="1" aria-label="Röstverlust erhöhen">+</button></span></div>
+      <div class="loss"><label for="wkIn">Woche</label><input class="wk" id="wkIn" autocomplete="off" enterkeyhint="done" placeholder="KW 42"></div>
+      <div class="loss days"><span>Rösttage</span><span class="dsel" id="dSel"></span></div></div>
   </section>
 
   <section id="t-chargen" hidden>
@@ -203,12 +226,14 @@ section[hidden]{display:none!important}
     <div class="lbl">Tippe Chargen an für</div>
     <div class="dpick" id="dpick"></div>
     <div class="hint"><span id="openInfo"></span><button class="link" id="allOpen"></button></div>
+    <button class="auto" id="autoAll"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>Offene automatisch verteilen</button>
     <div class="lbl">Alle Chargen</div>
     <div class="card" id="cList"></div>
     <div class="row2" style="padding:0"><button class="link" id="clearAll">Verteilung zurücksetzen</button></div>
   </section>
 
   <section id="t-liste" hidden>
+    <button class="auto" id="autoAll2" hidden style="margin:0 0 4px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>Offene automatisch verteilen</button>
     <div id="lList"></div>
     <div class="exp"><button class="main" id="saveImg">Als Bild sichern</button><button id="copyTxt">Text kopieren</button></div>
     <p class="note" id="expMsg" role="status"></p>
@@ -226,14 +251,14 @@ section[hidden]{display:none!important}
 </main>
 
 <nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
-  <button type="button" class="lgx-home" onclick="location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
+  <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
   <button role="tab" data-tab="zahlen" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Zahlen<small id="tb1"></small></button>
   <button role="tab" data-tab="chargen" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4c-3 3-3 13 0 16"/></svg>Chargen<small id="tb2"></small></button>
   <button role="tab" data-tab="liste" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 5.5l1 1 1.8-2M4 11.5l1 1 1.8-2M4 17.5l1 1 1.8-2"/></svg>Liste<small id="tb3"></small></button>
   <button role="tab" data-tab="verlauf" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>Verlauf<small id="tb4"></small></button>
 </div></nav>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="lib/xlsx.full.min.js"></script>
 <script>
 /* ===================== CORE (pure, tested) ===================== */
 const Core = (() => {
@@ -250,8 +275,8 @@ const Core = (() => {
     return Array(n).fill(size);
   }
   // Assign whole sorts to days, biggest first onto the lightest day (no sort is split).
-  function assignDays(rows, n) {
-    const load = Array(n).fill(0), out = {};
+  function assignDays(rows, n, load0) {
+    const load = load0 ? load0.slice() : Array(n).fill(0), out = {};
     rows.filter(r => r.kg > 0).slice().sort((a, b) => b.kg - a.kg || a.idx - b.idx)
       .forEach(r => { let d = 0; for (let i = 1; i < n; i++) if (load[i] < load[d]) d = i; out[r.id] = d; load[d] += r.kg; });
     return out;
@@ -295,7 +320,8 @@ const Report = (() => {
       const label = r[0] || "", rest = r.slice(1);
       if (!started) {
         const m = r.join(" ").match(/Verkaufswoche\s+KW\s*(\d+)/i); if (m) woche = "KW " + m[1];
-        if (/Produkt\s*\/\s*Gebinde/i.test(label)) started = true;
+        // Kopfzeile: „Produkt / Gebinde“ (Lightspeed) oder irgendeine Zeile mit Spalte „Gesamt KG“
+        if (/Produkt\s*\/\s*Gebinde/i.test(label) || (!/^Summe/i.test(label) && r.some(c => /gesamt\s*kg/i.test(c)))) started = true;
         continue;
       }
       if (/^Summe/i.test(label)) { gesamt = num(rest[0]); break; }
@@ -342,6 +368,17 @@ const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;",
 const kgFmt = (g, d = 1) => (g / 1000).toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
 const intFmt = n => n.toLocaleString("de-DE");
 const dc = d => `--dc:var(--d${d + 1})`;
+// Name eines Rösttags: eingestellter Wochentag oder „Tag 1–3“; names = gespeicherte Namen eines Verlaufseintrags
+const dn = (d, names) => ((names || S.days || [])[d]) || "Tag " + (d + 1);
+const dnShort = d => (S.days && S.days[d]) ? S.days[d].slice(0, 2) : String(d + 1);
+const WTAGE = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+function liveWarn() {
+  const w = [], r = S.rep;
+  if (r && r.g != null) { const tot = S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0) + (r.ign || 0); if (Math.abs(r.g - tot) > 1) w.push(`Im Bericht steht ${kgFmt(r.g, 2)} kg gesamt, eingetragen sind ${kgFmt(tot, 2)} kg. Bitte die Zeilen vergleichen.`); }
+  const nU = S.sorts.filter(s => s.unsure).length;
+  if (nU) w.push(nU === 1 ? "1 Wert ist unsicher gelesen und markiert." : nU + " Werte sind unsicher gelesen und markiert.");
+  return w.join(" ");
+}
 
 /* Every batch is one item; S.assign maps "sortId#index" -> day (0..2). */
 function computeBatches() {
@@ -382,14 +419,17 @@ function renderZahlen() {
       <span class="sz" role="group" aria-label="${esc(s.name)}: Chargengröße"><button data-sz="3" aria-pressed="${s.size === 3}" aria-label="3-kg-Chargen">3</button><button data-sz="5" aria-pressed="${s.size === 5}" aria-label="5-kg-Chargen">5</button></span>
       <input class="n" id="kg-${s.id}" data-f="totalG" inputmode="decimal" value="${kgInput(s.totalG)}" aria-label="${esc(s.name)}: verkaufte kg" enterkeyhint="done">
     </div>`).join("");
-  $("srcInfo").textContent = { preset: "Verkauf KW 41 aus deiner Röstplanung übernommen. Für eine neue Woche Datei oder Foto laden.", photo: "Aus dem Foto gelesen. Bitte kurz prüfen.", file: "Aus der Datei gelesen. Bitte kurz prüfen.", cleared: "Liste geleert, die alte ist im Verlauf. Für die neue Woche Datei laden oder Mengen eintippen." }[S.source] || "";
-  $("warnBox").textContent = S.warn || "";
+  $("srcInfo").textContent = { preset: "Verkauf KW 41 aus deiner Röstplanung übernommen. Für eine neue Woche den Bericht als Datei laden.", photo: "Aus dem Foto gelesen. Bitte kurz prüfen.", file: "Aus der Datei gelesen. Bitte kurz prüfen.", cleared: "Liste geleert, die alte ist im Verlauf. Für die neue Woche Datei laden oder Mengen eintippen." }[S.source] || "";
   $("lossOut").textContent = S.loss + " %";
+  $("wkIn").value = S.week || "";
+  $("clearBtn0").hidden = !S.sorts.some(s => s.totalG > 0); $("clearAsk0").hidden = true;
+  $("dSel").innerHTML = [0, 1, 2].map(d => `<select data-day="${d}" aria-label="Rösttag ${d + 1}"><option value="">Tag ${d + 1}</option>${WTAGE.map(w => `<option${S.days && S.days[d] === w ? " selected" : ""}>${w}</option>`).join("")}</select>`).join("");
   updTotals();
 }
 function updTotals() {
   $("zTot").textContent = kgFmt(S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), 2) + " kg";
   $("wk").textContent = S.week;
+  $("warnBox").textContent = [S.warn, liveWarn()].filter(Boolean).join(" ");
   updBadges();
 }
 $("zBody").addEventListener("input", e => {
@@ -398,13 +438,14 @@ $("zBody").addEventListener("input", e => {
   if (f === "name") s.name = e.target.value;
   else { const v = parseFloat(e.target.value.replace(",", ".")); s.totalG = isNaN(v) || v < 0 ? 0 : Math.round(v * 1000); }
   if (s.unsure) { s.unsure = false; tr.classList.remove("unsure"); }
+  S.warn = "";
   if (S.source === "sample" || S.source === "preset" || S.source === "cleared") { S.source = "manual"; $("srcInfo").textContent = ""; }
   updTotals(); save();
 });
 $("zBody").addEventListener("click", e => {
   const b = e.target.closest("button[data-sz]"); if (!b) return;
   const tr = b.closest(".zr"), s = S.sorts.find(x => x.id === tr.dataset.id); s.size = +b.dataset.sz;
-  tr.querySelectorAll("button[data-sz]").forEach(x => x.setAttribute("aria-pressed", x === b)); S.assign = {}; delete S.adj[s.id]; save(); updBadges();
+  tr.querySelectorAll("button[data-sz]").forEach(x => x.setAttribute("aria-pressed", x === b)); Object.keys(S.assign).forEach(k => { if (k.startsWith(s.id + "#")) delete S.assign[k]; }); delete S.adj[s.id]; save(); updBadges();
 });
 $("zBody").addEventListener("focusout", e => {
   const tr = e.target.closest(".zr"); if (!tr || tr.contains(e.relatedTarget)) return;
@@ -428,22 +469,35 @@ function renderChargen() {
   document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.x === S.extra));
   const rows = computeBatches(); cleanAssign(rows);
   const { t, open } = dayTotals(rows);
-  $("dpick").innerHTML = t.map((x, d) => `<button data-d="${d}" style="${dc(d)}" aria-pressed="${d === S.active}"><b><i></i>Tag ${d + 1}</b><small>${x.n} Ch. · ${intFmt(x.kg)} kg</small></button>`).join("");
+  $("dpick").innerHTML = t.map((x, d) => `<button data-d="${d}" style="${dc(d)}" aria-pressed="${d === S.active}"><b><i></i>${esc(dn(d))}</b><small>${x.n} Ch. · ${intFmt(x.kg)} kg</small></button>`).join("");
   $("openInfo").textContent = open.n ? `${open.n} Chargen noch offen` : "Alle Chargen sind verteilt.";
-  $("allOpen").textContent = open.n ? `Alle offenen auf Tag ${S.active + 1}` : "";
+  $("allOpen").textContent = open.n ? `Alle offenen auf ${dn(S.active)}` : "";
+  $("autoAll").hidden = !open.n;
   $("allOpen").hidden = !open.n;
   const base = S.sorts.reduce((a, x) => a + Core.autoBatches(x, S.loss, 0, 0).length, 0), now = rows.reduce((a, r) => a + r.batches.length, 0);
   $("extraNote").textContent = now === base ? "" : (now > base ? "+" : "−") + Math.abs(now - base) + " Chargen gegenüber „Genau“ (" + base + ")";
   const vis = rows.filter(r => r.sold > 0);
   $("cList").innerHTML = vis.length ? vis.map(r => `
     <div class="cs" data-id="${r.id}">
-      <div class="hh"><button class="h" data-act="sort" aria-label="Alle Chargen von ${esc(r.name)} auf Tag ${S.active + 1}"><b>${esc(r.name)}</b><span>${r.batches.length ? batchText(r.batches.map(b => b.kg)) : "keine"}${S.adj[r.id] ? " (" + (S.adj[r.id] > 0 ? "+" : "−") + Math.abs(S.adj[r.id]) + ")" : ""}</span></button>
+      <div class="hh"><button class="h" data-act="sort" aria-label="Alle Chargen von ${esc(r.name)} auf ${esc(dn(S.active))}"><b>${esc(r.name)}</b><span>${r.batches.length ? batchText(r.batches.map(b => b.kg)) : "keine"}${S.adj[r.id] ? " (" + (S.adj[r.id] > 0 ? "+" : "−") + Math.abs(S.adj[r.id]) + ")" : ""}</span></button>
         <span class="adj"><button data-adj="-1" aria-label="Eine Charge weniger ${esc(r.name)}">−</button><button data-adj="1" aria-label="Eine Charge mehr ${esc(r.name)}">+</button></span></div>
-      <div class="bs">${r.batches.map(b => `<button class="b${b.day != null ? " on" : ""}" data-k="${b.key}" ${b.day != null ? `style="${dc(b.day)}"` : ""} aria-label="${b.kg} kg${b.day != null ? ", Tag " + (b.day + 1) : ", offen"}">${b.kg} kg${b.day != null ? `<sup>${b.day + 1}</sup>` : ""}</button>`).join("")}</div>
+      <div class="bs">${r.batches.map(b => `<button class="b${b.day != null ? " on" : ""}" data-k="${b.key}" ${b.day != null ? `style="${dc(b.day)}"` : ""} aria-label="${b.kg} kg${b.day != null ? ", " + esc(dn(b.day)) : ", offen"}">${b.kg} kg${b.day != null ? `<sup>${esc(dnShort(b.day))}</sup>` : ""}</button>`).join("")}</div>
     </div>`).join("") : `<div class="empty">Noch keine Verkaufszahlen.</div>`;
   updBadges();
 }
-$("modes").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.extra = +b.dataset.x; S.adj = {}; save(); renderChargen(); });
+$("modes").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.extra = +b.dataset.x; save(); renderChargen(); });
+$("wkIn").addEventListener("input", e => { S.week = e.target.value.trim().slice(0, 20); $("wk").textContent = S.week; save(); });
+$("dSel").addEventListener("change", e => { const d = +e.target.dataset.day; S.days = (S.days || ["", "", ""]).slice(); S.days[d] = e.target.value; if (!S.days.some(Boolean)) delete S.days; save(); });
+// Verteilt alle offenen Chargen gleichmäßig auf die Rösttage; schon verteilte bleiben, wo sie sind
+function autoAssign() {
+  const rows = computeBatches(); cleanAssign(rows);
+  const load = dayTotals(rows).t.map(x => x.kg);
+  const out = Core.assignDays(rows.map((r, idx) => ({ id: r.id, idx, kg: Core.sumKg(r.batches.filter(b => b.day == null).map(b => b.kg)) })), DAYS, load);
+  rows.forEach(r => { const d = out[r.id]; if (d != null) r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = d; }); });
+  save();
+}
+$("autoAll").addEventListener("click", () => { autoAssign(); renderChargen(); });
+$("autoAll2").addEventListener("click", () => { autoAssign(); renderListe(); updBadges(); msg("Offene Chargen verteilt."); });
 $("dpick").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.active = +b.dataset.d; save(); renderChargen(); });
 $("allOpen").addEventListener("click", () => { computeBatches().forEach(r => r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = S.active; })); save(); renderChargen(); });
 $("clearAll").addEventListener("click", () => { S.assign = {}; save(); renderChargen(); });
@@ -466,31 +520,39 @@ $("cList").addEventListener("click", e => {
 
 /* ===================== LISTE ===================== */
 const listTotals = list => ({ n: list.reduce((a, x) => a + x.kgs.length, 0), kg: list.reduce((a, x) => a + Core.sumKg(x.kgs), 0) });
-function listHtml(days, open) {
+function listHtml(days, open, names) {
   let h = "";
   days.forEach((list, d) => {
     if (!list.length) return; const t = listTotals(list);
-    h += `<div class="dayh" style="${dc(d)}"><b><i></i>Tag ${d + 1}</b><span>${t.n} Chargen · ${intFmt(t.kg)} kg roh</span></div>
+    h += `<div class="dayh" style="${dc(d)}"><b><i></i>${esc(dn(d, names))}</b><span>${t.n} Chargen · ${intFmt(t.kg)} kg roh</span></div>
       <div class="card">${list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
   });
   if (open.length) h += `<div class="dayh"><b>Noch nicht verteilt</b><span>${listTotals(open).n} Chargen</span></div>
       <div class="card">${open.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
   return h;
 }
+// Rohkaffee je Sorte über alle Tage (auch noch nicht verteilte Chargen), zum Prüfen des Lagers
+function rohSum(rows) {
+  const list = rows.filter(r => r.batches.length).map(r => ({ name: r.name, kg: Core.sumKg(r.batches.map(b => b.kg)) })).sort((a, b) => b.kg - a.kg);
+  return { list, kg: list.reduce((a, x) => a + x.kg, 0) };
+}
 function renderListe() {
   const rows = computeBatches(); cleanAssign(rows);
   const { days, open } = dayLists(rows);
-  $("lList").innerHTML = listHtml(days, open) || `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
+  const h = listHtml(days, open), rk = rohSum(rows);
+  $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${intFmt(x.kg)} kg</span></div>`).join("")}</div>` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
   $("clearAsk").hidden = true;
+  $("autoAll2").hidden = !open.length;
 }
 
 /* ===================== EXPORT ===================== */
 const msg = t => { $("expMsg").textContent = t; };
 function planText(snap) {
-  const { days, open } = snap || dayLists(computeBatches()), week = snap ? snap.week : S.week;
+  const rows = snap ? null : computeBatches(), { days, open } = snap || dayLists(rows), week = snap ? snap.week : S.week, names = snap ? (snap.dn || []) : null;
   let out = "Röstplan " + week + "\n";
-  days.forEach((list, d) => { if (!list.length) return; const t = listTotals(list); out += "\nTag " + (d + 1) + " (" + t.n + " Chargen, " + intFmt(t.kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
+  days.forEach((list, d) => { if (!list.length) return; const t = listTotals(list); out += "\n" + dn(d, names) + " (" + t.n + " Chargen, " + intFmt(t.kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
   if (open.length) { out += "\nNoch nicht verteilt\n"; open.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); }
+  if (rows) { const rk = rohSum(rows); if (rk.list.length) { out += "\nRohkaffee gesamt (" + intFmt(rk.kg) + " kg)\n"; rk.list.forEach(x => out += x.name + ": " + intFmt(x.kg) + " kg\n"); } }
   return out;
 }
 $("copyTxt").addEventListener("click", () => {
@@ -500,7 +562,7 @@ $("copyTxt").addEventListener("click", () => {
 });
 function drawImage() {
   const rows = computeBatches(); const { days, open } = dayLists(rows); const { t } = dayTotals(rows);
-  const groups = days.map((l, d) => ({ title: "Tag " + (d + 1), sub: t[d].n + " Chargen · " + intFmt(t[d].kg) + " kg roh", list: l, col: ["#8A5A3B", "#4F6F88", "#5B7A3E"][d] })).filter(g => g.list.length);
+  const groups = days.map((l, d) => ({ title: dn(d), sub: t[d].n + " Chargen · " + intFmt(t[d].kg) + " kg roh", list: l, col: ["#8A5A3B", "#4F6F88", "#5B7A3E"][d] })).filter(g => g.list.length);
   if (open.length) groups.push({ title: "Noch nicht verteilt", sub: "", list: open, col: "#7A6A5D" });
   const W = 1080, pad = 72, lh = 76;
   let h = pad + 100; groups.forEach(g => h += 120 + g.list.length * lh); h += pad;
@@ -537,10 +599,37 @@ $("saveImg").addEventListener("click", async () => {
     try { await dl.save({ filename: name, data: blob }); msg("Bild gespeichert."); return; }
     catch (e) { if (e && e.code === "declined") { msg("Abgebrochen."); return; } }
   }
-  const ov = document.createElement("div"); ov.className = "ov";
-  ov.innerHTML = `<img alt="Röstplan als Bild" src="${c.toDataURL("image/png")}"><p>Bild lange drücken und „In Fotos sichern“ wählen.</p><button>Schließen</button>`;
-  ov.querySelector("button").onclick = () => ov.remove(); document.body.appendChild(ov);
+  showImage(c, blob, name);
 });
+// Bild-Ansicht mit sicherem Rückweg: × oben rechts, „Schließen“ unten, Tippen neben das Bild, Esc, Zurück-Wischen
+function showImage(c, blob, name) {
+  const file = typeof File === "function" ? new File([blob], name, { type: "image/png" }) : null;
+  const canShare = !!(file && navigator.canShare && navigator.share && (() => { try { return navigator.canShare({ files: [file] }); } catch (_) { return false; } })());
+  const ov = document.createElement("div"); ov.className = "ov" + (canShare ? " share" : "");
+  ov.setAttribute("role", "dialog"); ov.setAttribute("aria-modal", "true"); ov.setAttribute("aria-label", "Röstplan als Bild");
+  ov.innerHTML = `<button class="ovx" aria-label="Schließen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <img alt="Röstplan als Bild" src="${c.toDataURL("image/png")}">
+    <p>${canShare ? "„Sichern“ tippen und dann „Bild sichern“ wählen." : "Bild lange drücken und „In Fotos sichern“ wählen."}</p>
+    <div class="ovb">${canShare ? `<button class="sec" data-x>Schließen</button><button data-share>Sichern</button>` : `<button data-x>Schließen</button>`}</div>`;
+  const prevOverflow = document.documentElement.style.overflow;
+  let open = true;
+  const close = () => { if (!open) return; open = false; ov.remove(); document.documentElement.style.overflow = prevOverflow; removeEventListener("keydown", onKey); removeEventListener("popstate", onPop); };
+  const onKey = e => { if (e.key === "Escape") { e.preventDefault(); history.state && history.state.rpImg ? history.back() : close(); } };
+  const onPop = () => close();
+  const shut = () => (history.state && history.state.rpImg) ? history.back() : close();
+  ov.addEventListener("click", async e => {
+    if (e.target === ov || e.target.closest(".ovx,[data-x]")) { shut(); return; }
+    if (e.target.closest("[data-share]")) {
+      try { await navigator.share({ files: [file], title: "Röstplan " + S.week }); msg("Bild geteilt oder gesichert."); shut(); }
+      catch (err) { if (!err || err.name !== "AbortError") ov.querySelector("p").textContent = "Teilen hat nicht geklappt. Bild lange drücken und „In Fotos sichern“ wählen."; }
+    }
+  });
+  addEventListener("keydown", onKey);
+  // Zurück-Geste/-Taste schließt die Ansicht statt die App zu verlassen
+  try { history.pushState({ rpImg: 1 }, ""); addEventListener("popstate", onPop); } catch (_) {}
+  document.documentElement.style.overflow = "hidden";
+  document.body.appendChild(ov); ov.querySelector(".ovx").focus();
+}
 
 /* ===================== VERLAUF ===================== */
 /* Eigener Schlüssel, roestplan.v4 bleibt unverändert. Jeder Eintrag hält Eingaben (Sorten, Verlust, Zuschlag) und die fertige Liste, für spätere Vergleiche. */
@@ -555,7 +644,7 @@ function snapshot() {
   const tot = listTotals(all);
   return { id: "v" + Date.now().toString(36), at: new Date().toISOString(), week: S.week, loss: S.loss, extra: S.extra,
     sorts: S.sorts.filter(s => Core.soldGrams(s) > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: s.size })),
-    soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open };
+    soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open, dn: [0, 1, 2].map(d => dn(d)) };
 }
 const sig = v => JSON.stringify([v.week, v.loss, v.extra, v.sorts, v.days, v.open]);
 // Sichert die aktuelle Liste; gleiche Liste wie der letzte Eintrag wird nicht doppelt gespeichert. Rückgabe: "neu", "gleich", "leer" oder "fehler".
@@ -571,7 +660,7 @@ function renderVerlauf() {
   $("vList").innerHTML = V.length ? V.map(v => `
     <div class="vh" data-id="${v.id}">
       <button aria-expanded="${v.id === vOpen}"><span><b>${esc(v.week || "Ohne Woche")}</b><small>${v.n} Chargen · ${intFmt(v.kg)} kg roh · ${esc(dateFmt(v.at))}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
-      ${v.id === vOpen ? `<div class="vd"><p class="cap" style="margin:0">Verkauf ${kgFmt(v.soldG, 2)} kg · Röstverlust ${v.loss} %${v.extra ? " · +" + v.extra + " %" : ""}</p>${listHtml(v.days, v.open)}
+      ${v.id === vOpen ? `<div class="vd"><p class="cap" style="margin:0">Verkauf ${kgFmt(v.soldG, 2)} kg · Röstverlust ${v.loss} %${v.extra ? " · +" + v.extra + " %" : ""}</p>${listHtml(v.days, v.open, v.dn || [])}
         <div class="exp"><button data-copy="${v.id}">Text kopieren</button><button class="del" data-del="${v.id}">Löschen</button></div>
         <div class="ask" data-ask="${v.id}" hidden><p>Diese Liste aus dem Verlauf löschen? Das lässt sich nicht rückgängig machen.</p>
           <div class="exp"><button data-delno="${v.id}">Abbrechen</button><button class="main" data-delyes="${v.id}">Löschen</button></div></div>
@@ -600,15 +689,26 @@ $("vList").addEventListener("click", e => {
 });
 const keepMsg = { neu: "Im Verlauf gesichert.", gleich: "Diese Liste ist schon im Verlauf.", leer: "Keine Chargen, nichts zu sichern.", fehler: "Sichern hat nicht geklappt, der Speicher ist voll." };
 $("keepBtn").addEventListener("click", () => msg(keepMsg[keep()]));
+// Leeren geht auf „Zahlen“ (wo man sieht, dass die Liste voll ist) und auf „Liste“; Rückgabe wie keep()
+function clearList() {
+  const r = keep(); if (r === "fehler") return r;
+  S.sorts.forEach(s => { s.totalG = 0; s.unsure = false; });
+  S.assign = {}; S.adj = {}; S.warn = ""; S.rep = null; S.source = "cleared";
+  save(); renderListe(); renderZahlen(); return r;
+}
 $("clearBtn").addEventListener("click", () => { $("clearAsk").hidden = false; msg(""); $("clearYes").focus(); });
 $("clearNo").addEventListener("click", () => { $("clearAsk").hidden = true; });
 $("clearYes").addEventListener("click", () => {
-  const r = keep();
+  const r = clearList();
   if (r === "fehler") { $("clearAsk").hidden = true; msg("Nicht geleert: Sichern im Verlauf hat nicht geklappt."); return; }
-  S.sorts.forEach(s => { s.totalG = 0; s.unsure = false; });
-  S.assign = {}; S.adj = {}; S.warn = ""; S.source = "cleared";
-  save(); renderListe(); renderZahlen();
   msg(r === "leer" ? "Liste geleert." : "Liste geleert. Die alte Liste ist im Verlauf.");
+});
+$("clearBtn0").addEventListener("click", () => { $("clearAsk0").hidden = false; $("clearYes0").focus(); });
+$("clearNo0").addEventListener("click", () => { $("clearAsk0").hidden = true; });
+$("clearYes0").addEventListener("click", () => {
+  const r = clearList(); $("clearAsk0").hidden = true;
+  if (r === "fehler") S.warn = "Nicht geleert: Sichern im Verlauf hat nicht geklappt.";
+  renderZahlen(); window.scrollTo(0, 0);
 });
 
 /* ===================== IMPORT ===================== */
@@ -641,11 +741,8 @@ function applyImport(res, source) {
   S.sorts = clean.map(r => { const o = byName.get(r.name.toLowerCase()); return { id: o?.id || newId(), size: o?.size === 3 ? 3 : 5, ...r }; });
   S.assign = {}; S.adj = {}; S.source = source;
   S.week = res.woche ? String(res.woche).slice(0, 20) : "KW " + isoWeek(new Date(Date.now() - 6 * 864e5));
-  const nU = S.sorts.filter(s => s.unsure).length;
-  const w = [];
-  if (typeof res.gesamt_kg === "number" && Math.abs(res.gesamt_kg * 1000 - totAll) > 1) w.push(`Im Bericht steht ${String(res.gesamt_kg).replace(".", ",")} kg gesamt, gelesen wurden ${kgFmt(totAll, 2)} kg. Bitte die Zeilen vergleichen.`);
-  if (nU) w.push(nU === 1 ? "1 Wert ist unsicher gelesen und markiert." : nU + " Werte sind unsicher gelesen und markiert.");
-  S.warn = w.join(" ");
+  S.warn = "";  // Hinweise zu Gesamtmenge und unsicheren Werten rechnet liveWarn() laufend neu
+  S.rep = { g: typeof res.gesamt_kg === "number" ? Math.round(res.gesamt_kg * 1000) : null, ign: totAll - S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0) };
   save(); renderZahlen();
 }
 function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); }
@@ -680,12 +777,13 @@ function localParse(rowsAoa) {
   }
   return sorten.length ? { woche: null, gesamt_kg: null, sorten } : null;
 }
-const PDFJS = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js", PDFJS_WORKER = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+const PDFJS = "lib/pdf.min.js", PDFJS_WORKER = "lib/pdf.worker.min.js";
 const loadScript = src => new Promise((ok, err) => { const el = document.createElement("script"); el.src = src; el.onload = ok; el.onerror = () => err(new Error("load")); document.head.appendChild(el); });
 async function pdfRows(file) {
   if (!window.pdfjsLib) { await loadScript(PDFJS); await loadScript(PDFJS_WORKER); }
   pdfjsLib.GlobalWorkerOptions.workerSrc = PDFJS_WORKER;
-  const doc = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+  const doc = await Promise.race([pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise,
+    new Promise((_, no) => setTimeout(() => no(new Error("timeout")), 30000))]);
   const items = [];
   for (let p = 1; p <= doc.numPages; p++) {
     const tc = await (await doc.getPage(p)).getTextContent();
@@ -778,6 +876,26 @@ renderZahlen();
  new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
  if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
  requestAnimationFrame(function(){setT(target())});
+})();
+</script>
+<style>
+.lgx-home svg{transition:transform .5s linear}
+.lgx-home.lgx-arm svg{transform:scale(1.25)}
+.lgx-home.lgx-ready{color:var(--accent)!important}
+@media (prefers-reduced-motion:reduce){.lgx-home svg{transition:none}.lgx-home.lgx-arm svg{transform:none}}
+</style>
+<script>
+(function(){
+ var HOLD=500,home=document.querySelector(".lgx-home");if(!home)return;var bar=home.closest("nav");if(!bar)return;
+ var pid=null,x0=0,moved=false,t=null,armed=false,ready=false,block=false;
+ function isHome(px){var b=null,bd=1e9;[].forEach.call(bar.querySelectorAll("button"),function(l){var r=l.getBoundingClientRect(),d=Math.abs(px-(r.left+r.width/2));if(d<bd){bd=d;b=l}});return b===home}
+ function reset(){clearTimeout(t);t=null;armed=ready=false;home.classList.remove("lgx-arm","lgx-ready")}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;x0=e.clientX;moved=false;block=false;reset()},true);
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-x0)>8)moved=true;if(!moved)return;
+  if(isHome(e.clientX)){if(!armed){armed=true;home.classList.add("lgx-arm");t=setTimeout(function(){ready=true;home.classList.add("lgx-ready");try{navigator.vibrate&&navigator.vibrate(12)}catch(z){}},HOLD)}}else reset()},true);
+ bar.addEventListener("pointerup",function(e){if(e.pointerId!==pid)return;pid=null;if(moved&&isHome(e.clientX)&&!ready)block=true;reset()},true);
+ bar.addEventListener("pointercancel",function(){pid=null;reset()},true);
+ window.lgxHomeOk=function(){var b=block;block=false;return !b};
 })();
 </script>
 <script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
