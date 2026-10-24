@@ -146,6 +146,9 @@ section[hidden]{display:none!important}
 .ask p{margin:0 0 12px;font-size:15px}
 .ask .exp{margin-top:0}
 .ask .exp button.main{background:var(--warn);border-color:var(--warn);color:var(--card)}
+.ask .exp.three{flex-wrap:wrap}
+.ask .exp.three button.main{flex-basis:100%;order:-1}
+.ask .exp.three #clearBare,.ask .exp.three #clearBare0{color:var(--warn)}
 .vh{padding:4px 0;border-bottom:1px solid var(--line)}
 .vh:last-child{border-bottom:0}
 .vh>button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;min-height:60px;text-align:left}
@@ -203,8 +206,8 @@ section[hidden]{display:none!important}
     </div>
     <div class="acts" style="margin-top:4px;justify-content:flex-end"><button class="link danger" id="clearBtn0">Liste leeren</button></div>
     <div class="ask" id="clearAsk0" hidden>
-      <p>Liste wirklich leeren? Sie wird vorher im Verlauf gesichert. Die Sorten bleiben, die Mengen werden auf 0 gesetzt.</p>
-      <div class="exp"><button id="clearNo0">Abbrechen</button><button class="main" id="clearYes0">Leeren</button></div>
+      <p>Liste leeren? Die Sorten bleiben, die Mengen werden auf 0 gesetzt. Soll die Liste vorher im Verlauf gesichert werden?</p>
+      <div class="exp three"><button id="clearNo0">Abbrechen</button><button id="clearBare0">Nur leeren</button><button class="main" id="clearYes0">Sichern und leeren</button></div>
     </div>
     <p class="note" id="srcInfo"></p>
     <p class="note warn" id="warnBox"></p>
@@ -239,8 +242,8 @@ section[hidden]{display:none!important}
     <p class="note" id="expMsg" role="status"></p>
     <div class="acts"><button class="link" id="keepBtn">Im Verlauf sichern</button><button class="link danger" id="clearBtn">Liste leeren</button></div>
     <div class="ask" id="clearAsk" hidden>
-      <p>Liste wirklich leeren? Sie wird vorher im Verlauf gesichert. Die Sorten bleiben, die Mengen werden auf 0 gesetzt.</p>
-      <div class="exp"><button id="clearNo">Abbrechen</button><button class="main" id="clearYes">Leeren</button></div>
+      <p>Liste leeren? Die Sorten bleiben, die Mengen werden auf 0 gesetzt. Soll die Liste vorher im Verlauf gesichert werden?</p>
+      <div class="exp three"><button id="clearNo">Abbrechen</button><button id="clearBare">Nur leeren</button><button class="main" id="clearYes">Sichern und leeren</button></div>
     </div>
   </section>
 
@@ -689,27 +692,31 @@ $("vList").addEventListener("click", e => {
 });
 const keepMsg = { neu: "Im Verlauf gesichert.", gleich: "Diese Liste ist schon im Verlauf.", leer: "Keine Chargen, nichts zu sichern.", fehler: "Sichern hat nicht geklappt, der Speicher ist voll." };
 $("keepBtn").addEventListener("click", () => msg(keepMsg[keep()]));
-// Leeren geht auf „Zahlen“ (wo man sieht, dass die Liste voll ist) und auf „Liste“; Rückgabe wie keep()
-function clearList() {
-  const r = keep(); if (r === "fehler") return r;
+// Leeren geht auf „Zahlen“ (wo man sieht, dass die Liste voll ist) und auf „Liste“; vorher wird gefragt, ob gesichert werden soll. Rückgabe wie keep(), ohne Sichern "aus"
+function clearList(withKeep) {
+  const r = withKeep ? keep() : "aus"; if (r === "fehler") return r;
   S.sorts.forEach(s => { s.totalG = 0; s.unsure = false; });
   S.assign = {}; S.adj = {}; S.warn = ""; S.rep = null; S.source = "cleared";
   save(); renderListe(); renderZahlen(); return r;
 }
-$("clearBtn").addEventListener("click", () => { $("clearAsk").hidden = false; msg(""); $("clearYes").focus(); });
+$("clearBtn").addEventListener("click", () => { $("clearAsk").hidden = false; msg(""); $("clearYes").focus({ preventScroll: true }); $("clearAsk").scrollIntoView({ block: "center" }); });
 $("clearNo").addEventListener("click", () => { $("clearAsk").hidden = true; });
-$("clearYes").addEventListener("click", () => {
-  const r = clearList();
+function clearHere(withKeep) {
+  const r = clearList(withKeep);
   if (r === "fehler") { $("clearAsk").hidden = true; msg("Nicht geleert: Sichern im Verlauf hat nicht geklappt."); return; }
-  msg(r === "leer" ? "Liste geleert." : "Liste geleert. Die alte Liste ist im Verlauf.");
-});
+  msg(r === "neu" || r === "gleich" ? "Liste geleert. Die alte Liste ist im Verlauf." : "Liste geleert.");
+}
+$("clearYes").addEventListener("click", () => clearHere(true));
+$("clearBare").addEventListener("click", () => clearHere(false));
 $("clearBtn0").addEventListener("click", () => { $("clearAsk0").hidden = false; $("clearYes0").focus(); });
 $("clearNo0").addEventListener("click", () => { $("clearAsk0").hidden = true; });
-$("clearYes0").addEventListener("click", () => {
-  const r = clearList(); $("clearAsk0").hidden = true;
+function clearTop(withKeep) {
+  const r = clearList(withKeep); $("clearAsk0").hidden = true;
   if (r === "fehler") S.warn = "Nicht geleert: Sichern im Verlauf hat nicht geklappt.";
   renderZahlen(); window.scrollTo(0, 0);
-});
+}
+$("clearYes0").addEventListener("click", () => clearTop(true));
+$("clearBare0").addEventListener("click", () => clearTop(false));
 
 /* ===================== IMPORT ===================== */
 const caps = {};
