@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Verkauf</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Laden">
+<meta name="theme-color" content="#F3EEE7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
+<style>
+/* Verkauf (Laden-App, 4. Funktion): Verlauf + Prognose; Glasleiste wie Röstplan. Verkaufsverlauf: eine Ansicht, Zeitraum 1/3/6 Monate umschalten und blättern; Crema wie die Laden-App */
+:root{
+  --bg:#F3EEE7; --paper:#FBF8F3; --ink:#2B211B; --ink2:#5E5047; --muted:#7A6A5D; --line:#E3D9CC; --grid:#EAE2D7;
+  --accent:#8A5A3B; --accent-ink:#FFFFFF; --accent-soft:#EEDFD0;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#5B7A3E; --good-soft:#E6EEDB; --warn:#9A6200; --warn-soft:#FBEFD6;
+  --hatch:rgba(122,106,93,.22); --shadow:rgba(60,40,25,.18); --bar:rgba(250,247,243,.94);
+  --f:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17120F; --paper:#211A16; --ink:#EFE7DF; --ink2:#CBBEB2; --muted:#AD9E91; --line:#3A2F28; --grid:#2F2621;
+  --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good:#A9C88A; --good-soft:#26301C; --warn:#E5B35A; --warn-soft:#3A2E17;
+  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17120F; --paper:#211A16; --ink:#EFE7DF; --ink2:#CBBEB2; --muted:#AD9E91; --line:#3A2F28; --grid:#2F2621;
+  --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good:#A9C88A; --good-soft:#26301C; --warn:#E5B35A; --warn-soft:#3A2E17;
+  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f);-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px calc(110px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+h1{font:700 32px/1.05 var(--f);margin:0;letter-spacing:-.02em}
+h2{font:600 17px/1.25 var(--f);margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:14px;margin:3px 0 0}
+.hint{font-size:14px;color:var(--muted);margin:0}
+.lbl{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+button{font:600 15px var(--f);border-radius:11px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;cursor:pointer;min-height:44px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:transparent;font-weight:500;font-size:14px;min-height:40px;padding:4px 6px;border-radius:9px;color:var(--muted);line-height:1.2}
+.seg button small{display:block;font-size:11px;font-weight:500;opacity:.8}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips.one{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -4px;padding:0 4px 4px}.chips.one button{flex:0 0 auto;white-space:nowrap}
+.chips button{min-height:36px;padding:4px 12px;border-radius:99px;font-size:14px;font-weight:500;color:var(--ink2)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chips button i{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:6px;vertical-align:0}
+.up{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.up label{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:15px;cursor:pointer}
+.up input{position:absolute;opacity:0;width:1px;height:1px}
+.log{font-size:13px;color:var(--ink2);display:flex;flex-direction:column;gap:2px;font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
+.wl{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 12px;font-size:13px;font-variant-numeric:tabular-nums}
+.wl span.v{color:var(--warn)}.wl span.m{color:var(--muted)}
+.notes{font-size:13px;color:var(--ink2);margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font:11px var(--f);fill:var(--muted)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);font-size:12px;line-height:1.35;padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);margin-top:-10px;font-variant-numeric:tabular-nums;z-index:3}
+.tip b{font-weight:600}
+/* Zeitraum-Leiste */
+.ctl{position:sticky;top:0;z-index:4;margin:0 calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px));background:var(--bg);display:flex;flex-direction:column;gap:8px}
+.per{display:flex;align-items:center;gap:8px}
+.per button.ar{min-width:44px;padding:0;font-size:20px;line-height:1;border-radius:99px}
+.per button.ar:disabled{opacity:.35;cursor:default}
+.per .pt{flex:1;text-align:center;min-width:0}
+.per .pt b{display:block;font-size:17px;font-weight:600}
+.per .pt small{font-size:12px;color:var(--muted)}
+.selrow{display:flex;gap:8px;align-items:center}
+.selrow select{flex:1;min-width:0;font:500 15px var(--f);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:11px;min-height:44px;padding:0 12px;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--muted) 50%),linear-gradient(135deg,var(--muted) 50%,transparent 50%);background-position:calc(100% - 18px) 50%,calc(100% - 13px) 50%;background-size:5px 5px;background-repeat:no-repeat}
+.selrow button{flex:0 0 auto;min-height:44px}
+/* Kennzahl */
+.hero{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.hero .big{font-size:40px;font-weight:700;letter-spacing:-.02em;line-height:1;font-variant-numeric:tabular-nums}
+.hero .big small{font-size:16px;font-weight:500;color:var(--muted);letter-spacing:0;margin-left:4px}
+.delta{display:inline-flex;align-items:center;gap:4px;font-size:14px;font-weight:600;padding:5px 10px;border-radius:99px;background:var(--grid);color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.delta.up{background:var(--good-soft);color:var(--good)}.delta.dn{background:var(--warn-soft);color:var(--warn)}
+.facts{display:flex;gap:6px 16px;flex-wrap:wrap;font-size:13px;color:var(--ink2);font-variant-numeric:tabular-nums}
+.facts b{font-weight:600;color:var(--ink)}
+/* Sorten-Liste */
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{min-height:36px;padding:4px 12px;border-radius:99px;font-size:14px;font-weight:500;color:var(--ink2)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.rows{display:flex;flex-direction:column}
+.row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;padding:10px 4px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;text-align:left;min-height:0;font-weight:400;width:100%}
+.row:last-child{border-bottom:0}
+.row.on{background:var(--accent-soft);border-radius:10px}
+.row .nm{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .nm small{font-size:12px;font-weight:500;margin-left:6px}
+.row .nm small.end{color:var(--warn)}.row .nm small.new{color:var(--good)}
+.row .v{font-size:15px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.row .track{grid-column:1;height:8px;border-radius:99px;background:var(--grid);overflow:hidden;align-self:center}
+.row .track i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.row .d{font-size:13px;text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);white-space:nowrap}
+.row .d.up{color:var(--good)}.row .d.dn{color:var(--warn)}
+/* Ausgelaufen */
+.endl{display:flex;flex-direction:column;gap:10px}
+.endr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:baseline}
+.endr .nm{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.endr .w{font-size:13px;color:var(--warn);font-weight:600;white-space:nowrap}
+.strip{grid-column:1/-1;display:flex;gap:2px}
+.strip i{flex:1;height:10px;border-radius:2px;background:var(--grid)}
+.strip i.on{background:var(--accent)}
+.strip i.miss{background:repeating-linear-gradient(135deg,var(--hatch) 0 2px,transparent 2px 5px)}
+.strip i.cut{background:var(--warn)}
+/* Prognose */
+.fc{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:0 12px;align-items:baseline;font-variant-numeric:tabular-nums;font-size:14px}
+.fc>*{padding:6px 0;border-bottom:1px solid var(--line)}
+.fc .h{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.fc b{font-weight:600}.fc .r{text-align:right}.fc .m{color:var(--muted);font-size:12px;text-align:right}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted);align-items:center}
+.legend .sw{width:14px;height:12px;border-radius:3px;display:inline-block;vertical-align:middle;margin-right:5px}
+.say{margin:0;font-size:15px;line-height:1.45;color:var(--ink2);text-wrap:pretty}
+.say b{color:var(--ink);font-weight:600}
+.ins{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.it{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;min-height:0;padding:12px;border-radius:14px;background:var(--paper);border:1px solid var(--line);font-weight:400;min-width:0}
+.it .k{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:5px}
+.it .k i{font-style:normal;font-size:13px}
+.it b{font-size:16px;font-weight:600;line-height:1.25;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.it .n{font-size:22px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.1}
+.it small{font-size:12px;color:var(--ink2);line-height:1.35}
+.it.good{background:var(--good-soft);border-color:transparent}.it.good .n{color:var(--good)}
+.it.bad{background:var(--warn-soft);border-color:transparent}.it.bad .n{color:var(--warn)}
+.row .sp{grid-column:1;display:block;width:100%;height:22px}
+.row .meta{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.fc .bar{display:block;height:6px;border-radius:99px;background:var(--accent);margin-top:5px;opacity:.85}
+.gk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.gk div{background:var(--bg);border-radius:12px;padding:9px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.gk span{font-size:10.5px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.gk b{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.gk small{font-size:11.5px;color:var(--ink2);line-height:1.3}
+.rank{display:flex;flex-direction:column;gap:7px}
+.rk{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:baseline;border:0;background:transparent;padding:2px 0;min-height:0;text-align:left;font-weight:400;border-radius:0;width:100%}
+.rk .nm{font-size:14px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rk .nm small{font-size:11.5px;color:var(--warn);margin-left:5px;font-weight:500}
+.rk .v{font-size:14px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rk .v small{font-weight:400;color:var(--muted);font-size:12px;margin-left:4px}
+.rk .tr{grid-column:1/-1;height:10px;border-radius:99px;background:var(--grid);overflow:hidden}
+.rk .tr i{display:block;height:100%;border-radius:99px;background:var(--accent)}
+.rk.end .tr i{background:color-mix(in srgb,var(--accent) 40%,var(--paper))}
+.rk.on .nm{font-weight:700}
+.split{display:flex;flex-direction:column;gap:8px;padding-top:4px;border-top:1px solid var(--line)}
+.split .lbl{padding-top:8px}
+.stack{display:flex;height:22px;gap:2px;border-radius:7px;overflow:hidden}
+.stack i{display:block;height:100%}
+.stack i:first-child{border-radius:7px 0 0 7px}.stack i:last-child{border-radius:0 7px 7px 0}
+.legend b{color:var(--ink);font-weight:600;font-variant-numeric:tabular-nums}
+.ind{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.ic{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;min-height:0;padding:12px;border-radius:14px;background:var(--paper);border:1px solid var(--line);font-weight:400;min-width:0}
+.ic .k{font-size:11px;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.ic .n{font-size:21px;font-weight:700;letter-spacing:-.01em;font-variant-numeric:tabular-nums;line-height:1.15}
+.ic .st{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--grid);color:var(--ink2)}
+.ic .st.good{background:var(--good-soft);color:var(--good)}.ic .st.bad{background:var(--warn-soft);color:var(--warn)}
+.ic small{font-size:12.5px;color:var(--ink2);line-height:1.35}
+.ic .how{display:none;font-size:12px;color:var(--muted);line-height:1.4;border-top:1px solid var(--line);padding-top:6px;margin-top:3px}
+.ic.open{grid-column:1/-1}.ic.open .how{display:block}
+.sl{display:flex;flex-direction:column;gap:6px;font-size:14px;color:var(--ink2)}
+.sl b{color:var(--ink);font-variant-numeric:tabular-nums}
+.sl input{width:100%;accent-color:var(--accent);min-height:32px}
+.ol{display:flex;flex-direction:column}
+.orow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;padding:10px 2px;border-bottom:1px solid var(--line);align-items:baseline}
+.orow:last-child{border-bottom:0}
+.orow .nm{font-size:15px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.orow .v{font-size:15px;font-weight:600;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.orow .sub{font-size:12.5px;color:var(--muted);display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.orow .r{font-size:12.5px;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.ph{font-size:11.5px;font-weight:600;padding:1px 7px;border-radius:99px;background:var(--grid);color:var(--ink2)}
+.ph.good{background:var(--good-soft);color:var(--good)}.ph.bad{background:var(--warn-soft);color:var(--warn)}.ph.new{background:var(--accent-soft);color:var(--ink)}
+.dots{letter-spacing:1px;color:var(--ink2)}
+.cal{display:flex;flex-direction:column;gap:6px;font-size:13.5px;color:var(--ink2)}
+.cal div{display:grid;grid-template-columns:64px minmax(0,1fr);gap:8px;align-items:baseline}
+.cal b{font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
+:root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
+:root[data-theme=dark]{--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}
+.lgx{position:fixed;left:50%;right:auto;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;z-index:40;display:flex;gap:2px;padding:4px;border:0;border-radius:999px;isolation:isolate;overflow:visible;
+ background:var(--lgx-solid);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:inset 0 1px 0 var(--lgx-hl),0 0 0 .5px var(--lgx-edge),0 16px 40px -18px rgba(40,25,10,.45)}
+.lgx .in{display:flex;gap:2px;flex:1;min-width:0}
+.lgx button{position:relative;z-index:2;flex:1;max-width:none;min-width:0;min-height:52px;padding:4px 0;border:0;border-radius:999px;background:none!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:600;line-height:1.2;color:var(--ink2,var(--muted));transition:color .25s,transform .35s cubic-bezier(.3,1.6,.5,1);touch-action:none}
+.lgx button svg{width:24px;height:24px;margin:0}
+.lgx button[aria-selected="true"]{color:var(--accent)}
+.lgx button.lgx-near{transform:scale(1.06)}
+.lgx-th{position:absolute;z-index:1;left:0;top:0;border-radius:999px;pointer-events:none;will-change:transform;box-shadow:var(--lgx-thumb-sh);transform-origin:50% 50%}
+.lgx-th::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 90% at var(--hx,30%) 0%,rgba(255,255,255,.95),rgba(255,255,255,0) 55%);opacity:var(--ho,.55);mix-blend-mode:soft-light}
+.lgx-th::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,var(--ro,0)),0 10px 26px -8px rgba(40,25,10,var(--so,0))}
+.lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
+@media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
+@media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+</style>
+</head><body>
+
+<div class="wrap" id="pgV">
+  <div><h1>Verkaufsverlauf</h1><p class="sub" id="cover">–</p></div>
+
+  <div class="ctl">
+    <div class="seg" role="group" aria-label="Zeitraum">
+      <button data-n="1" aria-pressed="true">1 Monat</button>
+      <button data-n="3" aria-pressed="false">3 Monate</button>
+      <button data-n="6" aria-pressed="false">6 Monate</button>
+      <button data-n="99" aria-pressed="false">Gesamt</button>
+    </div>
+    <div class="per">
+      <button class="ar" id="prev" aria-label="Früher">‹</button>
+      <div class="pt"><b id="pt">–</b><small id="ps">–</small></div>
+      <button class="ar" id="next" aria-label="Später">›</button>
+    </div>
+  </div>
+
+  <div class="card" id="main">
+    <div class="selrow"><select id="sel" aria-label="Sorte"></select><button id="clr" hidden>Alle</button></div>
+    <div class="hero">
+      <div><div class="lbl" id="heroL">Ø pro Woche</div><div class="big" id="big">–</div></div>
+      <span class="delta" id="delta">–</span>
+    </div>
+    <p class="say" id="say"></p>
+    <div class="chart" id="chart"></div>
+    <div class="legend" id="leg"></div>
+  </div>
+
+  <section aria-label="Auf einen Blick"><div class="lbl" style="margin:0 2px 8px">Auf einen Blick</div><div class="ins" id="ins"></div></section>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Sorten im Zeitraum</h2><span class="hint" id="rowsH"></span></div>
+    <div class="chips" id="sortBy" role="group" aria-label="Sortieren nach"></div>
+    <p class="hint" style="margin:0">Der Streifen zeigt jede Woche seit KW <span id="fw"></span>. Dunkel ist der gewählte Zeitraum. Antippen zeigt die Sorte oben in der Grafik.</p>
+    <div class="rows" id="rows"></div>
+  </div>
+
+  <div class="card" id="gesCard">
+    <div><h2>Sorten im Vergleich</h2><p class="hint" style="margin:2px 0 0" id="gFrom"></p></div>
+    <div class="gk" id="gk"></div>
+    <div class="seg" role="group" aria-label="Vergleich"><button data-gm="kg" aria-pressed="true">Gesamt kg</button><button data-gm="avg" aria-pressed="false">Ø pro Woche im Sortiment</button></div>
+    <div class="rank" id="rank"></div>
+    <div class="split"><div class="lbl">Espresso, Filter, Decaf</div><div class="stack" id="stT"></div><div class="legend" id="lgT"></div></div>
+    <div class="split"><div class="lbl">Wie verkauft: Gebinde</div><div class="stack" id="stG"></div><div class="legend" id="lgG"></div><p class="hint" id="bags" style="margin:0"></p></div>
+  </div>
+
+  <div class="card" id="endCard">
+    <h2>Ausgelaufene Sorten</h2>
+    <p class="hint" style="margin-top:-6px">Jedes Kästchen ist eine Woche. Orange: die letzte Woche mit Verkauf.</p>
+    <div class="endl" id="endl"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2 id="fcT">Vorschlag nächste Woche</h2><span class="hint" id="acc"></span></div>
+    <p class="hint" style="margin-top:-6px">Aus den letzten 6 Wochen plus Trend. Rohkaffee mit 16 % Röstverlust.</p>
+    <div class="fc" id="fc"></div>
+  </div>
+
+  <div class="card">
+    <div class="up"><label for="files">Berichte hinzufügen<input type="file" id="files" accept="application/pdf" multiple></label>
+      <span class="hint">PDFs aus Lightspeed. Jede KW zählt nur einmal.</span></div>
+    <div class="log" id="log" hidden></div>
+    <details><summary>So sind die Wochen geordnet</summary>
+      <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
+        <div class="wl" id="wl"></div>
+        <ul class="notes" id="notes"></ul>
+      </div></details>
+  </div>
+</div>
+
+<div class="wrap" id="pgP" hidden>
+  <div><h1>Prognose</h1><p class="sub" id="pCover">–</p></div>
+
+  <div class="card">
+    <div class="selrow"><select id="pSel" aria-label="Sorte"></select></div>
+    <div class="seg" role="group" aria-label="Szenario">
+      <button data-sz="lo" aria-pressed="false">Vorsichtig</button><button data-sz="mid" aria-pressed="true">Normal</button><button data-sz="hi" aria-pressed="false">Gut</button>
+    </div>
+    <div class="hero"><div><div class="lbl">Nächste 4 Wochen</div><div class="big" id="pBig">–</div></div><span class="delta" id="pDelta">–</span></div>
+    <p class="say" id="pSay"></p>
+    <div class="chart" id="pChart"></div>
+    <div class="legend" id="pLeg"></div>
+  </div>
+
+  <section aria-label="Indikatoren"><div class="lbl" style="margin:0 2px 8px">Indikatoren · antippen für die Erklärung</div><div class="ind" id="ind"></div></section>
+
+  <div class="card">
+    <h2>Die nächsten Monate</h2>
+    <p class="hint" style="margin-top:-6px">Kg pro Monat, wenn es so weitergeht. Saison lässt sich erst mit einem ganzen Jahr Daten messen, deshalb kannst du sie hier selbst einstellen.</p>
+    <div class="chart" id="mChart"></div>
+    <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>verkauft</span><span><i class="sw" style="box-shadow:inset 0 0 0 2px var(--accent)"></i>Prognose</span><span>* Monat teils geschätzt</span><span>Wo. = Wochen im Monat, deshalb sind Okt und Dez länger</span></div>
+    <div class="cal" id="cal"></div>
+    <label class="sl"><span>Saison-Zuschlag Dezember <b id="sv">+0 %</b></span><input type="range" id="sea" min="-20" max="50" step="5" value="0"></label>
+    <p class="hint" style="margin:0">November bekommt die Hälfte davon.</p>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Ausblick je Sorte</h2><span class="hint">nächste 4 Wochen</span></div>
+    <div class="legend"><span><b>●●●</b> verlässlich</span><span><b>●○○</b> schwankt stark</span></div>
+    <div class="ol" id="ol"></div>
+  </div>
+</div>
+
+<nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
+  <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
+  <button role="tab" data-pg="v" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Verlauf</button>
+  <button role="tab" data-pg="p" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Prognose</button>
+</div></nav>
+<script>
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139: Linse gleitet federnd, ziehbar, Schimmer ---------- */
+(function(){
+ var bar=document.querySelector(".lgx");if(!bar)return;
+ var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches,cl=function(v,a,b){return Math.max(a,Math.min(b,v))};
+ var DK=function(){var t=document.documentElement.getAttribute("data-theme");return t?t=="dark":matchMedia("(prefers-color-scheme: dark)").matches};
+ var th=document.createElement("i");th.className="lgx-th";bar.prepend(th);
+ var L=[].slice.call(bar.querySelectorAll("button"));
+ var x=0,y=0,w=0,h=0,vx=0,tx=0,ty=0,tw=0,thh=0,press=0,raf=0,drag=false,hl=30,first=true,last=0,pid=null,sx0=0,moved=false;
+ function target(){return L.filter(function(l){return l.getAttribute("aria-selected")=="true"})[0]||L[0]}
+ function setT(lb){tx=lb.offsetLeft;ty=lb.offsetTop;tw=lb.offsetWidth;thh=lb.offsetHeight;if(first||reduce){x=tx;y=ty;w=tw;h=thh;first=false;draw()}kick()}
+ function draw(){var st=Math.min(Math.abs(vx)/900,.32),p=1+press*.14,dk=DK();
+  th.style.width=w+"px";th.style.height=h+"px";th.style.transform="translate("+x.toFixed(2)+"px,"+y+"px) scale("+((1+st)*p).toFixed(3)+","+((1-st*.55)*p).toFixed(3)+")";
+  hl+=((50-cl(vx/18,-40,40))-hl)*.2;th.style.setProperty("--hx",hl.toFixed(1)+"%");th.style.setProperty("--ho",(.55+press*.4+st).toFixed(2));
+  th.style.background=dk?"linear-gradient(180deg,rgba(255,255,255,"+(.30-.16*press).toFixed(2)+"),rgba(255,255,255,"+(.14-.08*press).toFixed(2)+"))":"linear-gradient(180deg,rgba(255,255,255,"+(.98-.62*press).toFixed(2)+"),rgba(255,255,255,"+(.72-.5*press).toFixed(2)+"))";
+  th.style.setProperty("--ro",(press*.7).toFixed(2));th.style.setProperty("--so",(press*.35).toFixed(2))}
+ function step(t){var dt=Math.min(.033,(t-(last||t))/1000)||.016;last=t;var k=drag?900:260,dm=drag?2*Math.sqrt(900)*.9:2*Math.sqrt(260)*.62;
+  vx+=(k*(tx-x)-dm*vx)*dt;x+=vx*dt;w+=(tw-w)*Math.min(1,dt*14);h+=(thh-h)*Math.min(1,dt*14);press+=((drag?1:0)-press)*Math.min(1,dt*12);draw();
+  if(Math.abs(tx-x)>.3||Math.abs(vx)>2||Math.abs(press-(drag?1:0))>.01)raf=requestAnimationFrame(step);else{raf=0;last=0;x=tx;vx=0;draw()}}
+ function kick(){if(reduce){x=tx;y=ty;w=tw;h=thh;press=0;draw();return}if(!raf){last=0;raf=requestAnimationFrame(step)}}
+ addEventListener("resize",function(){first=true;setT(target())});
+ function nearest(px){var b=L[0],bd=1e9,r=bar.getBoundingClientRect();L.forEach(function(l){var dd=Math.abs(px-r.left-(l.offsetLeft+l.offsetWidth/2));if(dd<bd){bd=dd;b=l}});return b}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;sx0=e.clientX;moved=false;drag=true;var lb=nearest(e.clientX);tx=lb.offsetLeft;tw=lb.offsetWidth;kick()});
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-sx0)>8&&!moved){moved=true;try{bar.setPointerCapture(pid)}catch(z){}}
+  if(!moved)return;var r=bar.getBoundingClientRect();tx=cl(e.clientX-r.left-tw/2,0,bar.offsetWidth-tw);var lb=nearest(e.clientX);L.forEach(function(l){l.classList.toggle("lgx-near",l===lb)});kick()});
+ function up(e){if(e.pointerId!==pid)return;pid=null;drag=false;L.forEach(function(l){l.classList.remove("lgx-near")});if(moved){var lb=nearest(e.clientX);lb.click()}setT(target())}
+ bar.addEventListener("pointerup",up);bar.addEventListener("pointercancel",function(e){if(e.pointerId!==pid)return;pid=null;drag=false;moved=false;setT(target())});
+ new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
+ if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
+ requestAnimationFrame(function(){setT(target())});
+})();
+</script>
+
+
+<script src="lib/pdf.min.js"></script>
+<script>
+// Verkaufsberichte (Lightspeed / Panea Röstplanung, alle bisherigen Layouts) -> {kw, year, prevKw, products:[{key,name,kg,prevKg,u:{250,1000,3000,10000,unv}}]}
+const VK = (() => {
+  const num = t => {
+    const s = String(t).replace(/[−–—]/g, "-").replace(/[±+]/g, "").replace(/\s/g, "");
+    if (!/^-?[\d.,]+$/.test(s) || !/\d/.test(s)) return null;
+    const n = parseFloat(s.replace(/\.(?=\d{3}(\D|$))/g, "").replace(",", "."));
+    return isNaN(n) ? null : n;
+  };
+  const fold = s => String(s).normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  // Sorte erkennen über das erste Wort (Panea, Mogiana, Igarapé …), Akzente egal
+  const keyOf = name => { const w = fold(name).replace(/[^a-z0-9 ]/g, " ").trim().split(/\s+/); return w[0] === "first" || w[0] === "san" || w[0] === "jaguar" ? w.slice(0, 2).join(" ") : w[0]; };
+  // ISO-Kalenderwoche eines Datums
+  const isoWeek = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); const day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day);
+    const y0 = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return { year: t.getUTCFullYear(), kw: Math.ceil(((t - y0) / 864e5 + 1) / 7) }; };
+  // Zeilen aus Textstücken: [{s,x,w,y}] -> [[{s,x,cx}]] (nah beieinander liegende Stücke zu einer Zelle)
+  function rows(items) {
+    const it = items.filter(i => String(i.s).trim()).sort((a, b) => a.y - b.y || a.x - b.x), out = []; let cur = null, cy = null;
+    for (const i of it) { if (cy === null || Math.abs(i.y - cy) > 3) { cur = []; out.push(cur); cy = i.y; } cur.push(i); }
+    return out.map(r => { r.sort((a, b) => a.x - b.x); const cells = [];
+      for (const i of r) { const last = cells[cells.length - 1];
+        if (last && i.x - last.end < 4) { last.s += (i.x - last.end > 1 ? " " : "") + String(i.s).trim(); last.end = i.x + (i.w || 0); }
+        else cells.push({ s: String(i.s).trim(), x: i.x, end: i.x + (i.w || 0) }); }
+      return cells.map(c => ({ s: c.s, x: c.x, cx: (c.x + c.end) / 2, end: c.end })); });
+  }
+  const UNIT = /^(.*?)\s*(250\s*g|1000\s*g|3000\s*g|10\s*kg|unverp\.?)$/i;
+  const unitKey = u => { u = fold(u).replace(/\s/g, ""); return u.startsWith("250") ? 250 : u.startsWith("1000") ? 1000 : u.startsWith("3000") ? 3000 : u.startsWith("10kg") ? 10000 : "unv"; };
+  function parse(rs) {
+    const text = rs.map(r => r.map(c => c.s).join(" ")).join("\n");
+    let kw = null, year = null, prevKw = null;
+    let m = text.match(/Verkaufswoche\s+KW\s*(\d{1,2})\s*\/\s*(\d{4})/i) || text.match(/\bKW\s*(\d{1,2})\s*(?:\/\s*(\d{4}))?\s*·\s*(\d{2})\.(\d{2})\.?\s*[–-]/);
+    if (m) { kw = +m[1]; year = m[2] ? +m[2] : null; }
+    const dm = text.match(/(\d{1,2})\.(?:(\d{1,2})\.)?\s*[–-]\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/);
+    if (dm) { const yy = +dm[5], mon = dm[2] ? +dm[2] : +dm[4]; const w = isoWeek(new Date(yy, mon - 1, +dm[1])); if (!kw) kw = w.kw; if (!year) year = w.year; }
+    const pm = text.match(/Vorwoche\s+KW\s*(\d{1,2})/i);
+    // Spaltenköpfe finden
+    let head = null, hi = -1;
+    rs.forEach((r, i) => { if (head) return; const j = r.map(c => fold(c.s)).join(" | "); if (/gesamt\s*stck/.test(j) && /gesamt\s*kg/.test(j)) { head = r; hi = i; } });
+    if (!head || !kw) return null;
+    const col = re => { const c = head.find(c => re.test(fold(c.s))); return c ? c.cx : null; };
+    const X = { lister: col(/lister/), linden: col(/linden/), stck: col(/gesamt\s*stck/), kg: col(/^gesamt\s*kg/), prev: col(/vorwoche/), delta: col(/delta/), plan: col(/plan/) };
+    const hasPrev = X.prev != null; prevKw = pm ? +pm[1] : hasPrev ? kw - 1 : null;
+    const cols = Object.entries(X).filter(([, v]) => v != null);
+    const near = cx => cols.reduce((b, [k, v]) => Math.abs(v - cx) < Math.abs(b[1] - cx) ? [k, v] : b, ["", 1e9])[0];
+    const prods = []; let cur = null;
+    const get = name => { const k = keyOf(name); let p = prods.find(p => p.key === k); if (!p) { p = { key: k, name: name.trim(), kg: null, prevKg: null, u: {} }; prods.push(p); } return p; };
+    for (const r of rs.slice(hi + 1)) {
+      const label = r[0] && num(r[0].s) == null ? r[0].s : "";
+      if (/^summe/i.test(fold(label))) break;
+      if (/^(legende|rechenweg|reihenfolge|hinweise|quelle)/i.test(fold(label))) break;
+      const vals = {}; (label ? r.slice(1) : r).forEach(c => { const v = num(c.s); if (v == null) return; vals[near(c.cx)] = v; });
+      let unit = null; const mu = label.match(UNIT);
+      if (mu) { unit = unitKey(mu[2]); if (mu[1].trim()) cur = get(mu[1]); }
+      else if (label && !/^[–-]$/.test(label)) { if (!Object.keys(vals).length && !/[a-z]/i.test(label)) continue; cur = get(label); }
+      if (!cur) continue;
+      if (!hasPrev) {
+        // Altes Layout (ohne Vorwoche): Zahlen stehen nicht unter ihren Köpfen. Stück = Summe der Standorte bzw. einzige Zahl; kg wird gerechnet.
+        const ns = (label ? r.slice(1) : r).map(c => num(c.s)).filter(v => v != null);
+        if (unit == null) { if (!label && ns.length === 1) cur.rk = ns[0]; continue; }
+        let st = null;
+        if (unit === "unv") st = ns.length ? ns[ns.length - 1] : null;
+        else if (ns.length >= 3 && Math.abs(ns[2] - ns[0] - ns[1]) < 1e-6) st = ns[2];
+        else if (ns.length >= 2 && ns[1] === ns[0]) st = ns[1];
+        else if (ns.length >= 3 && ns.slice(0, 3).every(Number.isInteger)) st = ns[2];
+        else if (ns.length >= 2 && Math.abs(ns[1] - ns[0]) > 0 && Number.isInteger(ns[0]) && Number.isInteger(ns[1]) && ns.length === 2) st = ns[0] + ns[1];
+        else if (ns.length === 1) st = ns[0];
+        if (st != null) cur.u[unit] = (cur.u[unit] || 0) + st;
+        // eine Zahl rechts hinter den Stückzahlen ist die Gesamt-kg der Sorte
+        const used = unit === "unv" ? 1 : ns.length >= 3 && Math.abs(ns[2] - ns[0] - ns[1]) < 1e-6 ? 3 : ns.length >= 2 && ns[1] === ns[0] ? 2 : ns.length;
+        if (ns.length === used + 1 && unit !== "unv") cur.rk = ns[used];
+        continue;
+      }
+      if (unit != null) { const st = vals.stck != null ? vals.stck : unit === "unv" ? (vals.linden ?? vals.lister ?? null) : null; if (st != null) cur.u[unit] = (cur.u[unit] || 0) + st; }
+      if (vals.kg != null && (unit == null || vals.stck == null || unit === 3000 || unit === 1000 || unit === "unv" || unit === 250)) { if (vals.kg !== vals.stck || unit == null) cur.kg = vals.kg; }
+      if (vals.prev != null) cur.prevKg = vals.prev;
+    }
+    // Ohne kg-Spalte: aus den Stückzahlen rechnen
+    prods.forEach(p => { const u = p.u, calc = (u[250] || 0) * .25 + (u[1000] || 0) + (u[3000] || 0) * 3 + (u[10000] || 0) * 10 + (u.unv || 0);
+      p.calc = Math.round(calc * 1000) / 1000; if (!hasPrev) p.kg = p.calc; else if (p.kg == null) p.kg = p.calc; });
+    return { kw, year: year || 2026, prevKw, products: prods.filter(p => p.kg > 0 || p.prevKg > 0 || Object.keys(p.u).length) };
+  }
+  return { num, rows, parse, keyOf, isoWeek };
+})();
+
+</script>
+<script>
+(function(){
+const SEED={"year":2026,"weeks":{"17":{"src":"bericht"},"19":{"src":"bericht"},"22":{"src":"bericht"},"23":{"src":"bericht"},"24":{"src":"bericht"},"25":{"src":"bericht"},"26":{"src":"bericht"},"27":{"src":"bericht"},"28":{"src":"bericht"},"29":{"src":"vorwoche"},"30":{"src":"bericht"},"31":{"src":"bericht"},"32":{"src":"bericht"},"33":{"src":"bericht"},"34":{"src":"bericht"},"35":{"src":"bericht"},"36":{"src":"bericht"},"37":{"src":"vorwoche"},"38":{"src":"bericht"},"39":{"src":"bericht"},"40":{"src":"bericht"},"41":{"src":"bericht"},"42":{"src":"vorwoche"},"43":{"src":"bericht"}},"sorts":[{"key":"panea","name":"Panea Espresso","kg":{"17":45.504,"19":39.1,"22":62.402,"23":49.347,"24":43.356,"25":40.554,"26":31.342,"27":36.084,"28":46.3,"29":35.5,"30":33.075,"31":80.5,"32":29.25,"33":52.93,"34":48.03,"35":37.3,"36":37.05,"37":41.86,"38":41.51,"39":38.08,"40":52.93,"41":30.3,"42":40.68,"43":46.93},"u":{"17":{"250":60,"1000":26,"10000":0,"unv":4.504},"19":{"250":52,"1000":15,"10000":0,"unv":11.1},"22":{"250":48,"1000":22,"3000":0,"10000":2,"unv":8.402},"23":{"250":62,"1000":26,"3000":0,"10000":0,"unv":7.847},"24":{"250":51,"1000":22,"3000":0,"10000":0,"unv":8.606},"25":{"250":47,"1000":22,"3000":0,"10000":0,"unv":6.804},"26":{"250":46,"1000":14,"3000":0,"10000":0,"unv":5.842},"27":{"250":51,"1000":17,"unv":6.334},"28":{"250":50,"1000":16,"3000":3,"unv":8.8},"30":{"250":46,"1000":18,"unv":3.575},"31":{"250":46,"1000":20,"10000":4.5,"unv":4},"32":{"250":45,"1000":18,"unv":0},"33":{"250":49,"1000":29,"unv":11.68},"34":{"250":40,"1000":25,"unv":13.03},"35":{"250":39,"1000":22,"unv":5.55},"36":{"250":56,"1000":18,"unv":5.05},"38":{"250":46,"1000":26,"unv":4.01},"39":{"250":54,"1000":18,"unv":6.58},"40":{"250":43,"1000":34,"unv":8.18},"41":{"250":41,"1000":12,"unv":8.05},"43":{"250":59,"1000":21,"unv":11.18}}},{"key":"mogiana","name":"Mogiana Filter","kg":{"17":6.75,"19":7.75,"22":11,"23":12.75,"24":8.5,"25":5.5,"26":4.5,"27":7.75,"28":9.75,"29":7.75,"30":8.25,"31":7.75,"32":13.75,"33":8,"34":11.5,"35":9.75,"36":8.5,"37":7.25,"38":7.75,"39":10.95,"40":11.5,"41":10.75,"42":11.97,"43":9.25},"u":{"17":{"250":21,"1000":1,"unv":0.5},"19":{"250":21,"1000":1,"unv":1.5},"22":{"250":25,"1000":4,"unv":0.75},"23":{"250":36,"1000":3,"unv":0.75},"24":{"250":22,"1000":3,"unv":0},"25":{"250":14,"1000":2,"unv":0},"26":{"250":14,"1000":0,"unv":1},"27":{"250":23,"1000":1,"unv":1},"28":{"250":23,"1000":3,"unv":1},"30":{"250":28,"1000":1,"unv":0.25},"31":{"250":19,"1000":2,"unv":1},"32":{"250":35,"1000":4,"unv":1},"33":{"250":23,"unv":2.25},"34":{"250":30,"1000":2,"unv":2},"35":{"250":35,"1000":1},"36":{"250":26,"1000":2},"38":{"250":26,"1000":1,"unv":0.25},"39":{"250":27,"1000":2,"unv":2.2},"40":{"250":34,"1000":2,"unv":1},"41":{"250":23,"1000":5},"43":{"250":21,"1000":4}}},{"key":"chinennahally","name":"CHINENNAHALLY Espresso","kg":{"22":3.25,"23":4,"24":8.5,"25":2.5,"26":3.75,"27":9,"28":8,"29":7,"30":8.25,"31":5.75,"32":8,"33":12,"34":8,"35":8.75,"36":6.5,"37":6.5,"38":11.75,"39":7.27,"40":10.5,"41":10.5,"42":7.75,"43":10.05},"u":{"22":{"250":13},"23":{"250":12,"1000":1},"24":{"250":18,"1000":4},"25":{"250":10,"1000":0,"unv":0},"26":{"250":10,"1000":1,"unv":0.25},"27":{"250":28,"1000":2,"unv":0},"28":{"250":24,"1000":2,"unv":0},"30":{"250":25,"1000":2,"unv":0},"31":{"250":15,"1000":2,"unv":0},"32":{"250":24,"1000":2,"unv":0},"33":{"250":26,"1000":4,"unv":1.5},"34":{"250":23,"1000":2,"unv":0.25},"35":{"250":23,"1000":3},"36":{"250":21,"1000":1,"unv":0.25},"38":{"250":26,"1000":5,"unv":0.25},"39":{"250":19,"1000":2,"unv":0.52},"40":{"250":23,"1000":4,"unv":0.75},"41":{"250":29,"1000":3,"unv":0.25},"43":{"250":24,"1000":3,"unv":1.05}}},{"key":"muteteli","name":"MUTETELI Espresso","kg":{"17":4.44,"19":5.25,"22":3.05,"23":7.2,"24":4.5,"25":4.5,"26":4,"27":5.455,"28":4.5,"29":5.75,"30":2.65,"31":3.25,"32":6,"33":4.75,"34":5.25,"35":8.1,"36":7.88,"37":4.5,"38":5.5,"39":4,"40":5.25,"41":3.25,"42":2.75,"43":5.25},"u":{"17":{"250":11,"1000":1,"unv":0.69},"19":{"250":21,"1000":0,"unv":0},"22":{"250":12,"1000":0,"unv":0.05},"23":{"250":14,"1000":3,"unv":0.7},"24":{"250":13,"1000":1,"unv":0.25},"25":{"250":18,"1000":0,"unv":0},"26":{"250":14,"1000":0,"unv":0.5},"27":{"250":12,"1000":2,"unv":0.455},"28":{"250":13,"1000":1,"unv":0.25},"30":{"250":8,"1000":0,"unv":0.65},"31":{"250":13,"1000":0,"unv":0},"32":{"250":12,"1000":3,"unv":0},"33":{"250":19},"34":{"250":19,"unv":0.5},"35":{"250":22,"1000":2,"unv":0.6},"36":{"250":18,"1000":3,"unv":0.38},"38":{"250":18,"1000":1},"39":{"250":16},"40":{"250":13,"1000":2},"41":{"250":9,"1000":1},"43":{"250":13,"1000":2}}},{"key":"igarape","name":"Igarapé Decaf Omniroast","kg":{"17":2.75,"19":6.25,"22":3,"23":4.5,"24":5.55,"25":1.25,"26":4.766,"27":4.25,"28":6,"29":3,"30":2.25,"31":4.5,"32":3.5,"33":3,"34":6.25,"35":3.5,"36":5.5,"37":6.75,"38":4.75,"39":3,"40":6.29,"41":4.75,"42":5.5,"43":6},"u":{"17":{"250":10,"unv":0.25},"19":{"250":22,"unv":0.75},"22":{"250":12,"unv":0},"23":{"250":16,"unv":0.5},"24":{"250":20,"unv":0.55},"25":{"250":5,"unv":0},"26":{"250":13,"unv":1.516},"27":{"250":16,"unv":0.25},"28":{"250":19,"unv":1.25},"30":{"250":8,"unv":0.25},"31":{"250":18,"unv":0},"32":{"250":10,"unv":1},"33":{"250":10,"unv":0.5},"34":{"250":19,"unv":1.5},"35":{"250":13,"unv":0.25},"36":{"250":19,"unv":0.75},"38":{"250":17,"unv":0.5},"39":{"250":12},"40":{"250":22,"unv":0.79},"41":{"250":19},"43":{"250":22,"unv":0.5}}},{"key":"tolima","name":"TOLIMA Espresso","kg":{"17":3.25,"19":3.75,"22":3.5,"23":4,"24":1,"25":5,"26":1.5,"27":3,"28":2,"29":4.75,"30":3,"31":1.25,"32":4,"33":4.75,"34":6.5,"35":3.5,"36":2.7,"37":3.1,"38":3.25,"39":5,"40":6,"41":3,"42":3.75,"43":2.25},"u":{"17":{"250":9,"1000":1},"19":{"250":7,"1000":2,"unv":0},"22":{"250":9,"1000":1,"unv":0.25},"23":{"250":12,"1000":1,"unv":0},"24":{"250":4,"1000":0,"unv":0},"25":{"250":12,"1000":2,"unv":0},"26":{"250":6,"1000":0,"unv":0},"27":{"250":3,"1000":2,"unv":0.25},"28":{"250":8,"1000":0,"unv":0},"30":{"250":11,"1000":0,"unv":0.25},"31":{"250":5,"1000":0,"unv":0},"32":{"250":12,"1000":1,"unv":0},"33":{"250":19},"34":{"250":10,"1000":4},"35":{"250":14},"36":{"250":9,"unv":0.45},"38":{"250":9,"1000":1},"39":{"250":8,"1000":3},"40":{"250":12,"1000":3},"41":{"250":12},"43":{"250":5,"1000":1}}},{"key":"siguatepeque","name":"SIGUATEPEQUE Espresso","kg":{"22":1.75,"23":2,"24":3.25,"25":3,"26":1.5,"27":3.75,"28":2.75,"29":2.25,"30":2.25,"31":1,"32":2.75,"33":3.75,"34":2.25,"35":3.5,"36":4.25,"37":1.5,"38":1.75,"39":4,"40":1.5,"41":3.25,"42":2.5,"43":1},"u":{"22":{"250":7},"23":{"250":8,"1000":0,"unv":0},"24":{"250":13,"1000":0,"unv":0},"25":{"250":12,"1000":0,"unv":0},"26":{"250":6,"1000":0,"unv":0},"27":{"250":15,"1000":0,"unv":0},"28":{"250":11,"1000":0,"unv":0},"30":{"250":9,"1000":0,"unv":0},"31":{"250":4,"1000":0,"unv":0},"32":{"250":11,"1000":0,"unv":0},"33":{"250":11,"1000":1},"34":{"250":9},"35":{"250":6,"1000":2},"36":{"250":8,"1000":2,"unv":0.25},"38":{"250":3,"1000":1},"39":{"250":8,"1000":2},"40":{"250":6},"41":{"250":9,"1000":1},"43":{"250":4}}},{"key":"kinazi","name":"KINAZI Filter","kg":{"24":1.25,"25":1,"26":2.5,"27":2.75,"28":4,"29":2.75,"30":3.5,"31":4.75,"32":4,"33":4,"34":3.5,"35":6.44,"36":1.75,"37":2.25,"38":0.5,"39":1.9,"40":1.5,"41":2.2,"42":1.75,"43":0.95},"u":{"24":{"250":5,"unv":0},"25":{"250":4,"unv":0},"26":{"250":10,"unv":0},"27":{"250":11,"unv":0},"28":{"250":12,"unv":1},"30":{"250":14,"unv":0},"31":{"250":11,"1000":2,"unv":0},"32":{"250":16,"1000":0,"unv":0},"33":{"250":16},"34":{"250":14},"35":{"250":23,"unv":0.69},"36":{"250":7},"38":{"250":2},"39":{"250":6,"unv":0.4},"40":{"250":6},"41":{"250":7,"unv":0.45},"43":{"250":2,"unv":0.45}}},{"key":"gamboa","name":"Gamboa Filter","kg":{"17":1.75,"19":2.75,"22":4.25,"23":4.5,"24":1.5,"25":1,"26":1.25,"27":2.25,"28":2,"29":2.25,"30":2.25,"31":3,"32":2.25,"33":1.5,"34":1.5,"35":2.75,"36":2.25,"37":0.75,"38":2,"39":2,"40":1.25,"41":1.5,"42":1.25,"43":1.5},"u":{"17":{"250":7},"19":{"250":11},"22":{"250":17},"23":{"250":18,"unv":0},"24":{"250":6,"unv":0},"25":{"250":4,"unv":0},"26":{"250":5,"unv":0},"27":{"250":9,"unv":0},"28":{"250":8,"unv":0},"30":{"250":9,"unv":0},"31":{"250":12,"unv":0},"32":{"250":9,"unv":0},"33":{"250":6},"34":{"250":6},"35":{"250":11},"36":{"250":9},"38":{"250":8},"39":{"250":8},"40":{"250":5},"41":{"250":6},"43":{"250":6}}},{"key":"jaguar project","name":"JAGUAR PROJECT Filter","kg":{"26":2,"27":2.75,"28":2.5,"29":3,"30":2.75,"31":3,"32":2.5,"33":4.5,"34":2.25,"35":3.5,"36":2.75,"37":3,"38":1.75,"39":3,"40":2.25,"41":2.5,"42":2.25,"43":1.75},"u":{"26":{"250":8,"unv":0},"27":{"250":11,"unv":0},"28":{"250":10,"unv":0},"30":{"250":11,"unv":0},"31":{"250":12,"unv":0},"32":{"250":10,"unv":0},"33":{"250":14,"unv":1},"34":{"250":9},"35":{"250":14},"36":{"250":11},"38":{"250":7},"39":{"250":12},"40":{"250":9},"41":{"250":9,"unv":0.25},"43":{"250":7}}},{"key":"planadas","name":"PLANADAS Decaf Omniroast","kg":{"17":2,"19":3.5,"22":0.8,"23":1.75,"24":2.5,"25":1.5,"26":1.8,"27":1.75,"28":1.25,"29":1.5,"30":2.75,"31":2,"32":1.75,"33":1,"34":2,"35":2,"36":1.25,"37":1.25,"38":3.25,"39":2.25,"40":1.25,"41":2.5,"42":1.3,"43":2},"u":{"17":{"250":8},"19":{"250":14},"22":{"250":2,"unv":0.3},"23":{"250":7,"unv":0},"24":{"250":10,"unv":0},"25":{"250":6,"unv":0},"26":{"250":6,"unv":0.3},"27":{"250":6,"unv":0.25},"28":{"250":5,"unv":0},"30":{"250":11,"unv":0},"31":{"250":8,"unv":0},"32":{"250":7,"unv":0},"33":{"250":4},"34":{"250":8},"35":{"250":8},"36":{"250":5},"38":{"250":13},"39":{"250":9},"40":{"250":5},"41":{"250":10},"43":{"250":7,"unv":0.25}}},{"key":"first roast","name":"First Roast","kg":{"17":2,"19":7.75,"22":3.5,"23":0.75,"24":4.75,"25":0.75,"26":1,"27":0.75,"28":0,"29":0,"30":0,"31":0,"32":3,"35":6.25,"36":1,"37":0.25,"38":0.5,"39":1.5,"41":3.75,"42":2.25,"43":2.75},"u":{"17":{"250":8},"19":{"250":31},"22":{"250":14},"23":{"250":3},"24":{"250":19},"25":{"250":3},"26":{"250":4},"27":{"250":3},"28":{"250":0},"30":{"250":0},"31":{"250":0},"32":{"250":4,"1000":2},"35":{"250":17,"1000":2},"36":{"250":4},"38":{"250":2},"39":{"250":2,"1000":1},"41":{"250":15},"43":{"250":7,"1000":1}}},{"key":"jampit","name":"Jampit","kg":{"17":7.283,"19":3.001,"22":5.5,"23":4,"24":3,"25":3.5,"26":1.25,"27":4.5,"28":0.5,"29":3.5,"30":3,"31":1.75,"32":1},"u":{"17":{"250":26,"unv":0.783},"19":{"250":10,"unv":0.501},"22":{"250":19,"unv":0.75},"23":{"250":13,"unv":0.75},"24":{"250":10,"unv":0.5},"25":{"250":12,"unv":0.5},"26":{"250":5,"unv":0},"27":{"250":18,"unv":0},"28":{"250":2,"unv":0},"30":{"250":10,"unv":0.5},"31":{"250":7,"unv":0},"32":{"250":4,"unv":0}}},{"key":"huila","name":"HUILA Espresso","kg":{"36":1.75,"37":3.75,"38":4,"39":4.5,"40":3.8,"41":4.25,"42":2,"43":3.25},"u":{"36":{"250":7},"38":{"250":15,"unv":0.25},"39":{"250":18},"40":{"250":14,"unv":0.3},"41":{"250":13,"unv":1},"43":{"250":13}}},{"key":"simbi","name":"Simbi","kg":{"17":2.31,"19":2.5,"22":4,"23":5.25,"24":3,"25":0.75,"26":3.25,"27":2.75,"28":2,"29":0,"30":0,"31":0,"32":0},"u":{"17":{"250":9,"unv":0.06},"19":{"250":10,"unv":0},"22":{"250":16,"unv":0},"23":{"250":21,"unv":0},"24":{"250":12,"unv":0},"25":{"250":3,"unv":0},"26":{"250":13,"unv":0},"27":{"250":11,"unv":0},"28":{"250":8,"unv":0},"30":{"250":0,"unv":0},"31":{"250":0,"unv":0},"32":{"250":0,"unv":0}}},{"key":"popayan","name":"Popayán","kg":{"17":5,"19":5,"22":4.55,"23":4.75,"24":2.25},"u":{"17":{"250":20},"19":{"250":18,"unv":0.5},"22":{"250":17,"unv":0.3},"23":{"250":19,"unv":0},"24":{"250":9,"unv":0}}},{"key":"mariscal","name":"MARISCAL Espresso","kg":{"36":3.5,"37":2,"38":2.75,"39":3.5,"40":2.25,"41":2,"42":2.3,"43":2.25},"u":{"36":{"250":13,"unv":0.25},"38":{"250":11},"39":{"250":14},"40":{"250":9},"41":{"250":8},"43":{"250":9}}},{"key":"san cristobal","name":"SAN CRISTÓBAL Filter","kg":{"36":1,"37":2.5,"38":1.75,"39":2.25,"40":3,"41":2,"42":2.25,"43":3},"u":{"36":{"250":4},"38":{"250":7},"39":{"250":9},"40":{"250":12},"41":{"250":8},"43":{"250":12}}},{"key":"kerinci","name":"Kerinci Filter","kg":{"17":2.25,"19":3.25,"36":2,"37":1.25,"38":0.75,"39":1.5,"40":1.25,"41":1,"42":0.75,"43":0.75},"u":{"17":{"250":9},"19":{"250":13},"36":{"250":8},"38":{"250":3},"39":{"250":6},"40":{"250":5},"41":{"250":4},"43":{"250":3}}},{"key":"mesgo","name":"MESGO Filter","kg":{"36":1.25,"37":1.5,"38":1.75,"39":2,"40":1.75,"41":2,"42":2,"43":1},"u":{"36":{"250":5},"38":{"250":7},"39":{"250":8},"40":{"250":7},"41":{"250":8},"43":{"250":4}}},{"key":"shantawene","name":"Shantawene","kg":{"17":1.8,"19":2.25,"22":1.5},"u":{"17":{"250":7,"unv":0.05},"19":{"250":9,"unv":0},"22":{"250":6,"unv":0}}},{"key":"winter","name":"Winter","kg":{"17":2.5},"u":{"17":{"250":10}}},{"key":"fazenda","name":"Fazenda Santa Cristina Filter","kg":{"38":0.25,"39":0},"u":{"38":{"250":1},"39":{}}}],"notes":["KW 17: Im Bericht fehlt Winter (2,5 kg) in der Summe. Hier ist Winter mitgezählt, deshalb 89,6 statt 87,1 kg.","KW 22: Tolima steht im Bericht mit 3,25 kg, die Tütenzahl ergibt 3,5 kg. Hier zählt die Tütenzahl.","KW 32: Der eigene Bericht und die Vorwoche-Spalte im Bericht KW 33 weichen ab (z. B. Panea 29,25 statt 31,47 kg). Hier zählt der eigene Bericht.","KW 18, 20 und 21 fehlen ganz. Sie sind schraffiert und zählen beim Schnitt nicht mit."]};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f1=v=>(Math.round(v*10)/10).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const f2=v=>v.toLocaleString("de-DE",{maximumFractionDigits:2});
+const pct=d=>(d>=0?"+":"−")+Math.round(Math.abs(d)*100)+" %";
+const MON=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"],MONL=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+// Datenstand: eingebaute Berichte + was hier hochgeladen wurde (nur auf diesem Gerät)
+let D=JSON.parse(JSON.stringify(SEED));
+try{const s=JSON.parse(localStorage.getItem("verkauf.v1"));if(s&&s.weeks)D=s}catch(e){}
+const save=()=>{try{localStorage.setItem("verkauf.v1",JSON.stringify(D))}catch(e){}};
+// Montag einer ISO-KW; Monat einer KW = Monat ihres Donnerstags
+const thursday=(y,w)=>{const j4=new Date(Date.UTC(y,0,4)),d=j4.getUTCDay()||7;const mon=new Date(j4);mon.setUTCDate(j4.getUTCDate()-d+1+(w-1)*7);const t=new Date(mon);t.setUTCDate(mon.getUTCDate()+3);return{mon,t}};
+const monthOf=w=>thursday(D.year,w).t.getUTCMonth();
+const dd=d=>String(d.getUTCDate()).padStart(2,"0")+"."+String(d.getUTCMonth()+1).padStart(2,"0")+".";
+
+let M;
+function derive(){
+  const ks=Object.keys(D.weeks).map(Number).sort((a,b)=>a-b),first=ks[0],last=ks[ks.length-1];
+  const all=[];for(let w=first;w<=last;w++)all.push(w);
+  const has=w=>!!D.weeks[w];
+  const sorts=D.sorts.map(s=>{const sold=all.filter(w=>(s.kg[w]||0)>0);
+    return{...s,firstW:sold[0],lastW:sold[sold.length-1],total:sold.reduce((a,w)=>a+s.kg[w],0),ended:sold.length>0&&sold[sold.length-1]<=last-3}});
+  // Monate mit ihren Wochen (auch fehlende Wochen, damit Lücken sichtbar bleiben)
+  const mm=[];all.forEach(w=>{const k=monthOf(w);let m=mm.find(x=>x.k===k);if(!m){m={k,all:[],weeks:[]};mm.push(m)}m.all.push(w);if(has(w))m.weeks.push(w)});
+  M={all,first,last,has,sorts,months:mm};
+}
+const kgW=(w,key)=>key==="__all"?D.sorts.reduce((a,s)=>a+(s.kg[w]||0),0):((D.sorts.find(s=>s.key===key)||{kg:{}}).kg[w]||0);
+const nameOf=k=>k==="__all"?"Alle Sorten":(M.sorts.find(s=>s.key===k)||{}).name||k;
+
+// Prognose: gewichteter Schnitt der letzten 6 Berichtswochen plus halber Trend der letzten 8
+function forecast(vals,h=1){const pts=vals.map((v,i)=>[i,v]).filter(p=>p[1]!=null);if(pts.length<4)return null;
+  const l6=pts.slice(-6),wsum=l6.reduce((a,_,i)=>a+i+1,0),base=l6.reduce((a,p,i)=>a+p[1]*(i+1),0)/wsum;
+  const l8=pts.slice(-8),mx=l8.reduce((a,p)=>a+p[0],0)/l8.length,my=l8.reduce((a,p)=>a+p[1],0)/l8.length;
+  const sl=l8.reduce((a,p)=>a+(p[0]-mx)*(p[1]-my),0)/(l8.reduce((a,p)=>a+(p[0]-mx)**2,0)||1);
+  const lastI=vals.length-1,out=[];for(let k=1;k<=h;k++)out.push(Math.max(0,base+sl*.5*(k+(lastI-l6[l6.length-1][0]))));return out}
+function backtest(vals){let e=0,n=0;for(let i=vals.length-6;i<vals.length;i++){if(vals[i]==null||!vals[i])continue;const f=forecast(vals.slice(0,i),1);if(!f)continue;e+=Math.abs(f[0]-vals[i])/vals[i];n++}return n?e/n:null}
+const series=k=>M.all.map(w=>M.has(w)?kgW(w,k):null);
+
+/* ---------- Zustand ---------- */
+let N=1,end=null,sel="__all",sortBy="menge";
+const win=(e,n)=>n>=99?M.months.slice():M.months.slice(Math.max(0,e-n+1),e+1);
+const label=ms=>ms.length?(ms.length===1?MONL[ms[0].k]+" "+D.year:MON[ms[0].k]+" – "+MON[ms[ms.length-1].k]+" "+D.year):"";
+const wk=ms=>ms.flatMap(m=>m.weeks);
+const sum=(ws,k)=>ws.reduce((a,w)=>a+kgW(w,k),0);
+
+/* ---------- Diagramm: davor hell, jetzt dunkel, je mit Schnitt-Linie ---------- */
+function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v||1))),n=v/p;return(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
+const short=ms=>label(ms).replace(" "+D.year,"");
+function chart(cur,prv){
+  const el=$("chart"),W=Math.max(300,Math.min(720,Math.round(el.clientWidth||640))),H=236,L=34,T=34,B=34,pw=W-L-6,ph=H-T-B;
+  const atEnd=end===M.months.length-1;
+  const wkBar=(w,g)=>({g,lab:String(w),sub:M.has(w)?(D.weeks[w].src==="vorwoche"?"Vorw.":""):"fehlt",v:M.has(w)?kgW(w,sel):null,
+    tip:`<b>KW ${w}</b><br>${M.has(w)?f2(kgW(w,sel))+" kg"+(D.weeks[w].src==="vorwoche"?" (aus Vorwoche)":""):"kein Bericht"}`});
+  const moBar=(m,g)=>{const v=m.weeks.length?sum(m.weeks,sel)/m.weeks.length:null;return{g,lab:MON[m.k],sub:m.weeks.length+" Wo.",v,
+    tip:`<b>${MONL[m.k]}</b><br>Ø ${v==null?"–":f1(v)} kg pro Woche<br>zusammen ${f1(sum(m.weeks,sel))} kg in ${m.weeks.length} Wochen`}};
+  let bars=N===1?[...(prv[0]?prv[0].all.map(w=>wkBar(w,0)):[]),...cur[0].all.map(w=>wkBar(w,1))]:[...prv.map(m=>moBar(m,0)),...cur.map(m=>moBar(m,1))];
+  if(atEnd){const f=forecast(series(sel),N===1?1:4);if(f){const v=f.reduce((a,b)=>a+b,0)/f.length;
+    bars.push(N===1?{g:2,lab:String(M.last+1),sub:"Prognose",v,tip:`<b>KW ${M.last+1} · Prognose</b><br>etwa ${f1(v)} kg`}:{g:2,lab:"bald",sub:"Prognose",v,tip:`<b>Nächste 4 Wochen · Prognose</b><br>Ø etwa ${f1(v)} kg pro Woche`})}}
+  const cw=wk(cur),pw0=wk(prv),aNow=cw.length?sum(cw,sel)/cw.length:null,aPrev=pw0.length?sum(pw0,sel)/pw0.length:null;
+  const max=niceMax(Math.max(1,...bars.map(b=>b.v||0))*1.1),n=bars.length,slot=pw/n,bw=Math.min(44,slot*.66);
+  const Y=v=>T+ph-v/max*ph,X=i=>L+slot*(i+.5);let g="";
+  for(let i=0;i<=4;i++){const v=max/4*i,y=Y(v);g+=`<line x1="${L}" x2="${L+pw}" y1="${y}" y2="${y}" stroke="var(--grid)"/><text x="${L-6}" y="${y+4}" text-anchor="end">${f2(v)}</text>`}
+  // Gruppen: Hintergrund und Überschrift „davor“ / „jetzt“
+  [0,1].forEach(gi=>{const ix=bars.map((b,i)=>b.g===gi?i:-1).filter(i=>i>=0);if(!ix.length)return;const x0=L+slot*ix[0],x1=L+slot*(ix[ix.length-1]+1);
+    if(gi===1)g+=`<rect x="${x0+1}" y="${T-26}" width="${x1-x0-2}" height="${ph+26}" rx="8" fill="var(--accent-soft)" opacity=".55"/>`;
+    g+=`<text x="${(x0+x1)/2}" y="${T-12}" text-anchor="middle" style="font-weight:600;fill:${gi?"var(--ink)":"var(--muted)"}">${gi?(N>=99?"alle Monate":"jetzt"):"davor"}${x1-x0>110?" · "+(gi?short(cur):short(prv)):""}</text>`;
+    const av=gi?aNow:aPrev;if(av!=null){const y=Y(av);g+=`<line x1="${x0+3}" x2="${x1-3}" y1="${y}" y2="${y}" stroke="${gi?"var(--ink)":"var(--muted)"}" stroke-width="2" stroke-dasharray="${gi?"none":"5 4"}" stroke-linecap="round"/>`}});
+  bars.forEach((b,i)=>{const cx=X(i),fill=b.g===1?"var(--accent)":"color-mix(in srgb,var(--accent) 38%,var(--paper))";
+    if(b.v==null)g+=`<rect x="${cx-bw/2}" y="${T+ph-ph*.35}" width="${bw}" height="${ph*.35}" rx="4" fill="var(--hatch)" opacity=".6"/>`;
+    else{const y=Y(b.v),h=T+ph-y,r=Math.min(4,h);
+      g+=b.g===2?`<path d="M${cx-bw/2+1},${T+ph} V${y+r} q0,-${r} ${r},-${r} H${cx+bw/2-1-r} q${r},0 ${r},${r} V${T+ph}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"/>`
+        :`<path d="M${cx-bw/2},${T+ph} V${y+r} q0,-${r} ${r},-${r} H${cx+bw/2-r} q${r},0 ${r},${r} V${T+ph} Z" fill="${fill}"/>`;
+      if(b.g!==0&&(n<=10||b.g===2))g+=`<text x="${cx}" y="${y-6}" text-anchor="middle" style="fill:var(--ink);font-weight:600;font-size:${n>8?10:11}px">${n>8?Math.round(b.v):f1(b.v)}</text>`}
+    g+=`<text x="${cx}" y="${T+ph+15}" text-anchor="middle" style="${b.g===1?"fill:var(--ink)":""}">${b.lab}</text>${b.sub&&n<=7?`<text x="${cx}" y="${T+ph+28}" text-anchor="middle" style="font-size:10px">${b.sub}</text>`:""}`;
+    g+=`<rect x="${L+slot*i}" y="${T-26}" width="${slot}" height="${ph+B+26}" fill="transparent" data-i="${i}"/>`});
+  if(N===1)g+=`<text x="${L-6}" y="${T+ph+15}" text-anchor="end">KW</text>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Verkauf: Zeitraum davor und jetzt">${g}</svg><div class="tip" hidden></div>`;
+  const svg=el.querySelector("svg"),tip=el.querySelector(".tip");
+  const on=e=>{const r=e.target.closest("[data-i]");if(!r){tip.hidden=true;return}const i=+r.dataset.i,b=bars[i],sc=svg.getBoundingClientRect().width/W;
+    tip.innerHTML=b.tip;tip.hidden=false;tip.style.left=Math.min(W*sc-70,Math.max(70,X(i)*sc))+"px";tip.style.top=(b.v==null?T+ph/2:Y(b.v))*sc+"px"};
+  svg.addEventListener("pointermove",on);svg.addEventListener("click",on);svg.addEventListener("pointerleave",()=>tip.hidden=true);
+  $("leg").innerHTML=`<span><i class="sw" style="height:0;border-top:2px solid var(--ink);border-radius:0"></i>Ø jetzt ${aNow==null?"–":f1(aNow)} kg</span>`+(aPrev!=null?`<span><i class="sw" style="height:0;border-top:2px dashed var(--muted);border-radius:0"></i>Ø davor ${f1(aPrev)} kg</span>`:"")+
+    (bars.some(b=>b.g===2)?`<span><i class="sw" style="box-shadow:inset 0 0 0 2px var(--accent)"></i>Prognose</span>`:"")+(bars.some(b=>b.v==null)?`<span><i class="sw" style="background:var(--hatch)"></i>kein Bericht</span>`:"");
+}
+
+/* ---------- Alles zeichnen ---------- */
+function render(){
+  if(N>=99)end=M.months.length-1;
+  const cur=win(end,N),prv=N<99&&end-N>=0?win(end-N,N):[];
+  const cw=wk(cur),pw=wk(prv);
+  $("pt").textContent=label(cur);
+  $("ps").textContent=cw.length?`KW ${cur[0].all[0]}–${cur[cur.length-1].all.slice(-1)[0]} · ${cw.length} Wochen mit Zahlen`:"keine Zahlen";
+  $("prev").disabled=end<=0||N>=99;$("next").disabled=end>=M.months.length-1||N>=99;
+  document.querySelectorAll("[data-n]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===N));
+  // Kennzahl: Ø pro Woche, weil Monate unterschiedlich viele Berichte haben
+  const a=cw.length?sum(cw,sel)/cw.length:0,b=pw.length?sum(pw,sel)/pw.length:null,d=b?(a-b)/b:null;
+  $("big").innerHTML=`${f1(a)}<small>kg pro Woche</small>`;$("heroL").textContent=sel==="__all"?"Alle Sorten":nameOf(sel);
+  const dl=$("delta");dl.className="delta"+(d==null?"":d>=.03?" up":d<=-.03?" dn":"");
+  dl.hidden=N>=99;dl.textContent=d==null?"kein Vergleich":`${d>=0?"▲":"▼"} ${pct(d)} zu ${short(prv)}`;
+  // ein Satz, der die Zahl erklärt
+  const who=sel==="__all"?"wurden":"wurde von "+esc(nameOf(sel)),diff=b!=null?a-b:null,miss=cur.flatMap(m=>m.all).length-cw.length;
+  $("say").innerHTML=`${N===1?"Im "+MONL[cur[0].k]:"Von "+short(cur).replace(" – "," bis ")} ${who} <b>${f1(sum(cw,sel))} kg</b> verkauft, im Schnitt <b>${f1(a)} kg pro Woche</b>.`+
+    (diff==null?"":Math.abs(diff)<.05?" Genau so viel wie davor.":` Das sind <b>${f1(Math.abs(diff))} kg ${diff>0?"mehr":"weniger"}</b> pro Woche als ${N===1?"im "+MONL[prv[prv.length-1].k]:"von "+short(prv).replace(" – "," bis ")}.`)+
+    (miss?` ${miss} Woche${miss>1?"n":""} ohne Bericht ${miss>1?"zählen":"zählt"} nicht mit.`:"");
+  $("sel").innerHTML=[["__all","Alle Sorten"]].concat([...M.sorts].filter(s=>s.total>0).sort((x,y)=>x.name.localeCompare(y.name,"de")).map(s=>[s.key,s.name+(s.ended?" (ausgelaufen)":"")])).map(([k,n])=>`<option value="${esc(k)}"${k===sel?" selected":""}>${esc(n)}</option>`).join("");
+  $("clr").hidden=sel==="__all";
+  chart(cur,prv);
+  const L=stats(cw,pw);insights(L,cur,cw,pw);rows(L,cw,pw);gesamt();ended();fc();
+}
+
+/* ---------- Werte je Sorte im Zeitraum ---------- */
+function stats(cw,pw){const all=sum(cw,"__all")||1;
+  return M.sorts.map(s=>{const a=cw.length?sum(cw,s.key)/cw.length:0,b=pw.length?sum(pw,s.key)/pw.length:0,t=sum(cw,s.key);return{s,a,b,t,share:t/all,d:b>0?(a-b)/b:null}}).filter(r=>r.t>0||r.b>0)}
+
+/* ---------- Auf einen Blick ---------- */
+/* Gesamt: stärkster und schwächster Monat (Ø pro Woche) */
+function monTiles(ms){const t=(cls,ic,k,body)=>`<div class="it ${cls}"><span class="k"><i>${ic}</i>${k}</span>${body}</div>`;
+  const v=ms.filter(m=>m.weeks.length).map(m=>({m,a:sum(m.weeks,sel)/m.weeks.length}));if(v.length<2)return"";
+  const hi=[...v].sort((x,y)=>y.a-x.a)[0],lo=[...v].sort((x,y)=>x.a-y.a)[0];
+  return t("good","▲","Stärkster Monat",`<b>${MONL[hi.m.k]}</b><span class="n">${f1(hi.a)} kg</span><small>pro Woche, aus ${hi.m.weeks.length} Wochen</small>`)+
+    t("bad","▼","Schwächster Monat",`<b>${MONL[lo.m.k]}</b><span class="n">${f1(lo.a)} kg</span><small>pro Woche, aus ${lo.m.weeks.length} Wochen</small>`)}
+const cap=s=>s.split(" ")[0].charAt(0)+s.split(" ")[0].slice(1).toLowerCase();
+const few=(k,a)=>a.length?`${k}: ${a.slice(0,3).map(x=>esc(cap(x))).join(", ")}${a.length>3?" +"+(a.length-3):""}`:(k==="Neu"?"nichts Neues":"nichts ausgelaufen");
+
+function insights(L,cur,cw,pw){
+  const sold=L.filter(r=>r.t>0),top=[...sold].sort((x,y)=>y.t-x.t)[0];
+  const cmp=L.filter(r=>r.d!=null&&r.b>=.5&&r.a>0),up=[...cmp].sort((x,y)=>y.d-x.d)[0],dn=[...cmp].sort((x,y)=>x.d-y.d)[0];
+  const first=cw[0],lastW=cw[cw.length-1];
+  const neu=sold.filter(r=>r.s.firstW>=first&&r.s.firstW>M.first),weg=M.sorts.filter(s=>s.ended&&s.lastW>=(pw[0]||first)&&s.lastW<=lastW);
+  const t=(cls,ic,k,body,key)=>`<button class="it ${cls}"${key?` data-k="${esc(key)}"`:""}><span class="k"><i>${ic}</i>${k}</span>${body}</button>`;
+  $("ins").innerHTML=
+    (top?t("","★","Meistverkauft",`<b>${esc(top.s.name)}</b><span class="n">${Math.round(top.share*100)} %</span><small>aller kg, Ø ${f1(top.a)} kg pro Woche</small>`,top.s.key):"")+
+    (N>=99?monTiles(cur):"")+(N>=99?"":(up&&up.d>0?t("good","▲","Größter Zuwachs",`<b>${esc(up.s.name)}</b><span class="n">${pct(up.d)}</span><small>${f1(up.a)} statt ${f1(up.b)} kg pro Woche</small>`,up.s.key):t("","▲","Größter Zuwachs",`<b>keiner</b><small>${pw.length?"keine Sorte legt zu":"kein Zeitraum davor"}</small>`))+
+    (dn&&dn.d<0?t("bad","▼","Größter Rückgang",`<b>${esc(dn.s.name)}</b><span class="n">${pct(dn.d)}</span><small>${f1(dn.a)} statt ${f1(dn.b)} kg pro Woche</small>`,dn.s.key):t("","▼","Größter Rückgang",`<b>keiner</b><small>${pw.length?"keine Sorte verliert":"kein Zeitraum davor"}</small>`)))+
+    t("","⇄","Sortiment",`<span class="n">${sold.length} Sorten</span><small>${few("Neu",neu.map(r=>r.s.name))}<br>${few("Ausgelaufen",weg.map(s=>s.name))}</small>`);
+}
+
+/* ---------- Sorten-Liste mit Mini-Verlauf ---------- */
+const SB=[["menge","Menge"],["delta","Veränderung"],["name","Name"]];
+function spark(s,cw){const n=M.all.length,mx=Math.max(...M.all.map(w=>s.kg[w]||0))||1,inW=new Set(cw);let g="";
+  M.all.forEach((w,i)=>{const v=s.kg[w]||0,x=i*6;if(!M.has(w)){g+=`<rect x="${x}" y="19" width="5" height="3" fill="var(--hatch)"/>`;return}
+    if(v<=0){g+=`<rect x="${x}" y="20.5" width="5" height="1.5" fill="var(--line)"/>`;return}
+    const h=Math.max(2,v/mx*20),c=s.ended&&w===s.lastW?"var(--warn)":inW.has(w)?"var(--accent)":"color-mix(in srgb,var(--accent) 30%,var(--paper))";
+    g+=`<rect x="${x}" y="${22-h}" width="5" height="${h}" rx="1" fill="${c}"/>`});
+  return `<svg class="sp" viewBox="0 0 ${n*6-1} 22" preserveAspectRatio="none" aria-hidden="true">${g}</svg>`}
+function rows(L,cw,pw){
+  $("sortBy").innerHTML=SB.map(([k,l])=>`<button data-sb="${k}" aria-pressed="${k===sortBy}">${l}</button>`).join("");
+  $("fw").textContent=M.first;
+  L=[...L];
+  if(sortBy==="menge")L.sort((x,y)=>y.t-x.t);
+  if(sortBy==="delta")L.sort((x,y)=>(y.d??(y.a>0?9:-9))-(x.d??(x.a>0?9:-9)));
+  if(sortBy==="name")L.sort((x,y)=>x.s.name.localeCompare(y.s.name,"de"));
+  const first=cw[0];
+  $("rowsH").textContent=`${L.filter(r=>r.t>0).length} Sorten verkauft`;
+  $("rows").innerHTML=L.map(({s,a,t,d,b,share})=>{const tag=t===0?`<small class="end">nicht mehr verkauft</small>`:s.ended?`<small class="end">letzte KW ${s.lastW}</small>`:s.firstW>=first&&s.firstW>M.first?`<small class="new">neu ab KW ${s.firstW}</small>`:"";
+    const dc=d==null?"":d>=.05?"up":d<=-.05?"dn":"";
+    return `<button class="row${s.key===sel?" on":""}" data-k="${esc(s.key)}"><span class="nm">${esc(s.name)}${tag}</span><span class="v">${f1(a)} kg<span style="font-weight:400;color:var(--muted);font-size:12px"> /Wo</span></span>
+      ${spark(s,cw)}<span class="meta"><span class="d ${dc}" style="display:block;font-size:13px">${d==null?(b>0?"":a>0&&pw.length?"neu":""):(d>=0?"▲ ":"▼ ")+pct(d)}</span>${t>0?Math.round(share*100)+" % Anteil":""}</span></button>`}).join("")||`<p class="hint">Keine Verkäufe in diesem Zeitraum.</p>`;
+}
+
+/* ---------- Ausgelaufene Sorten: wo haben sie geendet ---------- */
+function ended(){
+  const E=M.sorts.filter(s=>s.ended).sort((a,b)=>b.lastW-a.lastW);
+  $("endCard").hidden=!E.length;
+  $("endl").innerHTML=E.map(s=>`<button class="endr row" data-k="${esc(s.key)}" style="padding:6px 4px"><span class="nm">${esc(s.name)}</span><span class="w">zuletzt KW ${s.lastW} · ${MON[monthOf(s.lastW)]}</span>
+    <span class="strip">${M.all.map(w=>`<i class="${!M.has(w)?"miss":w===s.lastW?"cut":(s.kg[w]||0)>0?"on":""}"></i>`).join("")}</span></button>`).join("");
+}
+
+/* ---------- Vorschlag nächste Woche ---------- */
+function fc(){
+  const nx=M.last+1;$("fcT").textContent="Vorschlag KW "+nx;
+  const R=M.sorts.filter(s=>!s.ended&&s.lastW!=null).map(s=>({s,f:forecast(series(s.key),1)})).filter(x=>x.f).sort((a,b)=>b.f[0]-a.f[0]);
+  const tot=R.reduce((a,x)=>a+x.f[0],0),mx=Math.max(1,...R.map(x=>x.f[0]));
+  $("fc").innerHTML=`<span class="h">Sorte</span><span class="h r">geröstet</span><span class="h r">roh</span>`+R.map(({s,f})=>`<span${s.key===sel?' style="font-weight:600"':""}>${esc(s.name)}<i class="bar" style="width:${(f[0]/mx*100).toFixed(1)}%"></i></span><b class="r">${f1(f[0])} kg</b><span class="m">${f1(f[0]/.84)} kg</span>`).join("")+
+    `<b>Zusammen</b><b class="r">${f1(tot)} kg</b><span class="m">${f1(tot/.84)} kg</span>`;
+  const bt=backtest(series("__all"));$("acc").textContent=bt==null?"":"lag zuletzt Ø "+Math.round(bt*100)+" % daneben";
+}
+
+/* ---------- Gesamt seit Beginn ---------- */
+let gm="kg",gAll=false;
+const typeOf=s=>/decaf/i.test(s.name)?"decaf":/espresso/i.test(s.name)?"esp":/filter/i.test(s.name)?"fil":"oth";
+function gesamt(){
+  const rep=wk(win(end,N)),tot=w=>kgW(w,"__all"),all=rep.reduce((a,w)=>a+tot(w),0)||1,st=s=>rep.reduce((a,w)=>a+(s.kg[w]||0),0);
+  if(!rep.length){$("gesCard").hidden=true;return}$("gesCard").hidden=false;
+  const best=[...rep].sort((a,b)=>tot(b)-tot(a))[0],worst=[...rep].sort((a,b)=>tot(a)-tot(b))[0];
+  $("gFrom").textContent=(N>=99?"Gesamt seit KW "+M.first:label(win(end,N)))+", alle Sorten nebeneinander.";
+  $("gk").innerHTML=`<div><span>Verkauft</span><b>${f1(all)} kg</b><small>in ${rep.length} Wochen, Ø ${f1(all/rep.length)} kg</small></div>
+    <div><span>Beste Woche</span><b>KW ${best}</b><small>${f1(tot(best))} kg</small></div>
+    <div><span>Schwächste</span><b>KW ${worst}</b><small>${f1(tot(worst))} kg</small></div>`;
+  // Rangliste: Gesamt-kg oder Ø pro Woche, solange die Sorte im Sortiment war (fair für neue Sorten)
+  const R=M.sorts.filter(s=>st(s)>0).map(s=>{const t=st(s),ws=rep.filter(w=>w>=s.firstW&&w<=(s.ended?s.lastW:M.last));return{s,t,avg:t/Math.max(1,ws.length),n:ws.length}});
+  const val=r=>gm==="kg"?r.t:r.avg;R.sort((a,b)=>val(b)-val(a));const mx=Math.max(...R.map(val));
+  document.querySelectorAll("[data-gm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.gm===gm));
+  $("rank").innerHTML=R.slice(0,gAll?R.length:10).map((r,i)=>`<button class="rk${r.s.ended?" end":""}${r.s.key===sel?" on":""}" data-k="${esc(r.s.key)}"><span class="nm">${i+1}. ${esc(r.s.name)}${r.s.ended?`<small>bis KW ${r.s.lastW}</small>`:""}</span>
+    <span class="v">${f1(val(r))} kg<small>${gm==="kg"?Math.round(r.t/all*100)+" %":r.n+" Wo."}</small></span><span class="tr"><i style="width:${(val(r)/mx*100).toFixed(1)}%"></i></span></button>`).join("")+(R.length>10?`<button id="gMore" class="ghost" style="align-self:flex-start;min-height:36px;font-size:14px">${gAll?"Weniger zeigen":"Alle "+R.length+" Sorten zeigen"}</button>`:"");
+  // Espresso / Filter / Decaf / ohne Angabe
+  const TY=[["esp","Espresso","var(--s1)"],["fil","Filter","var(--s2)"],["decaf","Decaf","var(--s3)"],["oth","ohne Angabe","var(--muted)"]];
+  const tk={};M.sorts.forEach(s=>{const k=typeOf(s);tk[k]=(tk[k]||0)+st(s)});
+  const TT=TY.filter(([k])=>tk[k]>0);
+  $("stT").innerHTML=TT.map(([k,n,c])=>`<i style="width:${tk[k]/all*100}%;background:${c}" title="${n}"></i>`).join("");
+  $("lgT").innerHTML=TT.map(([k,n,c])=>`<span><i class="sw" style="background:${c}"></i>${n} <b>${Math.round(tk[k]/all*100)} %</b> · ${f1(tk[k])} kg</span>`).join("");
+  // Gebinde aus den Stückzahlen der Berichte
+  const g={250:0,1000:0,10000:0,unv:0},cnt={250:0,1000:0,10000:0};
+  D.sorts.forEach(s=>rep.forEach(w=>{const u=(s.u||{})[w];if(!u)return;g[250]+=(u[250]||0)*.25;g[1000]+=(u[1000]||0);g[10000]+=(u[10000]||0)*10;g.unv+=(u.unv||0);cnt[250]+=u[250]||0;cnt[1000]+=u[1000]||0;cnt[10000]+=u[10000]||0}));
+  const gt=g[250]+g[1000]+g[10000]+g.unv||1;
+  const GY=[[250,"250 g","var(--s1)"],[1000,"1 kg","var(--s2)"],["unv","unverpackt","var(--s3)"],[10000,"10-kg-Tonne","var(--muted)"]].filter(([k])=>g[k]>0);
+  $("stG").innerHTML=GY.map(([k,n,c])=>`<i style="width:${g[k]/gt*100}%;background:${c}" title="${n}"></i>`).join("");
+  $("lgG").innerHTML=GY.map(([k,n,c])=>`<span><i class="sw" style="background:${c}"></i>${n} <b>${Math.round(g[k]/gt*100)} %</b></span>`).join("");
+  $("bags").textContent=`${cnt[250].toLocaleString("de-DE")} kleine Tüten und ${cnt[1000].toLocaleString("de-DE")} Kilo-Tüten verkauft, im Schnitt ${f1(cnt[250]/rep.length)} kleine und ${f1(cnt[1000]/rep.length)} Kilo-Tüten pro Woche.`;
+}
+
+/* ---------- Seite Prognose ---------- */
+let pSel="__all",sz="mid",sea=0,openInd=null;
+// Regression über Punkte [i,v]: Steigung und Streuung um die Linie
+function reg(pts){const n=pts.length,mx=pts.reduce((a,p)=>a+p[0],0)/n,my=pts.reduce((a,p)=>a+p[1],0)/n;
+  const sl=pts.reduce((a,p)=>a+(p[0]-mx)*(p[1]-my),0)/(pts.reduce((a,p)=>a+(p[0]-mx)**2,0)||1);
+  const sd=Math.sqrt(pts.reduce((a,p)=>a+(p[1]-my-sl*(p[0]-mx))**2,0)/Math.max(1,n-2));return{sl,sd,my}}
+// Prognose mit gedämpftem Trend: gewichteter Schnitt der letzten 6 Wochen, Trend wird jede Woche schwächer
+function fc2(vals,h){const pts=vals.map((v,i)=>[i,v]).filter(p=>p[1]!=null);if(pts.length<4)return null;
+  const l6=pts.slice(-6),ws=l6.reduce((a,_,i)=>a+i+1,0),base=l6.reduce((a,p,i)=>a+p[1]*(i+1),0)/ws,r=reg(pts.slice(-10));
+  const gap=vals.length-1-l6[l6.length-1][0];let acc=0;const out=[];
+  for(let k=1;k<=h;k++){acc+=Math.pow(.9,k);const v=Math.max(0,base+r.sl*.5*(gap+acc)),s=r.sd*(1+.05*k);out.push({v,lo:Math.max(0,v-s),hi:v+s})}return out}
+const pick3=f=>sz==="lo"?f.lo:sz==="hi"?f.hi:f.v;
+const pts=vals=>vals.filter(v=>v!=null);
+const avgL=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:0;
+// Tüten-kg je Woche für eine Sorte oder alle
+const unitKg=(w,k,u)=>D.sorts.filter(s=>k==="__all"||s.key===k).reduce((a,s)=>{const x=(s.u||{})[w];return a+(x?u===1000?(x[1000]||0):(x[250]||0)*.25+(x[1000]||0)+(x[3000]||0)*3+(x[10000]||0)*10+(x.unv||0):0)},0);
+
+
+/* Niedersachsen (Laden in Hannover-Linden): Schulferien und Feiertage 2026, Quelle: Kultusministerium / schulferien-deutschland.org */
+const NDS={2026:{fer:[["Sommerferien",[28,29,30,31,32]],["Herbstferien",[42,43]]],tag:{22:"Pfingstmontag 25.5.",40:"Tag der Dt. Einheit Sa 3.10."},
+  next:[[44,"Reformationstag, Sa 31.10.: Feiertag in Niedersachsen"],[52,"Weihnachtsferien ab Mi 23.12., Feiertage Fr 25. und Sa 26.12."],[53,"Silvester Do 31.12., Neujahr Fr 1.1."],[54,"Weihnachtsferien bis Sa 9.1."]]}};
+function calEffect(k){const C=NDS[D.year];if(!C)return null;const rep=M.all.filter(M.has),v=w=>kgW(w,k);
+  const fw=C.fer.flatMap(x=>x[1]).filter(M.has),tw=Object.keys(C.tag).map(Number).filter(M.has),rest=rep.filter(w=>!fw.includes(w)&&!tw.includes(w));
+  const base=avgL(rest.map(v));return{base,fer:fw.length?(avgL(fw.map(v))-base)/base:null,tag:tw.length?(avgL(tw.map(v))-base)/base:null,fw,tw,C}}
+function indicators(k){
+  const vals=series(k),P=pts(vals),rep=M.all.filter(M.has);
+  const l4=avgL(P.slice(-4)),p4=avgL(P.slice(-8,-4)),mom=p4>0?(l4-p4)/p4:null;
+  const r=reg(P.slice(-10).map((v,i)=>[i,v])),cv=r.my>0?r.sd/r.my:null,slM=r.sl*4.3;
+  const bt=backtest(vals);
+  let peak=0;for(let i=3;i<P.length;i++)peak=Math.max(peak,avgL(P.slice(i-3,i+1)));const near=peak>0?l4/peak:null;
+  const kr=ws=>{const t=ws.reduce((a,w)=>a+unitKg(w,k,0),0);return t>0?ws.reduce((a,w)=>a+unitKg(w,k,1000),0)/t:null},kNow=kr(rep.slice(-8)),kPrev=kr(rep.slice(-16,-8));
+  const I=[];const st=(cls,txt)=>`<span class="st ${cls}">${cls==="good"?"▲":cls==="bad"?"▼":"●"} ${txt}</span>`;
+  I.push({id:"mom",k:"Schwung",n:mom==null?"–":pct(mom),s:mom==null?"":mom>=.05?st("good","zieht an"):mom<=-.05?st("bad","lässt nach"):st("","gleich"),
+    t:`Ø der letzten 4 Wochen: ${f1(l4)} kg, davor ${f1(p4)} kg.`,how:"Vergleicht den Schnitt der letzten 4 Berichtswochen mit den 4 Wochen davor. Reagiert schnell, aber auch auf Ausreißer."});
+  I.push({id:"tr",k:"Trend",n:(slM>=0?"+":"−")+f1(Math.abs(slM))+" kg",s:Math.abs(slM)<.03*r.my*4.3/4.3&&Math.abs(slM)<.5?st("","flach"):slM>0?st("good","steigt"):st("bad","fällt"),
+    t:"So viel mehr oder weniger pro Woche verkauft sich die Menge pro Monat, gemessen über 10 Wochen.",how:"Gerade Linie durch die letzten 10 Berichtswochen. Ruhiger als der Schwung, zeigt die Richtung. In der Prognose wird der Trend nur halb und abnehmend weitergeführt, damit nichts davonläuft."});
+  I.push({id:"cv",k:"Schwankung",n:cv==null?"–":"± "+Math.round(cv*100)+" %",s:cv==null?"":cv<.15?st("good","ruhig"):cv>.3?st("bad","unruhig"):st("","mittel"),
+    t:"So weit liegt eine normale Woche über oder unter der Linie.",how:"Typische Abweichung der Wochen von der Trendlinie, geteilt durch den Schnitt. Je kleiner, desto genauer die Prognose und desto weniger Puffer brauchst du."});
+  I.push({id:"bt",k:"Treffsicherheit",n:bt==null?"–":Math.round(bt*100)+" % daneben",s:bt==null?"":bt<.1?st("good","gut"):bt>.2?st("bad","grob"):st("","ok"),
+    t:"So weit lag die Prognose in den letzten 6 Wochen im Schnitt daneben.",how:"Rückwärts getestet: Für jede der letzten 6 Wochen wurde nur mit den Wochen davor geschätzt und dann mit dem echten Wert verglichen."});
+  I.push({id:"pk",k:"Nähe zum Rekord",n:near==null?"–":Math.round(near*100)+" %",s:near==null?"":near>=.95?st("good","Höchststand"):near<.8?st("bad","weit darunter"):st("","normal"),
+    t:`Die letzten 4 Wochen im Vergleich zu den besten 4 Wochen am Stück (Ø ${f1(peak)} kg).`,how:"Zeigt, ob gerade Hochsaison oder Flaute ist, gemessen am bisher besten Monat."});
+  if(kNow!=null&&kPrev!=null)I.push({id:"kg",k:"Kilo-Tüten-Anteil",n:Math.round(kNow*100)+" %",s:kNow-kPrev>=.02?st("good","mehr Vorrat"):kNow-kPrev<=-.02?st("bad","weniger"):st("","gleich"),
+    t:`Anteil der kg, die als 1-kg-Tüte gehen. Vorher ${Math.round(kPrev*100)} %.`,how:"Letzte 8 Wochen gegen die 8 davor. Steigt der Anteil, kaufen Stammkunden größere Mengen. Das ist meist ein gutes Zeichen für die nächsten Wochen."});
+  const ce=calEffect(k);if(ce&&ce.fer!=null){const r=reg(P.slice(-10).map((v,i)=>[i,v])),cvv=r.my>0?r.sd/r.my:0,clear=Math.abs(ce.fer)>cvv;
+    I.push({id:"fe",k:"Ferien in Niedersachsen",n:pct(ce.fer),s:clear?st(ce.fer>0?"good":"bad",ce.fer>0?"mehr":"weniger"):st("","kein klarer Effekt"),
+      t:`Ferienwochen gegen normale Wochen. Feiertagswochen: ${ce.tag==null?"–":pct(ce.tag)}.`,
+      how:`Sommerferien (KW 28–32) und Herbstferien (KW 42–43) 2026 gegen alle anderen Berichtswochen. ${clear?"Der Unterschied ist größer als die normale Schwankung.":"Der Unterschied ist kleiner als die normale Schwankung (± "+Math.round(cvv*100)+" %). Deshalb rechnet die Prognose Ferien nicht extra ein."} Feiertagswochen (Pfingstmontag, 3. Oktober) lagen bisher eher höher, vermutlich wird davor mehr gekauft.`})}
+  if(k==="__all"){
+    const top=M.sorts.map(s=>({s,t:rep.slice(-8).reduce((a,w)=>a+(s.kg[w]||0),0)})).sort((a,b)=>b.t-a.t)[0],all8=rep.slice(-8).reduce((a,w)=>a+kgW(w,"__all"),0);
+    const sh=top.t/all8;I.push({id:"ab",k:"Abhängigkeit",n:Math.round(sh*100)+" %",s:sh>.5?st("bad","hoch"):st("","normal"),t:`Anteil von ${esc(top.s.name)} in den letzten 8 Wochen.`,how:"Je größer der Anteil einer Sorte, desto stärker hängt die ganze Menge an ihr. Schwankt sie, schwankt alles."});
+    const act=ws=>M.sorts.filter(s=>ws.some(w=>(s.kg[w]||0)>0)).length,aN=act(rep.slice(-4)),aP=act(rep.slice(-16,-12));
+    I.push({id:"br",k:"Sortiment",n:aN+" Sorten",s:aN>aP?st("good","breiter"):aN<aP?st("bad","schmaler"):st("","gleich"),t:`Verkauft in den letzten 4 Wochen. Vor 3 Monaten: ${aP}.`,how:"Mehr Sorten verteilen die Menge. Eine neue Sorte nimmt oft anderen etwas weg, statt nur dazu zu kommen."});
+    // Anlauf neuer Sorten: Ø der ersten 3 Wochen gegen Ø danach
+    const nw=M.sorts.filter(s=>s.firstW>M.first+2).map(s=>{const ws=rep.filter(w=>w>=s.firstW).map(w=>s.kg[w]||0);return ws.length>=6?{a:avgL(ws.slice(0,3)),b:avgL(ws.slice(3))}:null}).filter(Boolean);
+    if(nw.length){const a=avgL(nw.map(x=>x.a)),b=avgL(nw.map(x=>x.b));I.push({id:"nw",k:"Anlauf neuer Sorten",n:f1(b)+" kg",s:b>=a?st("good","legen zu"):st("bad","starten stark"),
+      t:`Ø pro Woche nach dem Start. In den ersten 3 Wochen: ${f1(a)} kg.`,how:`Aus ${nw.length} Sorten, die nach KW ${M.first+2} neu kamen. Hilft beim Planen der ersten Röstungen für eine neue Sorte.`})}
+    const warn=M.sorts.filter(s=>!s.ended&&s.lastW!=null).map(s=>{const p=pts(series(s.key)),a=avgL(p.slice(-4)),b=avgL(p.slice(-8,-4));return{s,d:b>.5?(a-b)/b:0}}).filter(x=>x.d<=-.25);
+    I.push({id:"wa",k:"Warnliste",n:warn.length+" Sorten",s:warn.length?st("bad","fallen stark"):st("good","keine"),t:warn.length?warn.map(x=>esc(x.s.name.split(" ")[0])+" "+pct(x.d)).join(", "):"Keine Sorte verliert mehr als 25 %.",how:"Sorten, deren letzte 4 Wochen mehr als 25 % unter den 4 Wochen davor liegen. Kann heißen: Sorte läuft aus oder ist zu wenig sichtbar im Laden."});
+  }
+  return I;
+}
+
+function renderP(){
+  const k=pSel,vals=series(k),f=fc2(vals,4);
+  $("pCover").textContent=`Aus ${M.all.filter(M.has).length} Wochen (KW ${M.first}–${M.last}). Je mehr Berichte, desto genauer.`;
+  $("pSel").innerHTML=[["__all","Alle Sorten"]].concat([...M.sorts].filter(s=>!s.ended&&s.lastW!=null).sort((x,y)=>x.name.localeCompare(y.name,"de")).map(s=>[s.key,s.name])).map(([kk,n])=>`<option value="${esc(kk)}"${kk===k?" selected":""}>${esc(n)}</option>`).join("");
+  document.querySelectorAll("[data-sz]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sz===sz));
+  if(!f){$("pBig").textContent="–";$("pSay").textContent="Zu wenige Wochen für eine Prognose.";$("pChart").innerHTML="";return}
+  const s4=f.reduce((a,x)=>a+pick3(x),0),lo=f.reduce((a,x)=>a+x.lo,0),hi=f.reduce((a,x)=>a+x.hi,0),last4=pts(vals).slice(-4).reduce((a,b)=>a+b,0),d=last4>0?(s4-last4)/last4:null;
+  $("pBig").innerHTML=`${f1(s4)}<small>kg</small>`;
+  const dl=$("pDelta");dl.className="delta"+(d==null?"":d>=.03?" up":d<=-.03?" dn":"");dl.textContent=d==null?"":`${d>=0?"▲":"▼"} ${pct(d)} zu den letzten 4 Wochen`;
+  $("pSay").innerHTML=`${k==="__all"?"Alle Sorten zusammen":esc(nameOf(k))}: In KW ${M.last+1}–${M.last+4} ${sz==="lo"?"im schwächeren Fall":sz==="hi"?"im guten Fall":"voraussichtlich"} <b>${f1(s4)} kg</b>, also rund <b>${f1(s4/4)} kg pro Woche</b>. Dafür brauchst du etwa <b>${f1(s4/.84)} kg Rohkaffee</b>. Der übliche Bereich liegt zwischen ${f1(lo)} und ${f1(hi)} kg.`;
+  // Verlauf + Prognose-Band
+  const el=$("pChart"),W=Math.max(300,Math.min(720,Math.round(el.clientWidth||640))),H=220,L=36,T=14,B=26,pw=W-L-8,ph=H-T-B;
+  const hist=M.all.slice(-16),n=hist.length+4,X=i=>L+pw*i/(n-1),hv=hist.map(w=>M.has(w)?kgW(w,k):null);
+  const max=niceMax(Math.max(...pts(hv),...f.map(x=>x.hi))*1.08),Y=v=>T+ph-v/max*ph;let g="";
+  for(let i=0;i<=4;i++){const v=max/4*i,y=Y(v);g+=`<line x1="${L}" x2="${L+pw}" y1="${y}" y2="${y}" stroke="var(--grid)"/><text x="${L-6}" y="${y+4}" text-anchor="end">${f2(v)}</text>`}
+  const fx=hist.length-1,lv=hv[fx]??pts(hv).slice(-1)[0];
+  g+=`<rect x="${X(fx)}" y="${T}" width="${X(n-1)-X(fx)+4}" height="${ph}" fill="var(--accent-soft)" opacity=".5" rx="6"/><text x="${(X(fx)+X(n-1))/2}" y="${T+12}" text-anchor="middle" style="font-weight:600;fill:var(--ink2)">Prognose</text>`;
+  const band=[[fx,lv,lv]].concat(f.map((x,j)=>[fx+j+1,x.lo,x.hi]));
+  g+=`<path d="M${band.map(b=>X(b[0])+","+Y(b[2])).join("L")}L${band.slice().reverse().map(b=>X(b[0])+","+Y(b[1])).join("L")}Z" fill="var(--accent)" opacity=".16"/>`;
+  let dd="",pen=false;hv.forEach((v,i)=>{if(v==null){pen=false;return}dd+=(pen?"L":"M")+X(i)+","+Y(v);pen=true});
+  g+=`<path d="${dd}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
+  g+=`<path d="M${X(fx)},${Y(lv)}${f.map((x,j)=>"L"+X(fx+j+1)+","+Y(pick3(x))).join("")}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>`;
+  f.forEach((x,j)=>g+=`<circle cx="${X(fx+j+1)}" cy="${Y(pick3(x))}" r="3.5" fill="var(--paper)" stroke="var(--accent)" stroke-width="2"/>`);
+  const stp=Math.max(2,Math.ceil(30/(pw/(n-1))));for(let i=0;i<n;i++){if(i%stp&&!(i===n-1&&i%stp>=stp/2))continue;const w=i<hist.length?hist[i]:M.last+(i-fx);g+=`<text x="${X(i)}" y="${T+ph+16}" text-anchor="middle">${i===0?"KW ":""}${w}</text>`}
+  g+=`<line id="pxh" x1="0" x2="0" y1="${T}" y2="${T+ph}" stroke="var(--muted)" visibility="hidden"/><rect x="${L}" y="${T}" width="${pw}" height="${ph}" fill="transparent"/>`;
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Verlauf und Prognose">${g}</svg><div class="tip" hidden></div>`;
+  const svg=el.querySelector("svg"),tip=el.querySelector(".tip"),xh=svg.querySelector("#pxh");
+  const on=e=>{const bb=svg.getBoundingClientRect(),sc=bb.width/W,i=Math.max(0,Math.min(n-1,Math.round(((e.clientX-bb.left)/sc-L)/pw*(n-1))));
+    xh.setAttribute("x1",X(i));xh.setAttribute("x2",X(i));xh.setAttribute("visibility","visible");
+    if(i>fx){const x=f[i-fx-1];tip.innerHTML=`<b>KW ${M.last+i-fx} · Prognose</b><br>${f1(pick3(x))} kg (${f1(x.lo)}–${f1(x.hi)})`}else{const v=hv[i];tip.innerHTML=`<b>KW ${hist[i]}</b><br>${v==null?"kein Bericht":f2(v)+" kg"}`}
+    tip.hidden=false;tip.style.left=Math.min(bb.width-80,Math.max(80,X(i)*sc))+"px";tip.style.top=T*sc+40+"px"};
+  svg.addEventListener("pointermove",on);svg.addEventListener("click",on);svg.addEventListener("pointerleave",()=>{tip.hidden=true;xh.setAttribute("visibility","hidden")});
+  $("pLeg").innerHTML=`<span><i class="sw" style="height:0;border-top:2px solid var(--accent);border-radius:0"></i>verkauft</span><span><i class="sw" style="height:0;border-top:2px dashed var(--accent);border-radius:0"></i>${sz==="lo"?"vorsichtig":sz==="hi"?"gut":"normal"}</span><span><i class="sw" style="background:var(--accent);opacity:.25"></i>üblicher Bereich</span>`;
+  // Indikatoren
+  $("ind").innerHTML=indicators(k).map(x=>`<button class="ic${openInd===x.id?" open":""}" data-ind="${x.id}"><span class="k">${x.k}</span><span class="n">${x.n}</span>${x.s}<small>${x.t}</small><span class="how">${x.how}</span></button>`).join("");
+  months3(k,vals);outlook();
+}
+
+// Monate: letzte 3 echte + nächste 3 geschätzte, kg pro Monat
+function months3(k,vals){
+  const wkInMonth=key=>{let c=0;for(let w=1;w<=60;w++){const t=thursday(D.year,w).t;if(t.getUTCFullYear()*12+t.getUTCMonth()===key)c++}return c};
+  const keyOf=w=>{const t=thursday(D.year,w).t;return t.getUTCFullYear()*12+t.getUTCMonth()},lastKey=keyOf(M.last);
+  const H=Math.max(1,...Array.from({length:3},(_,i)=>lastKey+1+i).map(kk=>{let mx=0;for(let w=M.last+1;w<=M.last+20;w++)if(keyOf(w)===kk)mx=w-M.last;return mx}));
+  const f=fc2(vals,H)||[];
+  const B=[];
+  for(let kk=lastKey-2;kk<=lastKey+3;kk++){const wsAll=[];for(let w=M.first;w<=M.last+H;w++)if(keyOf(w)===kk)wsAll.push(w);
+    const repW=wsAll.filter(w=>w<=M.last&&M.has(w)),futW=wsAll.filter(w=>w>M.last);
+    const mon=kk%12,season=mon===11?sea/100:mon===10?sea/200:0;
+    let wk=[...repW.map(w=>kgW(w,k)),...futW.map(w=>f[w-M.last-1]?pick3(f[w-M.last-1])*(1+season):0)];
+    const avg=avgL(wk),tot=avg*wkInMonth(kk);B.push({kk,mon,tot,fut:futW.length>0&&repW.length===0,mix:futW.length>0&&repW.length>0,n:wkInMonth(kk)})}
+  const el=$("mChart"),W=Math.max(300,Math.min(720,Math.round(el.clientWidth||640))),Hh=200,L=40,T=22,Bm=30,pw=W-L-6,ph=Hh-T-Bm;
+  const max=Math.ceil(Math.max(...B.map(b=>b.tot))*1.12/100)*100,slot=pw/B.length,bw=Math.min(48,slot*.6),Y=v=>T+ph-v/max*ph;let g="";
+  for(let i=0;i<=4;i++){const v=max/4*i,y=Y(v);g+=`<line x1="${L}" x2="${L+pw}" y1="${y}" y2="${y}" stroke="var(--grid)"/><text x="${L-6}" y="${y+4}" text-anchor="end">${Math.round(v)}</text>`}
+  B.forEach((b,i)=>{const cx=L+slot*(i+.5),y=Y(b.tot),h=T+ph-y,r=Math.min(4,h);
+    g+=b.fut?`<path d="M${cx-bw/2+1},${T+ph} V${y+r} q0,-${r} ${r},-${r} H${cx+bw/2-1-r} q${r},0 ${r},${r} V${T+ph}" fill="color-mix(in srgb,var(--accent) 14%,transparent)" stroke="var(--accent)" stroke-width="2" stroke-dasharray="4 3"/>`
+      :`<path d="M${cx-bw/2},${T+ph} V${y+r} q0,-${r} ${r},-${r} H${cx+bw/2-r} q${r},0 ${r},${r} V${T+ph} Z" fill="var(--accent)"/>`;
+    g+=`<text x="${cx}" y="${y-6}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${Math.round(b.tot)}</text><text x="${cx}" y="${T+ph+15}" text-anchor="middle" style="${b.fut?"fill:var(--ink)":""}">${MON[b.mon]}</text><text x="${cx}" y="${T+ph+27}" text-anchor="middle" style="font-size:10px">${b.n} Wo.${b.mix?"*":""}</text>`});
+  el.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Kg pro Monat, Prognose">${g}</svg>`;
+  const C=NDS[D.year];$("cal").innerHTML=C?`<div class="lbl" style="display:block">Kalender Niedersachsen</div>`+C.next.filter(x=>x[0]>M.last).map(([w,t])=>{const m=thursday(D.year,w).mon;return `<div><b>KW ${w>53?w-53:w}</b><span>${t}</span></div>`}).join("")+`<p class="hint" style="margin:0">Wie stark Weihnachten wirkt, zeigen deine Zahlen erst nach einem Jahr. Bis dahin stellst du den Zuschlag unten selbst ein.</p>`:"";
+  $("sv").textContent=(sea>=0?"+":"−")+Math.abs(sea)+" %";
+}
+
+// Ausblick je Sorte
+function outlook(){
+  const rep=M.all.filter(M.has);
+  const R=M.sorts.filter(s=>!s.ended&&s.lastW!=null).map(s=>{const vals=series(s.key),P=pts(vals.slice(M.all.indexOf(s.firstW))),f=fc2(vals,4);if(!f)return null;
+    const l4=avgL(P.slice(-4)),p4=avgL(P.slice(-8,-4)),mom=p4>0?(l4-p4)/p4:null,r=reg(P.slice(-10).map((v,i)=>[i,v])),cv=r.my>0?r.sd/r.my:1;
+    const age=rep.filter(w=>w>=s.firstW).length,ph=age<=6?["new","neu"]:mom==null?["","stabil"]:mom>=.15?["good","wächst"]:mom<=-.15?["bad","lässt nach"]:["","stabil"];
+    return{s,v:f.reduce((a,x)=>a+pick3(x),0),mom,cv,ph}}).filter(Boolean).sort((a,b)=>b.v-a.v);
+  $("ol").innerHTML=R.map(x=>`<div class="orow"><span class="nm">${esc(x.s.name)}</span><span class="v">${f1(x.v)} kg</span>
+    <span class="sub"><span class="ph ${x.ph[0]}">${x.ph[1]}</span>${x.mom==null?"":`<span>${pct(x.mom)} Schwung</span>`}<span class="dots" title="Verlässlichkeit">${x.cv<.25?"●●●":x.cv<.5?"●●○":"●○○"}</span></span><span class="r">roh ${f1(x.v/.84)} kg</span></div>`).join("");
+}
+
+$("pSel").onchange=e=>{pSel=e.target.value;renderP()};
+document.querySelector('[aria-label="Szenario"]').addEventListener("click",e=>{const b=e.target.closest("[data-sz]");if(b){sz=b.dataset.sz;renderP()}});
+$("ind").addEventListener("click",e=>{const b=e.target.closest("[data-ind]");if(b){openInd=openInd===b.dataset.ind?null:b.dataset.ind;renderP()}});
+$("sea").addEventListener("input",e=>{sea=+e.target.value;months3(pSel,series(pSel))});
+// Seiten umschalten über die Leiste
+let page="v";
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(!b)return;page=b.dataset.pg;
+  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));$("pgV").hidden=page!=="v";$("pgP").hidden=page!=="p";scrollTo(0,0);if(page==="p")renderP();else render()});
+
+/* ---------- Bedienung ---------- */
+document.querySelector('[aria-label="Zeitraum"]').addEventListener("click",e=>{const b=e.target.closest("[data-n]");if(!b)return;N=+b.dataset.n;render()});
+const step=k=>{const e=Math.max(0,Math.min(M.months.length-1,end+k));if(e!==end){end=e;render()}};
+$("prev").onclick=()=>step(-1);$("next").onclick=()=>step(1);
+// Wischen über die Hauptkarte blättert ebenfalls
+let sx=null,sy=null;$("main").addEventListener("touchstart",e=>{sx=e.touches[0].clientX;sy=e.touches[0].clientY},{passive:true});
+$("main").addEventListener("touchend",e=>{if(sx==null)return;const dx=e.changedTouches[0].clientX-sx,dy=e.changedTouches[0].clientY-sy;if(Math.abs(dx)>60&&Math.abs(dx)>Math.abs(dy)*1.5)step(dx<0?1:-1);sx=null},{passive:true});
+addEventListener("keydown",e=>{if(e.target.tagName==="SELECT")return;if(e.key==="ArrowLeft")step(-1);if(e.key==="ArrowRight")step(1)});
+$("sel").onchange=e=>{sel=e.target.value;render()};
+$("clr").onclick=()=>{sel="__all";render()};
+$("sortBy").addEventListener("click",e=>{const b=e.target.closest("[data-sb]");if(b){sortBy=b.dataset.sb;render()}});
+const pick=e=>{const r=e.target.closest("[data-k]");if(!r)return;sel=sel===r.dataset.k?"__all":r.dataset.k;render();$("main").scrollIntoView({behavior:"smooth",block:"start"})};
+$("rows").addEventListener("click",pick);$("rank").addEventListener("click",e=>{if(e.target.closest("#gMore")){gAll=!gAll;gesamt();return}pick(e)});document.querySelector('[aria-label="Vergleich"]').addEventListener("click",e=>{const b=e.target.closest("[data-gm]");if(b){gm=b.dataset.gm;gesamt()}});$("ins").addEventListener("click",pick);$("endl").addEventListener("click",pick);
+let rzT;addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>page==="p"?renderP():render(),200)});
+
+function head(){
+  const rep=M.all.filter(M.has);
+  $("cover").textContent=`KW ${M.first} bis KW ${M.last}/${D.year} · ${rep.length} Wochen mit Zahlen`;
+  $("wl").innerHTML=M.all.map(w=>{const {mon}=thursday(D.year,w),sun=new Date(mon);sun.setUTCDate(mon.getUTCDate()+6);const src=M.has(w)?D.weeks[w].src:null;
+    return `<span class="${src==="vorwoche"?"v":src?"":"m"}">KW ${w} · ${dd(mon)}–${dd(sun)} · ${src==="bericht"?"Bericht":src==="vorwoche"?"aus Vorwoche":"fehlt"}</span>`}).join("");
+  $("notes").innerHTML=(D.notes||[]).map(t=>`<li>${esc(t)}</li>`).join("")+`<li>„aus Vorwoche“: Für diese Wochen gab es keinen eigenen Bericht. Die Zahlen stammen aus der Spalte „Vorwoche KG“ des Folgeberichts. Kommt der eigene Bericht später dazu, ersetzt er sie.</li>`;
+}
+function kurz(){try{const rep=M.all.filter(M.has),t=w=>kgW(w,"__all"),a=avgL(rep.slice(-4).map(t)),p=avgL(rep.slice(-8,-4).map(t));
+  localStorage.setItem("verkauf.kurz",JSON.stringify({kw:M.last,avg:Math.round(a*10)/10,d:p>0?Math.round((a-p)/p*100):null}))}catch(e){}}
+function all(){derive();head();kurz();if(end==null||end>M.months.length-1)end=M.months.length-1;render()}
+
+/* ---------- Hochladen: Berichte einlesen, nach KW einordnen, nichts doppelt ---------- */
+function merge(r,fname,log){
+  const kw=r.kw;const had=D.weeks[kw];
+  D.sorts.forEach(s=>{delete s.kg[kw]});
+  r.products.forEach(p=>{let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.kg[kw]=p.kg;s.name=kw>=Math.max(0,...Object.keys(s.kg).map(Number))?p.name:s.name});
+  D.weeks[kw]={src:"bericht"};
+  log.push(`KW ${kw}: ${had?had.src==="bericht"?"schon da, ersetzt":"ersetzt die Zahlen aus der Vorwoche":"neu"} (${fname})`);
+  if(r.prevKw&&!D.weeks[r.prevKw]&&r.products.some(p=>p.prevKg!=null)){r.products.forEach(p=>{if(p.prevKg==null)return;let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.kg[r.prevKw]=p.prevKg});
+    D.weeks[r.prevKw]={src:"vorwoche"};log.push(`KW ${r.prevKw}: aus der Vorwoche-Spalte ergänzt`)}
+}
+$("files").addEventListener("change",async e=>{const fs=[...e.target.files];if(!fs.length)return;const log=[],box=$("log");box.hidden=false;box.innerHTML="Lese "+fs.length+" Datei(en) …";
+  try{pdfjsLib.GlobalWorkerOptions.workerSrc="lib/pdf.worker.min.js"}catch(x){}
+  const parsed=[];
+  for(const f of fs){try{const doc=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;const it=[];
+      for(let p=1;p<=doc.numPages;p++){const tc=await (await doc.getPage(p)).getTextContent();tc.items.forEach(i=>it.push({s:i.str,x:i.transform[4],w:i.width,y:p*2000-i.transform[5]}))}
+      const r=VK.parse(VK.rows(it));if(r)parsed.push([r,f.name]);else log.push(f.name+": keine Wochenzahlen gefunden")}catch(x){log.push(f.name+": konnte nicht gelesen werden")}}
+  parsed.sort((a,b)=>a[0].kw-b[0].kw).forEach(([r,n])=>merge(r,n,log));
+  save();box.innerHTML=log.map(esc).join("<br>");e.target.value="";end=null;all()});
+
+all();
+})();
+</script>
+<style>
+.lgx-home svg{transition:transform .5s linear}
+.lgx-home.lgx-arm svg{transform:scale(1.25)}
+.lgx-home.lgx-ready{color:var(--accent)!important}
+@media (prefers-reduced-motion:reduce){.lgx-home svg{transition:none}.lgx-home.lgx-arm svg{transform:none}}
+</style>
+<script>
+(function(){
+ var HOLD=500,home=document.querySelector(".lgx-home");if(!home)return;var bar=home.closest("nav");if(!bar)return;
+ var pid=null,x0=0,moved=false,t=null,armed=false,ready=false,block=false;
+ function isHome(px){var b=null,bd=1e9;[].forEach.call(bar.querySelectorAll("button"),function(l){var r=l.getBoundingClientRect(),d=Math.abs(px-(r.left+r.width/2));if(d<bd){bd=d;b=l}});return b===home}
+ function reset(){clearTimeout(t);t=null;armed=ready=false;home.classList.remove("lgx-arm","lgx-ready")}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;x0=e.clientX;moved=false;block=false;reset()},true);
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-x0)>8)moved=true;if(!moved)return;
+  if(isHome(e.clientX)){if(!armed){armed=true;home.classList.add("lgx-arm");t=setTimeout(function(){ready=true;home.classList.add("lgx-ready");try{navigator.vibrate&&navigator.vibrate(12)}catch(z){}},HOLD)}}else reset()},true);
+ bar.addEventListener("pointerup",function(e){if(e.pointerId!==pid)return;pid=null;if(moved&&isHome(e.clientX)&&!ready)block=true;reset()},true);
+ bar.addEventListener("pointercancel",function(){pid=null;reset()},true);
+ window.lgxHomeOk=function(){var b=block;block=false;return !b};
+})();
+</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body></html>
