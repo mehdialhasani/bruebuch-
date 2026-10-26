@@ -554,7 +554,7 @@ function listHtml(days, open, names) {
 }
 // Rohkaffee je Sorte über alle Tage (auch noch nicht verteilte Chargen), zum Prüfen des Lagers
 function rohSum(rows) {
-  const list = rows.filter(r => r.batches.length).map(r => ({ name: r.name, kg: Core.sumKg(r.batches.map(b => b.kg)) })).sort((a, b) => b.kg - a.kg);
+  const list = rows.filter(r => r.batches.length).map(r => ({ name: r.name, kgs: r.batches.map(b => b.kg), kg: Core.sumKg(r.batches.map(b => b.kg)) })).sort((a, b) => b.kg - a.kg);
   return { list, kg: list.reduce((a, x) => a + x.kg, 0) };
 }
 let lEdit = false;
@@ -564,7 +564,7 @@ function renderListe() {
   const h = lEdit && (days.some(l => l.length) || open.length) ? [0, 1, 2].map(d => edGroup(days[d], d)).join("") + (open.length ? edGroup(open, 3) : "") + `<p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag. Chargen änderst du unter „Chargen“.</p>` : listHtml(days, open), rk = rohSum(rows);
   $("lList").classList.toggle("ed", !!lEdit && !!h);
   $("lEditBtn").hidden = !h; $("lEditBtn").textContent = lEdit ? "Fertig" : "Bearbeiten";
-  $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${intFmt(x.kg)} kg</span></div>`).join("")}</div>` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
+  $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${rk.list.reduce((a, x) => a + x.kgs.length, 0)} Chargen · ${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)} · ${intFmt(x.kg)} kg</span></div>`).join("")}</div>` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
   $("clearAsk").hidden = true;
   $("autoAll2").hidden = !open.length;
 }
@@ -587,7 +587,7 @@ function planText(snap) {
   let out = "Röstplan " + week + "\n";
   days.forEach((list, d) => { if (!list.length) return; const t = listTotals(list); out += "\n" + dn(d, names) + " (" + t.n + " Chargen, " + intFmt(t.kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
   if (open.length) { out += "\nNoch nicht verteilt\n"; open.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); }
-  if (rows) { const rk = rohSum(rows); if (rk.list.length) { out += "\nRohkaffee gesamt (" + intFmt(rk.kg) + " kg)\n"; rk.list.forEach(x => out += x.name + ": " + intFmt(x.kg) + " kg\n"); } }
+  if (rows) { const rk = rohSum(rows); if (rk.list.length) { out += "\nRohkaffee gesamt (" + intFmt(rk.kg) + " kg)\n"; rk.list.forEach(x => out += x.name + ": " + batchText(x.kgs) + " = " + intFmt(x.kg) + " kg\n"); } }
   return out;
 }
 $("copyTxt").addEventListener("click", () => {
