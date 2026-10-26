@@ -1,5 +1,5 @@
 // Laden-App: offline-fähig. Bei jeder neuen Version CACHE hochzählen.
-const CACHE = "laden-v15";
+const CACHE = "laden-v16";
 const LOCAL = ["./", "index.html", "tagesabschluss.html", "roestplan.html", "bruehbuch.html", "verkauf.html", "abpackhilfe.html", "manifest.webmanifest",
   "icon-180.png", "icon-192.png", "icon-512.png", "lib/pdf.min.js", "lib/pdf.worker.min.js", "lib/xlsx.full.min.js"];
 const CDN = ["https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js",
@@ -17,7 +17,8 @@ self.addEventListener("fetch", e => {
   const url = new URL(e.request.url);
   if (url.origin === location.origin) {
     // Seiten: erst Netz (frische Version); antwortet es nicht binnen 2,5 s (schlechter Empfang), die gespeicherte Version zeigen
-    const net = fetch(e.request).then(r => {
+    // cache: "no-cache" = beim Server nachfragen, ob es Neues gibt (unverändert: nur eine winzige Antwort), statt bis zu 10 Min. die alte Seite aus dem Browser-Speicher zu nehmen
+    const net = fetch(e.request.url, {cache: "no-cache", credentials: "same-origin"}).then(r => {
       if (r.ok) { const cp = r.clone(); caches.open(CACHE).then(c => c.put(e.request, cp)); }
       return r;
     });
