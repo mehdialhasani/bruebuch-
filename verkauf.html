@@ -133,6 +133,41 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .it.good{background:var(--good-soft);border-color:transparent}.it.good .n{color:var(--good)}
 .it.bad{background:var(--warn-soft);border-color:transparent}.it.bad .n{color:var(--warn)}
 .row .sp{grid-column:1;display:block;width:100%;height:22px}
+/* Sorten-Liste v14: Balken + aufklappbarer Wochenverlauf */
+.sbrow{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.seg2{display:flex;background:var(--grid);border-radius:10px;padding:2px;gap:2px}
+.seg2 button{min-height:32px;padding:2px 10px;border:0;border-radius:8px;background:transparent;font-size:13px;font-weight:500;color:var(--ink2)}
+.seg2 button[aria-pressed="true"]{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.sx{border-bottom:1px solid var(--line)}.sx:last-child{border-bottom:0}
+.sh{display:grid;grid-template-columns:22px minmax(0,1fr) 100px;gap:6px 8px;align-items:center;width:100%;padding:12px 2px;border:0;border-radius:10px;background:transparent;text-align:left;min-height:0;font-weight:400}
+.sh .no{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.sh .nm{font-size:15px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sh .nm small{font-size:12px;font-weight:600;margin-left:6px}.sh .nm small.end{color:var(--warn)}.sh .nm small.new{color:var(--good)}
+.sh .v{font-size:16px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.sh .v small{font-size:12px;font-weight:400;color:var(--muted)}
+.sh .bw{grid-column:2;position:relative;height:12px;border-radius:99px;background:var(--grid)}
+.sh .bw i{position:absolute;left:0;top:0;bottom:0;border-radius:99px;background:var(--accent);transition:width .35s ease}
+.sh .bw b{position:absolute;top:-4px;bottom:-4px;width:3px;margin-left:-1.5px;border-radius:2px;background:var(--ink);opacity:.55}
+.sh .pl{grid-column:3;justify-self:end;font-size:12px;font-weight:600;padding:2px 8px;border-radius:99px;background:var(--grid);color:var(--ink2);font-variant-numeric:tabular-nums;white-space:nowrap}
+.sh .pl.up{background:var(--good-soft);color:var(--good)}.sh .pl.dn{background:var(--warn-soft);color:var(--warn)}
+.sh .chev{display:none}
+.sx.open .sh{background:var(--accent-soft)}
+.sd{display:none;padding:6px 2px 14px;flex-direction:column;gap:10px}
+.sx.open .sd{display:flex}
+.sd .rd{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:14px;color:var(--ink2);min-height:22px}
+.sd .rd b{font-size:20px;color:var(--ink);font-variant-numeric:tabular-nums}
+.sd .wc{position:relative;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.sd .wc svg{display:block;width:100%;height:auto;overflow:visible}
+.sd .wc text{font-size:10px;fill:var(--muted);font-variant-numeric:tabular-nums}
+.sd .kp{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.sd .kp div{background:var(--grid);border-radius:10px;padding:8px;min-width:0}
+.sd .kp span{display:block;font-size:11px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.sd .kp b{display:block;font-size:15px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.sd .kp small{display:block;font-size:11px;color:var(--ink2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sd .gb{display:flex;height:10px;border-radius:99px;overflow:hidden;gap:2px}
+.sd .gb i{display:block;height:100%}
+.sd .acts{display:flex;gap:8px;flex-wrap:wrap}.sd .acts button{min-height:38px;font-size:14px}
+.zero{align-self:flex-start;min-height:36px;font-size:14px;margin-top:6px}
 .row .meta{font-size:12px;color:var(--muted);text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 .fc .bar{display:block;height:6px;border-radius:99px;background:var(--accent);margin-top:5px;opacity:.85}
 .gk{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -243,8 +278,9 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Sorten im Zeitraum</h2><span class="hint" id="rowsH"></span></div>
-    <div class="chips" id="sortBy" role="group" aria-label="Sortieren nach"></div>
-    <p class="hint" style="margin:0">Der Streifen zeigt jede Woche seit KW <span id="fw"></span>. Dunkel ist der gewählte Zeitraum. Antippen zeigt die Sorte oben in der Grafik.</p>
+    <div class="chips one" id="tyF" role="group" aria-label="Art"></div>
+    <div class="sbrow"><span class="hint">Sortieren</span><div class="seg2" id="sortBy" role="group" aria-label="Sortieren nach"></div></div>
+    <p class="hint" style="margin:0">Balken = kg pro Woche im Zeitraum, Strich = <span id="fw">Zeitraum davor</span>. Antippen klappt den Wochenverlauf auf.</p>
     <div class="rows" id="rows"></div>
   </div>
 
@@ -617,19 +653,67 @@ function spark(s,cw){const n=M.all.length,mx=Math.max(...M.all.map(w=>s.kg[w]||0
     const h=Math.max(2,v/mx*20),c=s.ended&&w===s.lastW?"var(--warn)":inW.has(w)?"var(--accent)":"color-mix(in srgb,var(--accent) 30%,var(--paper))";
     g+=`<rect x="${x}" y="${22-h}" width="5" height="${h}" rx="1" fill="${c}"/>`});
   return `<svg class="sp" viewBox="0 0 ${n*6-1} 22" preserveAspectRatio="none" aria-hidden="true">${g}</svg>`}
+let openK=null,tyF="all",showZero=false;
+const TYF=[["all","Alle"],["esp","Espresso"],["fil","Filter"],["decaf","Decaf"]];
 function rows(L,cw,pw){
   $("sortBy").innerHTML=SB.map(([k,l])=>`<button data-sb="${k}" aria-pressed="${k===sortBy}">${l}</button>`).join("");
-  $("fw").textContent=M.first;
-  L=[...L];
+  const cnt=k=>L.filter(r=>r.t>0&&(k==="all"||typeOf(r.s)===k)).length;
+  $("tyF").innerHTML=TYF.filter(([k])=>k==="all"||cnt(k)).map(([k,l])=>`<button data-ty="${k}" aria-pressed="${k===tyF}">${l} <span style="opacity:.6">${cnt(k)}</span></button>`).join("");
+  $("fw").textContent=pw.length?"Ø im Zeitraum davor":"Zeitraum davor (hier keiner)";
+  L=L.filter(r=>tyF==="all"||typeOf(r.s)===tyF);
   if(sortBy==="menge")L.sort((x,y)=>y.t-x.t);
   if(sortBy==="delta")L.sort((x,y)=>(y.d??(y.a>0?9:-9))-(x.d??(x.a>0?9:-9)));
   if(sortBy==="name")L.sort((x,y)=>x.s.name.localeCompare(y.s.name,"de"));
-  const first=cw[0];
-  $("rowsH").textContent=`${L.filter(r=>r.t>0).length} Sorten verkauft`;
-  $("rows").innerHTML=L.map(({s,a,t,d,b,share})=>{const tag=t===0?`<small class="end">nicht mehr verkauft</small>`:s.ended?`<small class="end">letzte KW ${s.lastW}</small>`:s.firstW>=first&&s.firstW>M.first?`<small class="new">neu ab KW ${s.firstW}</small>`:"";
-    const dc=d==null?"":d>=.05?"up":d<=-.05?"dn":"";
-    return `<button class="row${s.key===sel?" on":""}" data-k="${esc(s.key)}"><span class="nm">${esc(s.name)}${tag}</span><span class="v">${f1(a)} kg<span style="font-weight:400;color:var(--muted);font-size:12px"> /Wo</span></span>
-      ${spark(s,cw)}<span class="meta"><span class="d ${dc}" style="display:block;font-size:13px">${d==null?(b>0?"":a>0&&pw.length?"neu":""):(d>=0?"▲ ":"▼ ")+pct(d)}</span>${t>0?Math.round(share*100)+" % Anteil":""}</span></button>`}).join("")||`<p class="hint">Keine Verkäufe in diesem Zeitraum.</p>`;
+  const sold=L.filter(r=>r.t>0),zero=L.filter(r=>r.t===0),first=cw[0];
+  $("rowsH").textContent=`${sold.length} Sorten verkauft`;
+  const mx=Math.max(.1,...L.map(r=>Math.max(r.a,r.b)));
+  const one=({s,a,t,d,b,share},i)=>{const tag=t===0?`<small class="end">nicht mehr verkauft</small>`:s.ended?`<small class="end">letzte KW ${s.lastW}</small>`:s.firstW>=first&&s.firstW>M.first?`<small class="new">neu ab KW ${s.firstW}</small>`:"";
+    const dc=d==null?"":d>=.05?"up":d<=-.05?"dn":"",dt=d==null?(b>0?"":a>0&&pw.length?"neu":""):(d>=0?"▲ ":"▼ ")+pct(d),op=s.key===openK;
+    return `<div class="sx${op?" open":""}" data-x="${esc(s.key)}"><button class="sh" aria-expanded="${op}"><span class="no">${t>0?i+1:"–"}</span><span class="nm">${esc(s.name)}${tag}</span><span class="v">${f1(a)} kg<small> /Wo</small></span>
+      <span></span><span class="bw" aria-hidden="true"><i style="width:${(a/mx*100).toFixed(1)}%"></i>${pw.length&&b>0?`<b style="left:${(b/mx*100).toFixed(1)}%"></b>`:""}</span><span class="pl ${dc}">${dt||(t>0?Math.round(share*100)+" %":"0 kg")}</span></button>
+      <div class="sd">${op?detail(s,cw,pw,{a,b,t,share,d}):""}</div></div>`};
+  $("rows").innerHTML=(sold.map(one).join("")+(zero.length?(showZero?zero.map(one).join(""):"")+`<button class="ghost zero" id="zeroT">${showZero?"Ohne Verkauf ausblenden":zero.length+" Sorte"+(zero.length>1?"n":"")+" ohne Verkauf im Zeitraum zeigen"}</button>`:""))||`<p class="hint">Keine Verkäufe in diesem Zeitraum.</p>`;
+  const o=$("rows").querySelector(".sx.open .wc");if(o)scrub(o);
+}
+/* Aufgeklappt: großer Wochenverlauf seit Beginn, Zeitraum hervorgehoben, Finger zieht über die Wochen */
+function detail(s,cw,pw,r){
+  const inW=new Set(cw),inP=new Set(pw),W=340,H=150,Lx=26,T=10,B=20,pw2=W-Lx-4,ph=H-T-B,n=M.all.length,slot=pw2/n,bw=Math.max(2,slot*.72);
+  const vals=M.all.map(w=>M.has(w)?(s.kg[w]||0):null),max=niceMax(Math.max(1,...vals.map(v=>v||0))*1.08),Y=v=>T+ph-v/max*ph;
+  let g="";for(let i=0;i<=2;i++){const v=max/2*i,y=Y(v);g+=`<line x1="${Lx}" x2="${W-4}" y1="${y}" y2="${y}" stroke="var(--grid)"/><text x="${Lx-5}" y="${y+3}" text-anchor="end">${f2(v)}</text>`}
+  const ix=M.all.map((w,i)=>inW.has(w)||(!M.has(w)&&cw.length&&w>=cw[0]&&w<=cw[cw.length-1])?i:-1).filter(i=>i>=0);
+  if(ix.length)g+=`<rect x="${Lx+slot*ix[0]}" y="${T-6}" width="${slot*(ix[ix.length-1]-ix[0]+1)}" height="${ph+6}" rx="6" fill="var(--accent-soft)"/>`;
+  M.all.forEach((w,i)=>{const x=Lx+slot*i+(slot-bw)/2,v=vals[i];
+    if(v==null){g+=`<rect x="${x}" y="${T+ph-3}" width="${bw}" height="3" fill="var(--hatch)"/>`;return}
+    if(v<=0){g+=`<rect x="${x}" y="${T+ph-1.5}" width="${bw}" height="1.5" fill="var(--line)"/>`;return}
+    const y=Y(v),c=s.ended&&w===s.lastW?"var(--warn)":inW.has(w)?"var(--accent)":"color-mix(in srgb,var(--accent) 35%,var(--paper))";
+    g+=`<rect class="wb" data-i="${i}" x="${x}" y="${y}" width="${bw}" height="${T+ph-y}" rx="${Math.min(2,bw/3)}" fill="${c}"/>`;
+    if(i%4===0||i===n-1)g+=`<text x="${x+bw/2}" y="${H-5}" text-anchor="middle">${w}</text>`});
+  if(cw.length){const y=Y(r.a);g+=`<line x1="${Lx+slot*ix[0]}" x2="${Lx+slot*(ix[ix.length-1]+1)}" y1="${y}" y2="${y}" stroke="var(--ink)" stroke-width="1.5"/>`}
+  g+=`<line class="cur" x1="0" x2="0" y1="${T-6}" y2="${T+ph}" stroke="var(--ink)" stroke-width="1" visibility="hidden"/>`;
+  const wk2=cw.filter(w=>(s.kg[w]||0)>0),best=wk2.length?wk2.reduce((x,y)=>s.kg[y]>s.kg[x]?y:x):null,lw=[...M.all].reverse().find(M.has);
+  const U={};cw.forEach(w=>{const u=(s.u||{})[w]||{};for(const k in u)U[k]=(U[k]||0)+u[k]});
+  const UL=[["250","250 g","var(--accent)",.25],["1000","1 kg","var(--s1)",1],["3000","3 kg","var(--s3)",3],["10000","10 kg","var(--s2)",10],["unv","unverpackt","var(--muted)",1]].filter(x=>U[x[0]]>0);
+  const ukg=UL.reduce((a,x)=>a+U[x[0]]*x[3],0)||1;
+  const kpi=(k,v,sm)=>`<div><span>${k}</span><b>${v}</b><small>${sm}</small></div>`;
+  return `<div class="rd"><span data-rd>Finger über die Wochen ziehen</span><b data-rv>${f1(r.t)} kg</b></div>
+    <div class="wc" data-k="${esc(s.key)}" data-sl="${Lx}" data-slot="${slot}" data-w="${W}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Wochenverlauf ${esc(s.name)}">${g}</svg></div>
+    <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>gewählter Zeitraum</span><span><i class="sw" style="height:0;border-top:2px solid var(--ink);border-radius:0"></i>Ø ${f1(r.a)} kg</span><span><i class="sw" style="background:var(--hatch)"></i>kein Bericht</span></div>
+    <div class="kp">${kpi("Ø jetzt",f1(r.a)+" kg","pro Woche")+kpi("Ø davor",pw.length?f1(r.b)+" kg":"–",r.d==null?"kein Vergleich":(r.d>=0?"▲ ":"▼ ")+pct(r.d))+kpi("Anteil",Math.round(r.share*100)+" %","aller kg")+
+      kpi("Beste",best?"KW "+best:"–",best?f2(s.kg[best])+" kg":"")+kpi("Zuletzt",lw?f2(s.kg[lw]||0)+" kg":"–","KW "+lw)+kpi("Seit",s.firstW?"KW "+s.firstW:"–",s.ended?"bis KW "+s.lastW:"läuft")}</div>
+    ${UL.length?`<div class="lbl">Wie verkauft im Zeitraum</div><div class="gb">${UL.map(x=>`<i style="background:${x[2]};flex:${U[x[0]]*x[3]/ukg}"></i>`).join("")}</div><div class="legend">${UL.map(x=>`<span><i class="sw" style="background:${x[2]}"></i>${x[1]} ${x[0]==="unv"?f1(U[x[0]])+" kg":"× "+Math.round(U[x[0]])}</span>`).join("")}</div>`:""}
+    <div class="acts"><button data-show="${esc(s.key)}">${s.key===sel?"Oben wieder alle Sorten":"Oben in der Grafik zeigen"}</button></div>`;
+}
+function scrub(el){
+  const s=M.sorts.find(x=>x.key===el.dataset.k),svg=el.querySelector("svg"),ln=svg.querySelector(".cur"),box=el.closest(".sd"),rd=box.querySelector("[data-rd]"),rv=box.querySelector("[data-rv]");
+  const Lx=+el.dataset.sl,slot=+el.dataset.slot,W=+el.dataset.w,def=[rd.textContent,rv.textContent];
+  const at=e=>{const r=svg.getBoundingClientRect(),x=(e.clientX-r.left)*W/r.width,i=Math.max(0,Math.min(M.all.length-1,Math.floor((x-Lx)/slot))),w=M.all[i];
+    ln.setAttribute("x1",Lx+slot*(i+.5));ln.setAttribute("x2",Lx+slot*(i+.5));ln.setAttribute("visibility","visible");
+    svg.querySelectorAll(".wb").forEach(b=>b.style.opacity=+b.dataset.i===i?1:.45);
+    const {mon}=thursday(D.year,w),sun=new Date(mon);sun.setUTCDate(mon.getUTCDate()+6);
+    rd.textContent=`KW ${w} · ${dd(mon)}–${dd(sun)}${M.has(w)&&D.weeks[w].src==="vorwoche"?" · aus Vorwoche":""}`;rv.textContent=M.has(w)?f2(s.kg[w]||0)+" kg":"kein Bericht"};
+  const off=()=>{ln.setAttribute("visibility","hidden");svg.querySelectorAll(".wb").forEach(b=>b.style.opacity="");rd.textContent=def[0];rv.textContent=def[1]};
+  el.addEventListener("pointerdown",e=>{at(e);el.setPointerCapture(e.pointerId)});el.addEventListener("pointermove",e=>{if(e.pointerType==="mouse"||el.hasPointerCapture(e.pointerId))at(e)});
+  el.addEventListener("pointerup",e=>{if(e.pointerType!=="mouse")setTimeout(off,1600)});el.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse")off()});el.addEventListener("pointercancel",off);
 }
 
 /* ---------- Ausgelaufene Sorten: wo haben sie geendet ---------- */
@@ -840,7 +924,11 @@ $("sel").onchange=e=>{sel=e.target.value;render()};
 $("clr").onclick=()=>{sel="__all";render()};
 $("sortBy").addEventListener("click",e=>{const b=e.target.closest("[data-sb]");if(b){sortBy=b.dataset.sb;render()}});
 const pick=e=>{const r=e.target.closest("[data-k]");if(!r)return;sel=sel===r.dataset.k?"__all":r.dataset.k;render();$("main").scrollIntoView({behavior:"smooth",block:"start"})};
-$("rows").addEventListener("click",pick);$("rank").addEventListener("click",e=>{if(e.target.closest("#gMore")){gAll=!gAll;gesamt();return}pick(e)});document.querySelector('[aria-label="Vergleich"]').addEventListener("click",e=>{const b=e.target.closest("[data-gm]");if(b){gm=b.dataset.gm;gesamt()}});$("ins").addEventListener("click",pick);$("endl").addEventListener("click",pick);
+$("rows").addEventListener("click",e=>{if(e.target.closest("#zeroT")){showZero=!showZero;render();return}
+  const sh=e.target.closest("[data-show]");if(sh){const k=sh.dataset.show;sel=sel===k?"__all":k;render();$("main").scrollIntoView({behavior:"smooth",block:"start"});return}
+  const h=e.target.closest(".sh");if(!h)return;const k=h.parentNode.dataset.x;openK=openK===k?null:k;render();
+  const x=$("rows").querySelector(".sx.open");if(x){const r=x.getBoundingClientRect();if(r.top<70||r.top>innerHeight*.5)x.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})}});
+$("tyF").addEventListener("click",e=>{const b=e.target.closest("[data-ty]");if(b){tyF=b.dataset.ty;render()}});$("rank").addEventListener("click",e=>{if(e.target.closest("#gMore")){gAll=!gAll;gesamt();return}pick(e)});document.querySelector('[aria-label="Vergleich"]').addEventListener("click",e=>{const b=e.target.closest("[data-gm]");if(b){gm=b.dataset.gm;gesamt()}});$("ins").addEventListener("click",pick);$("endl").addEventListener("click",pick);
 let rzT;addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>page==="p"?renderP():render(),200)});
 
 function head(){
