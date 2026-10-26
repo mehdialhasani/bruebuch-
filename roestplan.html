@@ -151,6 +151,7 @@ section[hidden]{display:none!important}
 .ask .exp.three #clearBare,.ask .exp.three #clearBare0{color:var(--warn)}
 .vh{padding:4px 0;border-bottom:1px solid var(--line)}
 .vh:last-child{border-bottom:0}
+.vh em.cur{font-style:normal;font-size:11px;font-weight:600;color:var(--accent-ink);background:var(--accent);border-radius:6px;padding:1px 6px;margin-left:6px;vertical-align:2px}
 .vh>button{display:flex;width:100%;justify-content:space-between;align-items:center;gap:12px;min-height:60px;text-align:left}
 .vh>button b{display:block;font-weight:600}
 .vh>button small{display:block;color:var(--muted);font-size:14px;font-weight:400}
@@ -163,6 +164,21 @@ section[hidden]{display:none!important}
 .vd .exp{margin-top:14px}
 .vd .exp button.del{color:var(--warn)}
 .vd .ask{background:var(--bg)}
+/* Bericht bearbeiten */
+.ed .loss{min-height:52px}
+.ed .er{display:flex;align-items:center;gap:10px;min-height:56px;border-bottom:1px solid var(--line);background:var(--card)}
+.vd .ed .er{background:var(--bg)}
+.ed .er:last-child{border-bottom:0}
+.ed .er .t{flex:1;min-width:0;display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.ed .er .t b{font-weight:500;overflow-wrap:anywhere}
+.ed .er .t small{color:var(--muted);font-size:15px;white-space:nowrap}
+/* Griff rechts wie am iPhone: festhalten und ziehen */
+.ed .hd{flex:none;width:44px;height:48px;margin-right:-10px;display:grid;place-items:center;color:var(--muted);touch-action:none;cursor:grab;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+.ed .hd svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+.ed .er.drag{position:fixed;z-index:60;margin:0;padding:0 16px;border:1px solid var(--line);border-radius:12px;box-shadow:0 12px 30px var(--shadow);pointer-events:none;transform:scale(1.02)}
+.ed .ph{border-radius:12px;background:var(--accent-soft);margin:4px 0}
+.ed .card.drop{min-height:56px}
+.ed .empty{padding:16px 0;font-size:14px}
 @media (prefers-reduced-motion:reduce){.vh>button svg{transition:none}}
 .auto{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;min-height:50px;margin-top:12px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-size:15px;font-weight:600}
 .auto svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
@@ -223,10 +239,8 @@ section[hidden]{display:none!important}
   </section>
 
   <section id="t-chargen" hidden>
-    <div class="lbl" style="margin-top:0">Mehr rösten als verkauft</div>
-    <div class="seg" id="modes"><button data-x="0">Genau</button><button data-x="10">+10 %</button><button data-x="20">+20 %</button><button data-x="30">+30 %</button></div>
-    <p class="note" id="extraNote"></p>
-    <div class="lbl">Tippe Chargen an für</div>
+    <p class="note" id="extraNote" style="margin-top:0"></p>
+    <div class="lbl" style="margin-top:0">Tippe Chargen an für</div>
     <div class="dpick" id="dpick"></div>
     <div class="hint"><span id="openInfo"></span><button class="link" id="allOpen"></button></div>
     <button class="auto" id="autoAll"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>Offene automatisch verteilen</button>
@@ -237,6 +251,7 @@ section[hidden]{display:none!important}
 
   <section id="t-liste" hidden>
     <button class="auto" id="autoAll2" hidden style="margin:0 0 4px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>Offene automatisch verteilen</button>
+    <div class="acts" style="margin:0;justify-content:flex-end"><button class="link" id="lEditBtn">Bearbeiten</button></div>
     <div id="lList"></div>
     <div class="exp"><button class="main" id="saveImg">Als Bild sichern</button><button id="copyTxt">Text kopieren</button></div>
     <p class="note" id="expMsg" role="status"></p>
@@ -361,7 +376,7 @@ if (!S || !Array.isArray(S.sorts)) {
       sorts: old.sorts.map(x => ({ id: x.id, name: x.name, totalG: (x.kg1 | 0) * 1000 + (x.g250 | 0) * 250 + (x.extraG | 0), unsure: !!x.unsure })) });
 }
 S.sorts.forEach(x => { if (x.size !== 3 && x.size !== 5) x.size = 5; });
-S.extra = S.extra || 0; S.adj = S.adj || {};
+S.extra = 0; S.adj = S.adj || {};  // kein %-Aufschlag mehr (Mehdi 26.10.): mehr rösten nur per + bei der Sorte
 S.assign = S.assign || {}; S.active = S.active || 0;
 function save() { try { localStorage.setItem("roestplan.v4", JSON.stringify(S)); } catch (_) {} }
 
@@ -407,10 +422,12 @@ const batchText = kgs => {
 function dayLists(rows) {
   const days = Array.from({ length: DAYS }, () => []), open = [];
   rows.forEach(r => {
-    for (let d = 0; d < DAYS; d++) { const k = r.batches.filter(b => b.day === d).map(b => b.kg); if (k.length) days[d].push({ name: r.name, kgs: k }); }
-    const o = r.batches.filter(b => b.day == null).map(b => b.kg); if (o.length) open.push({ name: r.name, kgs: o });
+    for (let d = 0; d < DAYS; d++) { const k = r.batches.filter(b => b.day === d).map(b => b.kg); if (k.length) days[d].push({ id: r.id, name: r.name, kgs: k }); }
+    const o = r.batches.filter(b => b.day == null).map(b => b.kg); if (o.length) open.push({ id: r.id, name: r.name, kgs: o });
   });
-  return { days, open };
+  // eigene Reihenfolge je Rösttag (auf der Seite „Liste“ mit ↑ ↓ gesetzt), neue Sorten hinten
+  const ord = (l, k) => { const o = (S.order || {})[k]; if (!o) return l; const p = new Map(o.map((id, i) => [id, i])); return l.map((x, i) => [x, p.has(x.id) ? p.get(x.id) : 1e6 + i]).sort((a, b) => a[1] - b[1]).map(a => a[0]); };
+  return { days: days.map((l, d) => ord(l, d)), open: ord(open, 3) };
 }
 
 /* ===================== ZAHLEN ===================== */
@@ -469,7 +486,6 @@ document.addEventListener("pointerdown", e => { const a = document.activeElement
 
 /* ===================== CHARGEN ===================== */
 function renderChargen() {
-  document.querySelectorAll("#modes button").forEach(b => b.setAttribute("aria-pressed", +b.dataset.x === S.extra));
   const rows = computeBatches(); cleanAssign(rows);
   const { t, open } = dayTotals(rows);
   $("dpick").innerHTML = t.map((x, d) => `<button data-d="${d}" style="${dc(d)}" aria-pressed="${d === S.active}"><b><i></i>${esc(dn(d))}</b><small>${x.n} Ch. · ${intFmt(x.kg)} kg</small></button>`).join("");
@@ -478,7 +494,7 @@ function renderChargen() {
   $("autoAll").hidden = !open.n;
   $("allOpen").hidden = !open.n;
   const base = S.sorts.reduce((a, x) => a + Core.autoBatches(x, S.loss, 0, 0).length, 0), now = rows.reduce((a, r) => a + r.batches.length, 0);
-  $("extraNote").textContent = now === base ? "" : (now > base ? "+" : "−") + Math.abs(now - base) + " Chargen gegenüber „Genau“ (" + base + ")";
+  $("extraNote").textContent = now === base ? "" : (now > base ? "+" : "−") + Math.abs(now - base) + (Math.abs(now - base) === 1 ? " Charge" : " Chargen") + " von Hand (berechnet: " + base + ")";
   const vis = rows.filter(r => r.sold > 0);
   $("cList").innerHTML = vis.length ? vis.map(r => `
     <div class="cs" data-id="${r.id}">
@@ -488,7 +504,6 @@ function renderChargen() {
     </div>`).join("") : `<div class="empty">Noch keine Verkaufszahlen.</div>`;
   updBadges();
 }
-$("modes").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.extra = +b.dataset.x; save(); renderChargen(); });
 $("wkIn").addEventListener("input", e => { S.week = e.target.value.trim().slice(0, 20); $("wk").textContent = S.week; save(); });
 $("dSel").addEventListener("change", e => { const d = +e.target.dataset.day; S.days = (S.days || ["", "", ""]).slice(); S.days[d] = e.target.value; if (!S.days.some(Boolean)) delete S.days; save(); });
 // Verteilt alle offenen Chargen gleichmäßig auf die Rösttage; schon verteilte bleiben, wo sie sind
@@ -539,14 +554,28 @@ function rohSum(rows) {
   const list = rows.filter(r => r.batches.length).map(r => ({ name: r.name, kg: Core.sumKg(r.batches.map(b => b.kg)) })).sort((a, b) => b.kg - a.kg);
   return { list, kg: list.reduce((a, x) => a + x.kg, 0) };
 }
+let lEdit = false;
 function renderListe() {
   const rows = computeBatches(); cleanAssign(rows);
   const { days, open } = dayLists(rows);
-  const h = listHtml(days, open), rk = rohSum(rows);
+  const h = lEdit && (days.some(l => l.length) || open.length) ? [0, 1, 2].map(d => edGroup(days[d], d)).join("") + (open.length ? edGroup(open, 3) : "") + `<p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag. Chargen änderst du unter „Chargen“.</p>` : listHtml(days, open), rk = rohSum(rows);
+  $("lList").classList.toggle("ed", !!lEdit && !!h);
+  $("lEditBtn").hidden = !h; $("lEditBtn").textContent = lEdit ? "Fertig" : "Bearbeiten";
   $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${intFmt(x.kg)} kg</span></div>`).join("")}</div>` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
   $("clearAsk").hidden = true;
   $("autoAll2").hidden = !open.length;
 }
+
+$("lEditBtn").addEventListener("click", () => { lEdit = !lEdit; renderListe(); });
+// Sorte x von Gruppe k (Tag 0–2, 3 = offen) nach Gruppe t an Stelle ti; ihre Chargen dieses Tages wandern mit
+dragList($("lList"), () => lEdit, (k, i, t, ti) => {
+  const rows = computeBatches(), { days, open } = dayLists(rows), G = [days[0], days[1], days[2], open], x = G[k][i];
+  if (!x || (k === t && i === ti)) { renderListe(); return; }
+  if (k !== t) rows.find(y => y.id === x.id).batches.forEach(y => { if ((y.day == null ? 3 : y.day) === k) { if (t < 3) S.assign[y.key] = t; else delete S.assign[y.key]; } });
+  const ids = G[t].map(y => y.id).filter(id => id !== x.id); ids.splice(Math.min(ti, ids.length), 0, x.id);
+  S.order = Object.assign({}, S.order, { [t]: ids }); if (k !== t) S.order[k] = G[k].map(y => y.id).filter(id => id !== x.id);
+  save(); renderListe(); updBadges();
+});
 
 /* ===================== EXPORT ===================== */
 const msg = t => { $("expMsg").textContent = t; };
@@ -641,10 +670,11 @@ let V; try { V = JSON.parse(localStorage.getItem(VK)); } catch (_) { V = null; }
 if (!Array.isArray(V)) V = [];
 const saveV = () => { try { localStorage.setItem(VK, JSON.stringify(V)); return true; } catch (_) { return false; } };
 function snapshot() {
-  const rows = computeBatches(); const { days, open } = dayLists(rows);
+  const rows = computeBatches(); let { days, open } = dayLists(rows);
   const all = days.flat().concat(open);
   if (!all.length) return null;
-  const tot = listTotals(all);
+  const tot = listTotals(all), strip = l => l.map(x => ({ name: x.name, kgs: x.kgs }));
+  days = days.map(strip); open = strip(open);
   return { id: "v" + Date.now().toString(36), at: new Date().toISOString(), week: S.week, loss: S.loss, extra: S.extra,
     sorts: S.sorts.filter(s => Core.soldGrams(s) > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: s.size })),
     soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open, dn: [0, 1, 2].map(d => dn(d)) };
@@ -667,24 +697,141 @@ const sig = v => JSON.stringify([v.week, v.loss, v.extra, v.sorts, v.days, v.ope
 // Sichert die aktuelle Liste; gleiche Liste wie der letzte Eintrag wird nicht doppelt gespeichert. Rückgabe: "neu", "gleich", "leer" oder "fehler".
 function keep() {
   const v = snapshot(); if (!v) return "leer";
-  if (V.length && sig(V[0]) === sig(v)) return "gleich";
-  V.unshift(v); if (!saveV()) { V.shift(); return "fehler"; }
+  if (V.length && (sig(V[0]) === sig(v) || V[0].base === sig(v))) { S.vId = V[0].id; save(); return "gleich"; }
+  v.base = sig(v); V.unshift(v); if (!saveV()) { V.shift(); return "fehler"; }
+  S.vId = v.id; save(); toBrain(v); updBadges(); return "neu";
+}
+// Bericht der noch offenen Woche: der zuletzt aus der jetzigen Liste gesicherte Eintrag (ältere Stände ohne vId: neuester Eintrag mit gleicher Woche). Leere Liste = keiner.
+function curVId() {
+  if (!S.sorts.some(s => Core.soldGrams(s) > 0)) return null;
+  if (S.vId) return V.some(x => x.id === S.vId) ? S.vId : null;
+  return V.length && V[0].week && V[0].week === S.week ? V[0].id : null;
+}
+// Überschreibt den aktuellen Bericht mit den Zahlen der jetzigen Liste. Rückgabe: "neu", "gleich", "leer" oder "fehler".
+function refreshV(id) {
+  const i = V.findIndex(x => x.id === id); if (i < 0 || id !== curVId()) return "leer";
+  const v = snapshot(); if (!v) return "leer";
+  const old = V[i], raw = sig(v);
+  // Reihenfolge je Rösttag aus dem alten Bericht behalten (z. B. von Hand sortiert)
+  const ord = (list, prev) => { const pos = new Map((prev || []).map((x, k) => [x.name, k])); return list.map((x, k) => [x, pos.has(x.name) ? pos.get(x.name) : 1e6 + k]).sort((a, b) => a[1] - b[1]).map(a => a[0]); };
+  if (!S.order) { v.days = v.days.map((l, d) => ord(l, old.days[d])); v.open = ord(v.open, old.open); }
+  if (sig(old) === sig(v)) return "gleich";
+  v.id = old.id; v.first = old.first || old.at; v.base = raw; V[i] = v;
+  if (!saveV()) { V[i] = old; return "fehler"; }
   toBrain(v); updBadges(); return "neu";
 }
 const dateFmt = iso => { const d = new Date(iso), o = { weekday: "short", day: "numeric", month: "short" }; if (d.getFullYear() !== new Date().getFullYear()) o.year = "numeric"; return d.toLocaleDateString("de-DE", o) + ", " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); };
-let vOpen = null;
+let vOpen = null, vEdit = null, D = null;
+// Bearbeiten: D ist eine Kopie des Berichts; erst „Speichern“ schreibt in den Verlauf
+const dGroups = () => [0, 1, 2].map(d => D.days[d]).concat([D.open]);
+// Bearbeitbare Gruppe (Rösttag k = 0–2, 3 = nicht verteilt): Zeilen mit Griff ≡ rechts, festhalten und ziehen (auch auf einen anderen Tag). Gilt für Liste und Verlauf.
+const GRIP = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 12h16M4 16h16"/></svg>`;
+function edGroup(list, k, names) {
+  return `<div class="dayh"${k < 3 ? ` style="${dc(k)}"` : ""}><b>${k < 3 ? "<i></i>" : ""}${esc(k < 3 ? dn(k, names) : "Noch nicht verteilt")}</b><span>${listTotals(list).n} Chargen · ${intFmt(listTotals(list).kg)} kg roh</span></div>
+    <div class="card drop" data-g="${k}">${list.length ? list.map((x, i) => `<div class="er" data-g="${k}" data-i="${i}"><span class="t"><b>${esc(x.name)}</b><small>${batchText(x.kgs)}</small></span><button class="hd" aria-label="${esc(x.name)} verschieben (Pfeiltasten hoch/runter)">${GRIP}</button></div>`).join("") : `<div class="empty">Hierher ziehen</div>`}</div>`;
+}
+// Ziehen mit dem Finger: Zeile schwebt unter dem Finger, eine Lücke zeigt, wo sie landet. Am Rand scrollt die Seite mit.
+// onDrop(vonGruppe, vonIndex, zuGruppe, zuIndex)
+function dragList(box, active, onDrop) {
+  let st = null;
+  const end = ok => {
+    if (!st) return; const { row, ph, raf } = st; cancelAnimationFrame(raf);
+    const card = ph.parentNode, to = card ? +card.dataset.g : null;
+    const ch = card ? [...card.children] : [], ti = ch.slice(0, ch.indexOf(ph)).filter(c => c.classList.contains("er") && c !== row).length;
+    const from = +row.dataset.g, fi = +row.dataset.i; st = null;
+    document.removeEventListener("pointermove", move); document.removeEventListener("pointerup", up); document.removeEventListener("pointercancel", cancel);
+    if (ok && card) onDrop(from, fi, to, ti); else onDrop(from, fi, from, fi);
+  };
+  const place = y => {
+    const { row, ph } = st;
+    const cards = [...box.querySelectorAll(".card.drop")];
+    let card = cards.find(c => { const r = c.getBoundingClientRect(); return y >= r.top - 16 && y <= r.bottom + 16; });
+    if (!card) card = cards.reduce((a, c) => { const r = c.getBoundingClientRect(), d = Math.min(Math.abs(y - r.top), Math.abs(y - r.bottom)); return !a || d < a.d ? { c, d } : a; }, null).c;
+    const rows = [...card.querySelectorAll(".er")].filter(c => c !== row);
+    const before = rows.find(c => { const r = c.getBoundingClientRect(); return y < r.top + r.height / 2; });
+    const em = card.querySelector(".empty"); if (em) em.hidden = true;
+    box.querySelectorAll(".card.drop .empty").forEach(e => { if (!e.closest(".card").contains(ph) && e.parentNode !== card) e.hidden = false; });
+    if (before) card.insertBefore(ph, before); else card.appendChild(ph);
+  };
+  const move = e => {
+    if (!st) return; e.preventDefault(); st.y = e.clientY;
+    st.row.style.top = (e.clientY - st.off) + "px"; place(e.clientY);
+  };
+  const up = () => end(true), cancel = () => end(false);
+  const tick = () => { if (!st) return; const h = innerHeight, y = st.y, edge = 90; let v = 0;
+    if (y < edge) v = -(edge - y) / 6; else if (y > h - edge - 80) v = (y - (h - edge - 80)) / 6;
+    if (v) { scrollBy(0, v); place(y); } st.raf = requestAnimationFrame(tick); };
+  box.addEventListener("pointerdown", e => {
+    const hd = e.target.closest(".hd"); if (!hd || !active() || st) return;
+    e.preventDefault();
+    const row = hd.closest(".er"), r = row.getBoundingClientRect();
+    const ph = document.createElement("div"); ph.className = "ph"; ph.style.height = r.height + "px";
+    row.parentNode.insertBefore(ph, row);
+    Object.assign(row.style, { left: (r.left - 16) + "px", width: (r.width + 32) + "px", top: r.top + "px" }); row.classList.add("drag");
+    st = { row, ph, off: e.clientY - r.top, y: e.clientY, raf: 0 };
+    st.raf = requestAnimationFrame(tick);
+    document.addEventListener("pointermove", move, { passive: false }); document.addEventListener("pointerup", up); document.addEventListener("pointercancel", cancel);
+  });
+  // Tastatur: Griff fokussieren, Pfeil hoch/runter
+  box.addEventListener("keydown", e => {
+    const hd = e.target.closest(".hd"); if (!hd || !active() || (e.key !== "ArrowUp" && e.key !== "ArrowDown")) return;
+    e.preventDefault(); const row = hd.closest(".er"), g = +row.dataset.g, i = +row.dataset.i, n = row.parentNode.querySelectorAll(".er").length;
+    const j = Math.max(0, Math.min(n - 1, i + (e.key === "ArrowUp" ? -1 : 1))); if (j === i) return;
+    onDrop(g, i, g, j); const f = box.querySelector(`.er[data-g="${g}"][data-i="${j}"] .hd`); if (f) f.focus();
+  });
+}
+function editHtml(v) {
+  const names = v.dn || [], grp = (list, k) => edGroup(list, k, names);
+  return `<div class="ed"><div class="card" style="margin-top:12px"><div class="loss"><label for="edWk">Woche</label><input class="wk" id="edWk" autocomplete="off" enterkeyhint="done" value="${esc(D.week || "")}"></div></div>
+    ${dGroups().map((l, k) => (k < 3 || l.length) ? grp(l, k) : "").join("")}
+    <p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag.</p>
+    <div class="exp"><button data-edno="${v.id}">Abbrechen</button><button class="main" data-edyes="${v.id}">Speichern</button></div></div>`;
+}
+dragList($("vList"), () => !!D, (k, i, t, ti) => {
+  const G = dGroups(), x = G[k][i];
+  if (x && !(k === t && i === ti)) {
+    G[k].splice(i, 1); const same = k !== t && G[t].find(y => y.name === x.name);
+    if (same) same.kgs.push(...x.kgs); else G[t].splice(Math.min(ti, G[t].length), 0, x);
+  }
+  renderVerlauf();
+});
 function renderVerlauf() {
+  const cur = curVId();
   $("vList").innerHTML = V.length ? V.map(v => `
     <div class="vh" data-id="${v.id}">
-      <button aria-expanded="${v.id === vOpen}"><span><b>${esc(v.week || "Ohne Woche")}</b><small>${v.n} Chargen · ${intFmt(v.kg)} kg roh · ${esc(dateFmt(v.at))}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
-      ${v.id === vOpen ? `<div class="vd"><p class="cap" style="margin:0">Verkauf ${kgFmt(v.soldG, 2)} kg · Röstverlust ${v.loss} %${v.extra ? " · +" + v.extra + " %" : ""}</p>${listHtml(v.days, v.open, v.dn || [])}
-        <div class="exp"><button data-copy="${v.id}">Text kopieren</button><button class="del" data-del="${v.id}">Löschen</button></div>
+      <button aria-expanded="${v.id === vOpen}"><span><b>${esc(v.week || "Ohne Woche")}${v.id === cur ? ` <em class="cur">aktuell</em>` : ""}</b><small>${v.n} Chargen · ${intFmt(v.kg)} kg roh · ${esc(dateFmt(v.at))}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      ${v.id === vOpen && v.id === vEdit ? `<div class="vd">${editHtml(v)}<p class="note" role="status"></p></div>` : v.id === vOpen ? `<div class="vd"><p class="cap" style="margin:0">Verkauf ${kgFmt(v.soldG, 2)} kg · Röstverlust ${v.loss} %${v.extra ? " · +" + v.extra + " %" : ""}${v.edited ? " · bearbeitet" : ""}</p>${listHtml(v.days, v.open, v.dn || [])}
+        ${v.id === cur ? `<div class="exp"><button class="main" data-upd="${v.id}">Aktualisieren</button></div><p class="cap" style="margin:6px 0 0">Übernimmt die Zahlen aus der jetzigen Liste. Geht nur, solange die Liste nicht geleert ist.</p>` : ""}
+        <div class="exp"><button data-edit="${v.id}">Bearbeiten</button><button data-copy="${v.id}">Text kopieren</button><button class="del" data-del="${v.id}">Löschen</button></div>
         <div class="ask" data-ask="${v.id}" hidden><p>Diese Liste aus dem Verlauf löschen? Das lässt sich nicht rückgängig machen.</p>
           <div class="exp"><button data-delno="${v.id}">Abbrechen</button><button class="main" data-delyes="${v.id}">Löschen</button></div></div>
         <p class="note" role="status"></p></div>` : ""}
     </div>`).join("") : `<div class="empty">Noch keine Listen gesichert. Auf der Seite „Liste“ kannst du die aktuelle Liste sichern oder leeren.</div>`;
 }
+$("vList").addEventListener("input", e => { if (e.target.id === "edWk" && D) D.week = e.target.value.trim().slice(0, 20); });
 $("vList").addEventListener("click", e => {
+  const ed = e.target.closest("button[data-edit]");
+  if (ed) { const v = V.find(x => x.id === ed.dataset.edit); D = JSON.parse(JSON.stringify({ week: v.week, days: v.days, open: v.open })); vEdit = v.id; renderVerlauf(); return; }
+  if (e.target.closest("button[data-edno]")) { vEdit = null; D = null; renderVerlauf(); return; }
+  const ey = e.target.closest("button[data-edyes]");
+  if (ey) {
+    const i = V.findIndex(x => x.id === ey.dataset.edyes); if (i < 0) return;
+    const old = V[i], v = Object.assign({}, old, { week: D.week, days: D.days, open: D.open, edited: new Date().toISOString() });
+    if (old.base == null) v.base = sig(old);
+    const t = listTotals(v.days.flat().concat(v.open)); v.n = t.n; v.kg = t.kg;
+    V[i] = v;
+    if (!saveV()) { V[i] = old; ey.closest(".vd").querySelector(".note").textContent = "Speichern hat nicht geklappt, der Speicher ist voll."; return; }
+    fromBrain(v.id); toBrain(v); vEdit = null; D = null; renderVerlauf(); updBadges();
+    const m = document.querySelector(`.vh[data-id="${v.id}"] .vd>.note`); if (m) m.textContent = "Bericht gespeichert.";
+    return;
+  }
+  const up = e.target.closest("button[data-upd]");
+  if (up) {
+    const r = refreshV(up.dataset.upd); renderVerlauf();
+    const m = document.querySelector(`.vh[data-id="${up.dataset.upd}"] .vd>.note`);
+    if (m) m.textContent = { neu: "Aktualisiert: Zahlen aus der jetzigen Liste übernommen.", gleich: "Schon aktuell, nichts geändert.", leer: "Nichts zu aktualisieren, die Liste ist leer.", fehler: "Aktualisieren hat nicht geklappt, der Speicher ist voll." }[r];
+    return;
+  }
   const cp = e.target.closest("button[data-copy]");
   if (cp) {
     const v = V.find(x => x.id === cp.dataset.copy), m = cp.closest(".vd").querySelector(".note");
@@ -703,7 +850,7 @@ $("vList").addEventListener("click", e => {
     vOpen = null; renderVerlauf(); updBadges(); return;
   }
   const b = e.target.closest(".vh>button"); if (!b) return;
-  const id = b.closest(".vh").dataset.id; vOpen = vOpen === id ? null : id; renderVerlauf();
+  const id = b.closest(".vh").dataset.id; vOpen = vOpen === id ? null : id; vEdit = null; D = null; renderVerlauf();
 });
 const keepMsg = { neu: "Im Verlauf gesichert.", gleich: "Diese Liste ist schon im Verlauf.", leer: "Keine Chargen, nichts zu sichern.", fehler: "Sichern hat nicht geklappt, der Speicher ist voll." };
 $("keepBtn").addEventListener("click", () => msg(keepMsg[keep()]));
@@ -711,7 +858,7 @@ $("keepBtn").addEventListener("click", () => msg(keepMsg[keep()]));
 function clearList(withKeep) {
   const r = withKeep ? keep() : "aus"; if (r === "fehler") return r;
   S.sorts.forEach(s => { s.totalG = 0; s.unsure = false; });
-  S.assign = {}; S.adj = {}; S.warn = ""; S.rep = null; S.source = "cleared";
+  S.assign = {}; S.adj = {}; S.warn = ""; S.rep = null; S.source = "cleared"; S.vId = null; S.order = null;
   save(); renderListe(); renderZahlen(); return r;
 }
 $("clearBtn").addEventListener("click", () => { $("clearAsk").hidden = false; msg(""); $("clearYes").focus({ preventScroll: true }); $("clearAsk").scrollIntoView({ block: "center" }); });
@@ -761,7 +908,7 @@ function applyImport(res, source) {
   const clean = all.filter(r => !ignored(r.name));
   const byName = new Map(S.sorts.map(s => [s.name.toLowerCase(), s]));
   S.sorts = clean.map(r => { const o = byName.get(r.name.toLowerCase()); return { id: o?.id || newId(), size: o?.size === 3 ? 3 : 5, ...r }; });
-  S.assign = {}; S.adj = {}; S.source = source;
+  S.assign = {}; S.adj = {}; S.source = source; S.vId = null; S.order = null;
   S.week = res.woche ? String(res.woche).slice(0, 20) : "KW " + isoWeek(new Date(Date.now() - 6 * 864e5));
   S.warn = "";  // Hinweise zu Gesamtmenge und unsicheren Werten rechnet liveWarn() laufend neu
   S.rep = { g: typeof res.gesamt_kg === "number" ? Math.round(res.gesamt_kg * 1000) : null, ign: totAll - S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0) };
