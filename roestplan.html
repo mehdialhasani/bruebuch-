@@ -649,13 +649,27 @@ function snapshot() {
     sorts: S.sorts.filter(s => Core.soldGrams(s) > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: s.size })),
     soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open, dn: [0, 1, 2].map(d => dn(d)) };
 }
+/* Gemeinsames Gehirn (Schlüssel gehirn.v1, alle Apps): gesicherte Listen = geröstete Mengen pro Woche. Gleiche Woche nochmal gesichert = korrigierte Mengen, die neueste zählt. */
+const GK = "gehirn.v1";
+const gLoad = () => { try { const g = JSON.parse(localStorage.getItem(GK)); return g && typeof g === "object" ? g : { v: 1 }; } catch (_) { return { v: 1 }; } };
+const gSave = g => { try { localStorage.setItem(GK, JSON.stringify(g)); return true; } catch (_) { return false; } };
+function toBrain(v) {
+  const g = gLoad(), roh = {};
+  v.days.flat().concat(v.open).forEach(x => { roh[x.name] = (roh[x.name] || 0) + x.kgs.reduce((a, k) => a + k, 0); });
+  const kw = parseInt(String(v.week || "").replace(/[^0-9]+/g, " ").trim().split(" ")[0], 10) || null;
+  g.geroestet = (Array.isArray(g.geroestet) ? g.geroestet : []).filter(x => !(v.week && x.week === v.week));
+  g.geroestet.unshift({ id: v.id, at: v.at, week: v.week, kw, y: new Date(v.at).getFullYear(), loss: v.loss,
+    sorten: v.sorts.map(x => ({ name: x.name, planG: x.totalG, rohKg: roh[x.name] || 0 })) });
+  g.geroestet = g.geroestet.slice(0, 260); gSave(g);
+}
+function fromBrain(id) { const g = gLoad(); if (!Array.isArray(g.geroestet)) return; g.geroestet = g.geroestet.filter(x => x.id !== id); gSave(g); }
 const sig = v => JSON.stringify([v.week, v.loss, v.extra, v.sorts, v.days, v.open]);
 // Sichert die aktuelle Liste; gleiche Liste wie der letzte Eintrag wird nicht doppelt gespeichert. Rückgabe: "neu", "gleich", "leer" oder "fehler".
 function keep() {
   const v = snapshot(); if (!v) return "leer";
   if (V.length && sig(V[0]) === sig(v)) return "gleich";
   V.unshift(v); if (!saveV()) { V.shift(); return "fehler"; }
-  updBadges(); return "neu";
+  toBrain(v); updBadges(); return "neu";
 }
 const dateFmt = iso => { const d = new Date(iso), o = { weekday: "short", day: "numeric", month: "short" }; if (d.getFullYear() !== new Date().getFullYear()) o.year = "numeric"; return d.toLocaleDateString("de-DE", o) + ", " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); };
 let vOpen = null;
@@ -685,6 +699,7 @@ $("vList").addEventListener("click", e => {
     const i = V.findIndex(x => x.id === dy.dataset.delyes); if (i < 0) return;
     const [gone] = V.splice(i, 1);
     if (!saveV()) { V.splice(i, 0, gone); dy.closest(".vd").querySelector(".note").textContent = "Löschen hat nicht geklappt."; return; }
+    fromBrain(gone.id);
     vOpen = null; renderVerlauf(); updBadges(); return;
   }
   const b = e.target.closest(".vh>button"); if (!b) return;

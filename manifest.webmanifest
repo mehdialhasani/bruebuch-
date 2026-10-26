@@ -1,7 +1,7 @@
 {
   "name": "Laden",
   "short_name": "Laden",
-  "description": "Tagesabschluss, Röstplan, Brühbuch und Verkauf",
+  "description": "Tagesabschluss, Röstplan, Brühbuch, Verkauf und Abpackhilfe",
   "lang": "de",
   "start_url": "./",
   "scope": "./",

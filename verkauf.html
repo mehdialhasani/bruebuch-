@@ -198,6 +198,16 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
 @media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
 @media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+/* Vorhergesagt vs. verkauft (laden-v13) */
+.cmp{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.cmp th{font-size:12px;color:var(--muted);font-weight:600;text-align:right;padding:4px 6px;border-bottom:1px solid var(--line)}
+.cmp th:first-child,.cmp td:first-child{text-align:left;padding-left:0}
+.cmp td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--grid)}
+.cmp tr.nach td{color:var(--muted)}
+.cmp tr.wait td{color:var(--ink2);font-style:italic}
+.cmp .dv{display:inline-block;min-width:54px;padding:1px 7px;border-radius:99px;font-size:12.5px;font-weight:600;background:var(--grid);color:var(--ink2)}
+.cmp .dv.ok{background:var(--good-soft);color:var(--good)}.cmp .dv.far{background:var(--warn-soft);color:var(--warn)}
+.cmp small{display:block;font-size:11px;color:var(--muted);font-style:normal}
 </style>
 </head><body>
 
@@ -283,6 +293,13 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
     <p class="say" id="pSay"></p>
     <div class="chart" id="pChart"></div>
     <div class="legend" id="pLeg"></div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Vorhergesagt vs. verkauft</h2><span class="hint" id="cmpCap"></span></div>
+    <p class="say" id="cmpSay" style="margin:0"></p>
+    <div id="cmp" style="overflow-x:auto"></div>
+    <p class="hint">Jedes Mal, wenn ein neuer Bericht da ist, hält die App die Prognose für die nächste Woche fest. Kommt deren Bericht, steht hier der Vergleich. Grau = nachgerechnet aus alten Wochen, bevor festgehalten wurde.</p>
   </div>
 
   <section aria-label="Indikatoren"><div class="lbl" style="margin:0 2px 8px">Indikatoren · antippen für die Erklärung</div><div class="ind" id="ind"></div></section>
@@ -469,6 +486,29 @@ function forecast(vals,h=1){const pts=vals.map((v,i)=>[i,v]).filter(p=>p[1]!=nul
   const lastI=vals.length-1,out=[];for(let k=1;k<=h;k++)out.push(Math.max(0,base+sl*.5*(k+(lastI-l6[l6.length-1][0]))));return out}
 function backtest(vals){let e=0,n=0;for(let i=vals.length-6;i<vals.length;i++){if(vals[i]==null||!vals[i])continue;const f=forecast(vals.slice(0,i),1);if(!f)continue;e+=Math.abs(f[0]-vals[i])/vals[i];n++}return n?e/n:null}
 const series=k=>M.all.map(w=>M.has(w)?kgW(w,k):null);
+/* Gemeinsames Gehirn (Schlüssel gehirn.v1, alle Apps): Verkauf hält hier die Prognose jeder neuen Woche fest, damit sie später mit dem echten Bericht verglichen werden kann */
+const GK="gehirn.v1";
+const gLoad=()=>{try{const g=JSON.parse(localStorage.getItem(GK));return g&&typeof g==="object"?g:{v:1}}catch(e){return{v:1}}};
+const gSave=g=>{try{localStorage.setItem(GK,JSON.stringify(g));return true}catch(e){return false}};
+const r2=v=>Math.round(v*100)/100;
+// Festhalten: einmal pro Woche, danach nie überschrieben (Prognose im Normalfall)
+function freeze(){if(!M||M.last==null)return;const kw=M.last+1,key=D.year+"-"+kw,g=gLoad();g.prognosen=g.prognosen||{};if(g.prognosen[key])return;
+  const s={};M.sorts.filter(x=>!x.ended&&x.lastW!=null).forEach(x=>{const f=fc2(series(x.key),1);if(f)s[x.key]={n:x.name,kg:r2(f[0].v)}});
+  const fa=fc2(series("__all"),1);if(!fa)return;g.prognosen[key]={y:D.year,kw,at:new Date().toISOString(),basis:M.last,all:r2(fa[0].v),s};gSave(g)}
+function renderCmp(k){
+  const P=(gLoad().prognosen)||{},vals=series(k),rows=[],have=new Set();
+  Object.values(P).filter(p=>p&&p.y===D.year).sort((a,b)=>b.kw-a.kw).forEach(p=>{const pred=k==="__all"?p.all:(p.s&&p.s[k]?p.s[k].kg:null);if(pred==null)return;
+    have.add(p.kw);rows.push(M.has(p.kw)?{kw:p.kw,pred,act:kgW(p.kw,k),t:"fest",at:p.at}:p.kw>M.last?{kw:p.kw,pred,t:"wait",at:p.at}:{kw:p.kw,pred,t:"fehlt"})});
+  // Nachgerechnet: die letzten 6 Berichtswochen ohne festgehaltene Prognose, nur mit den Wochen davor geschätzt
+  let n=0;for(let i=vals.length-1;i>=0&&n<6;i--){const w=M.all[i];if(vals[i]==null||have.has(w))continue;const f=fc2(vals.slice(0,i),1);if(!f)continue;rows.push({kw:w,pred:f[0].v,act:vals[i],t:"nach"});n++}
+  rows.sort((a,b)=>b.kw-a.kw);
+  const done=rows.filter(r=>r.act!=null&&r.act>0),fest=done.filter(r=>r.t==="fest"),use=fest.length>=3?fest:done;
+  const err=use.length?use.reduce((a,r)=>a+Math.abs(r.pred-r.act)/r.act,0)/use.length:null,under=use.filter(r=>r.pred<r.act).length;
+  $("cmpCap").textContent=fest.length?`festgehalten: ${fest.length} ${fest.length===1?"Woche":"Wochen"}`:"festgehalten ab dieser Woche";
+  $("cmpSay").innerHTML=err==null?"Noch kein Vergleich möglich.":`${k==="__all"?"Alle Sorten":esc(nameOf(k))}: Die Prognose lag ${fest.length>=3?"":"(nachgerechnet) "}im Schnitt <b>${Math.round(err*100)} % daneben</b>, ${under>use.length/2?`meist <b>zu niedrig</b> (${under} von ${use.length} Wochen)`:under<use.length/2?`meist <b>zu hoch</b> (${use.length-under} von ${use.length} Wochen)`:"mal drüber, mal drunter"}.`;
+  const dv=r=>{if(r.act==null||!r.act)return"–";const d=(r.pred-r.act)/r.act,a=Math.abs(d);return`<span class="dv ${a<.1?"ok":a>.25?"far":""}">${d>=0?"+":"−"}${Math.round(a*100)} %</span>`};
+  $("cmp").innerHTML=rows.length?`<table class="cmp"><thead><tr><th>Woche</th><th>Prognose</th><th>Verkauft</th><th>Abw.</th></tr></thead><tbody>${rows.map(r=>`<tr class="${r.t==="nach"?"nach":r.t==="wait"?"wait":""}"><td>KW ${r.kw}${r.t==="wait"?`<small>festgehalten ${new Date(r.at).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}</small>`:r.t==="nach"?"<small>nachgerechnet</small>":r.t==="fehlt"?"<small>Bericht fehlt</small>":""}</td><td>${f1(r.pred)} kg</td><td>${r.t==="wait"?"wartet":r.act==null?"–":f1(r.act)+" kg"}</td><td>${r.t==="wait"?"":dv(r)}</td></tr>`).join("")}</tbody></table>`:"";
+}
 
 /* ---------- Zustand ---------- */
 let N=1,end=null,sel="__all",sortBy="menge";
@@ -741,7 +781,7 @@ function renderP(){
   $("pLeg").innerHTML=`<span><i class="sw" style="height:0;border-top:2px solid var(--accent);border-radius:0"></i>verkauft</span><span><i class="sw" style="height:0;border-top:2px dashed var(--accent);border-radius:0"></i>${sz==="lo"?"vorsichtig":sz==="hi"?"gut":"normal"}</span><span><i class="sw" style="background:var(--accent);opacity:.25"></i>üblicher Bereich</span>`;
   // Indikatoren
   $("ind").innerHTML=indicators(k).map(x=>`<button class="ic${openInd===x.id?" open":""}" data-ind="${x.id}"><span class="k">${x.k}</span><span class="n">${x.n}</span>${x.s}<small>${x.t}</small><span class="how">${x.how}</span></button>`).join("");
-  months3(k,vals);outlook();
+  months3(k,vals);outlook();renderCmp(k);
 }
 
 // Monate: letzte 3 echte + nächste 3 geschätzte, kg pro Monat
@@ -812,7 +852,7 @@ function head(){
 }
 function kurz(){try{const rep=M.all.filter(M.has),t=w=>kgW(w,"__all"),a=avgL(rep.slice(-4).map(t)),p=avgL(rep.slice(-8,-4).map(t));
   localStorage.setItem("verkauf.kurz",JSON.stringify({kw:M.last,avg:Math.round(a*10)/10,d:p>0?Math.round((a-p)/p*100):null}))}catch(e){}}
-function all(){derive();head();kurz();if(end==null||end>M.months.length-1)end=M.months.length-1;render()}
+function all(){derive();head();kurz();freeze();if(end==null||end>M.months.length-1)end=M.months.length-1;render()}
 
 /* ---------- Hochladen: Berichte einlesen, nach KW einordnen, nichts doppelt ---------- */
 function merge(r,fname,log){

@@ -1,0 +1,372 @@
+<!doctype html>
+<html lang="de"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Abpackhilfe</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<link rel="icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Laden">
+<meta name="theme-color" content="#F3EEE7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
+<style>
+/* Abpackhilfe (Laden-App, 5. Funktion): Silos mit Stand, Eigenbedarf, vorgeplante Chargen; Crema und Glasleiste wie Verkauf */
+:root{
+  --bg:#F3EEE7; --paper:#FBF8F3; --ink:#2B211B; --ink2:#5E5047; --muted:#7A6A5D; --line:#E3D9CC; --grid:#EAE2D7;
+  --accent:#8A5A3B; --accent-ink:#FFFFFF; --accent-soft:#EEDFD0;
+  --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
+  --good:#5B7A3E; --good-soft:#E6EEDB; --warn:#9A6200; --warn-soft:#FBEFD6;
+  --hatch:rgba(122,106,93,.22); --shadow:rgba(60,40,25,.18); --bar:rgba(250,247,243,.94);
+  --f:"Helvetica Neue",Helvetica,Arial,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#17120F; --paper:#211A16; --ink:#EFE7DF; --ink2:#CBBEB2; --muted:#AD9E91; --line:#3A2F28; --grid:#2F2621;
+  --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good:#A9C88A; --good-soft:#26301C; --warn:#E5B35A; --warn-soft:#3A2E17;
+  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#17120F; --paper:#211A16; --ink:#EFE7DF; --ink2:#CBBEB2; --muted:#AD9E91; --line:#3A2F28; --grid:#2F2621;
+  --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
+  --s1:#3987e5; --s2:#d95926; --s3:#199e70;
+  --good:#A9C88A; --good-soft:#26301C; --warn:#E5B35A; --warn-soft:#3A2E17;
+  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94); color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f);-webkit-font-smoothing:antialiased}
+.wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px calc(110px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
+h1{font:700 32px/1.05 var(--f);margin:0;letter-spacing:-.02em}
+h2{font:600 17px/1.25 var(--f);margin:0;text-wrap:balance}
+.sub{color:var(--muted);font-size:14px;margin:3px 0 0}
+.hint{font-size:14px;color:var(--muted);margin:0}
+.lbl{font-size:12px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.card{background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+button{font:600 15px var(--f);border-radius:11px;border:1px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;cursor:pointer;min-height:44px}
+button.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+button:focus-visible,label:focus-within{outline:2px solid var(--accent);outline-offset:2px}
+.seg{display:flex;background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:3px;gap:2px}
+.seg button{flex:1;border:0;background:transparent;font-weight:500;font-size:14px;min-height:40px;padding:4px 6px;border-radius:9px;color:var(--muted);line-height:1.2}
+.seg button small{display:block;font-size:11px;font-weight:500;opacity:.8}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--ink);font-weight:600}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips.one{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 -4px;padding:0 4px 4px}.chips.one button{flex:0 0 auto;white-space:nowrap}
+.chips button{min-height:36px;padding:4px 12px;border-radius:99px;font-size:14px;font-weight:500;color:var(--ink2)}
+.chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.chips button i{display:inline-block;width:10px;height:10px;border-radius:99px;margin-right:6px;vertical-align:0}
+.up{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.up label{display:inline-flex;align-items:center;min-height:44px;padding:8px 14px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;font-size:15px;cursor:pointer}
+.up input{position:absolute;opacity:0;width:1px;height:1px}
+.log{font-size:13px;color:var(--ink2);display:flex;flex-direction:column;gap:2px;font-variant-numeric:tabular-nums}
+details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
+.wl{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:4px 12px;font-size:13px;font-variant-numeric:tabular-nums}
+.wl span.v{color:var(--warn)}.wl span.m{color:var(--muted)}
+.notes{font-size:13px;color:var(--ink2);margin:0;padding-left:18px;display:flex;flex-direction:column;gap:4px}
+.chart{position:relative;width:100%}
+.chart svg{display:block;width:100%;height:auto;overflow:visible}
+.chart text{font:11px var(--f);fill:var(--muted)}
+.tip{position:absolute;pointer-events:none;background:var(--ink);color:var(--paper);font-size:12px;line-height:1.35;padding:6px 9px;border-radius:8px;white-space:nowrap;transform:translate(-50%,-100%);margin-top:-10px;font-variant-numeric:tabular-nums;z-index:3}
+.tip b{font-weight:600}
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
+:root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
+:root[data-theme=dark]{--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}
+.lgx{position:fixed;left:50%;right:auto;bottom:max(14px,env(safe-area-inset-bottom));transform:translateX(-50%);width:calc(100% - 32px);max-width:380px;z-index:40;display:flex;gap:2px;padding:4px;border:0;border-radius:999px;isolation:isolate;overflow:visible;
+ background:var(--lgx-solid);-webkit-backdrop-filter:none;backdrop-filter:none;box-shadow:inset 0 1px 0 var(--lgx-hl),0 0 0 .5px var(--lgx-edge),0 16px 40px -18px rgba(40,25,10,.45)}
+.lgx .in{display:flex;gap:2px;flex:1;min-width:0}
+.lgx button{position:relative;z-index:2;flex:1;max-width:none;min-width:0;min-height:52px;padding:4px 0;border:0;border-radius:999px;background:none!important;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;font-weight:600;line-height:1.2;color:var(--ink2,var(--muted));transition:color .25s,transform .35s cubic-bezier(.3,1.6,.5,1);touch-action:none}
+.lgx button svg{width:24px;height:24px;margin:0}
+.lgx button[aria-selected="true"]{color:var(--accent)}
+.lgx button.lgx-near{transform:scale(1.06)}
+.lgx-th{position:absolute;z-index:1;left:0;top:0;border-radius:999px;pointer-events:none;will-change:transform;box-shadow:var(--lgx-thumb-sh);transform-origin:50% 50%}
+.lgx-th::before{content:"";position:absolute;inset:0;border-radius:inherit;background:radial-gradient(120% 90% at var(--hx,30%) 0%,rgba(255,255,255,.95),rgba(255,255,255,0) 55%);opacity:var(--ho,.55);mix-blend-mode:soft-light}
+.lgx-th::after{content:"";position:absolute;inset:0;border-radius:inherit;box-shadow:inset 0 0 0 1px rgba(255,255,255,var(--ro,0)),0 10px 26px -8px rgba(40,25,10,var(--so,0))}
+.lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
+@media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
+@media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+/* ---------- Abpackhilfe: Silos (Eigenbedarf) ---------- */
+.sg{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (min-width:640px){.sg{grid-template-columns:repeat(4,1fr)}}
+.silo{position:relative;text-align:left;display:flex;flex-direction:column;gap:6px;padding:14px 14px 12px;border-radius:16px;min-height:0;font-weight:400;background:var(--paper);border:1px solid var(--line)}
+.silo[aria-expanded="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.silo .nm{font-weight:600;font-size:15px;line-height:1.2;padding-right:30px}
+.silo .so{font-size:12px;color:var(--muted);margin-top:-4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.silo .kg{font:700 28px/1 var(--f);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.silo .kg small{font-size:14px;font-weight:600;color:var(--muted);margin-left:3px}
+.silo .ln{font-size:12.5px;color:var(--ink2);line-height:1.35}
+.silo .ln.w{color:var(--warn)}
+.gauge{position:absolute;right:12px;top:14px;width:18px;height:44px;border-radius:5px 5px 7px 7px;border:1.5px solid var(--line);overflow:hidden;background:var(--bg)}
+.gauge i{position:absolute;left:0;right:0;bottom:0;background:var(--accent);opacity:.85;transition:height .4s}
+.gauge b{position:absolute;left:0;right:0;border-top:1.5px dashed var(--accent);opacity:.7}
+@media (prefers-reduced-motion:reduce){.gauge i{transition:none}}
+.add{border-style:dashed;background:transparent;color:var(--muted);font-weight:500}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.acts button[aria-pressed="true"]{background:var(--accent-soft);border-color:var(--accent)}
+.form{display:flex;flex-direction:column;gap:10px;padding:12px;border-radius:12px;background:var(--bg)}
+.form label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+.form input,.form select{font:16px var(--f);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+.form .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.form .say{font-size:14px;color:var(--ink2);margin:0}
+.form .btns{display:flex;gap:8px;justify-content:flex-end}
+.chips.q button{min-height:34px}
+.pl{display:flex;flex-direction:column;gap:6px}
+.pi{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+.pi .t{flex:1;min-width:0;font-size:14px}.pi .t b{font-variant-numeric:tabular-nums}.pi .t small{display:block;color:var(--muted);font-size:12px}
+.pi button{min-height:36px;padding:4px 10px;font-size:13px}
+.tb{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.tb th{font-size:12px;color:var(--muted);font-weight:600;text-align:right;padding:4px 6px;border-bottom:1px solid var(--line)}
+.tb th:first-child,.tb td:first-child{text-align:left;padding-left:0}
+.tb td{text-align:right;padding:8px 6px;border-bottom:1px solid var(--grid)}
+.tb tr.sum td{font-weight:600;border-bottom:0}
+.soon{border:1px dashed var(--line);border-radius:16px;padding:14px 16px;color:var(--muted);font-size:14px;display:flex;gap:10px;align-items:center}
+.soon b{color:var(--ink2)}
+.soon svg{flex:none;width:22px;height:22px}
+.vk{display:flex;flex-direction:column;gap:2px}
+.vk h3{font:600 13px var(--f);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:12px 2px 4px}
+.ve{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-bottom:6px}
+.ve .t{flex:1;min-width:0;font-size:14px}.ve .t small{display:block;color:var(--muted);font-size:12px}
+.ve .v{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.ve .v.p{color:var(--good)}.ve .v.m{color:var(--ink2)}
+.ve button{min-height:36px;padding:4px 10px;font-size:13px}
+.ask{background:var(--warn-soft);border-radius:12px;padding:10px 12px;font-size:14px;display:flex;flex-direction:column;gap:8px;margin:-2px 0 8px}
+.ask .btns{display:flex;gap:8px;justify-content:flex-end}
+.msg{min-height:1.2em;color:var(--accent);font-size:14px;margin:0}
+.empty{color:var(--muted);font-size:14px;text-align:center;padding:18px 8px}
+</style>
+</head><body>
+
+<div class="wrap" id="pgS">
+  <div><h1>Abpackhilfe</h1><p class="sub" id="sCover">Silos · Stand und Eigenbedarf</p></div>
+  <div class="sg" id="sg"></div>
+  <div class="card" id="det" hidden></div>
+  <p class="msg" id="msg" role="status"></p>
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Eigenbedarf</h2><span class="hint" id="eCap"></span></div>
+    <div class="chart" id="eChart"></div>
+    <div id="eTab"></div>
+    <p class="hint">Eigenbedarf entsteht aus dem Stand: Was seit dem letzten Stand weniger geworden ist und nicht in Tüten abgefüllt wurde, ist verbraucht. Direkt gebuchter Eigenbedarf zählt dazu.</p>
+  </div>
+  <div class="soon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M10 13h4"/></svg><span><b>Abpackliste kommt bald.</b> Tüten pro Sorte aus dem Lightspeed-Bericht, hier in derselben Kachel.</span></div>
+</div>
+
+<div class="wrap" id="pgV" hidden>
+  <div><h1>Verlauf</h1><p class="sub">Alle Buchungen der Silos, neueste oben</p></div>
+  <div class="vk" id="vk"></div>
+</div>
+
+<nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
+  <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
+  <button role="tab" data-pg="S" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v13a5 5 0 0 1-10 0z"/><path d="M7 11h10"/><path d="M12 22v-1"/></svg>Silos</button>
+  <button role="tab" data-pg="V" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>Verlauf</button>
+</div></nav>
+<script>
+/* ---------- Glasleiste unten wie im Brühbuch/Atlas v139: Linse gleitet federnd, ziehbar, Schimmer ---------- */
+(function(){
+ var bar=document.querySelector(".lgx");if(!bar)return;
+ var reduce=matchMedia("(prefers-reduced-motion: reduce)").matches,cl=function(v,a,b){return Math.max(a,Math.min(b,v))};
+ var DK=function(){var t=document.documentElement.getAttribute("data-theme");return t?t=="dark":matchMedia("(prefers-color-scheme: dark)").matches};
+ var th=document.createElement("i");th.className="lgx-th";bar.prepend(th);
+ var L=[].slice.call(bar.querySelectorAll("button"));
+ var x=0,y=0,w=0,h=0,vx=0,tx=0,ty=0,tw=0,thh=0,press=0,raf=0,drag=false,hl=30,first=true,last=0,pid=null,sx0=0,moved=false;
+ function target(){return L.filter(function(l){return l.getAttribute("aria-selected")=="true"})[0]||L[0]}
+ function setT(lb){tx=lb.offsetLeft;ty=lb.offsetTop;tw=lb.offsetWidth;thh=lb.offsetHeight;if(first||reduce){x=tx;y=ty;w=tw;h=thh;first=false;draw()}kick()}
+ function draw(){var st=Math.min(Math.abs(vx)/900,.32),p=1+press*.14,dk=DK();
+  th.style.width=w+"px";th.style.height=h+"px";th.style.transform="translate("+x.toFixed(2)+"px,"+y+"px) scale("+((1+st)*p).toFixed(3)+","+((1-st*.55)*p).toFixed(3)+")";
+  hl+=((50-cl(vx/18,-40,40))-hl)*.2;th.style.setProperty("--hx",hl.toFixed(1)+"%");th.style.setProperty("--ho",(.55+press*.4+st).toFixed(2));
+  th.style.background=dk?"linear-gradient(180deg,rgba(255,255,255,"+(.30-.16*press).toFixed(2)+"),rgba(255,255,255,"+(.14-.08*press).toFixed(2)+"))":"linear-gradient(180deg,rgba(255,255,255,"+(.98-.62*press).toFixed(2)+"),rgba(255,255,255,"+(.72-.5*press).toFixed(2)+"))";
+  th.style.setProperty("--ro",(press*.7).toFixed(2));th.style.setProperty("--so",(press*.35).toFixed(2))}
+ function step(t){var dt=Math.min(.033,(t-(last||t))/1000)||.016;last=t;var k=drag?900:260,dm=drag?2*Math.sqrt(900)*.9:2*Math.sqrt(260)*.62;
+  vx+=(k*(tx-x)-dm*vx)*dt;x+=vx*dt;w+=(tw-w)*Math.min(1,dt*14);h+=(thh-h)*Math.min(1,dt*14);press+=((drag?1:0)-press)*Math.min(1,dt*12);draw();
+  if(Math.abs(tx-x)>.3||Math.abs(vx)>2||Math.abs(press-(drag?1:0))>.01)raf=requestAnimationFrame(step);else{raf=0;last=0;x=tx;vx=0;draw()}}
+ function kick(){if(reduce){x=tx;y=ty;w=tw;h=thh;press=0;draw();return}if(!raf){last=0;raf=requestAnimationFrame(step)}}
+ addEventListener("resize",function(){first=true;setT(target())});
+ function nearest(px){var b=L[0],bd=1e9,r=bar.getBoundingClientRect();L.forEach(function(l){var dd=Math.abs(px-r.left-(l.offsetLeft+l.offsetWidth/2));if(dd<bd){bd=dd;b=l}});return b}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;sx0=e.clientX;moved=false;drag=true;var lb=nearest(e.clientX);tx=lb.offsetLeft;tw=lb.offsetWidth;kick()});
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-sx0)>8&&!moved){moved=true;try{bar.setPointerCapture(pid)}catch(z){}}
+  if(!moved)return;var r=bar.getBoundingClientRect();tx=cl(e.clientX-r.left-tw/2,0,bar.offsetWidth-tw);var lb=nearest(e.clientX);L.forEach(function(l){l.classList.toggle("lgx-near",l===lb)});kick()});
+ function up(e){if(e.pointerId!==pid)return;pid=null;drag=false;L.forEach(function(l){l.classList.remove("lgx-near")});if(moved){var lb=nearest(e.clientX);lb.click()}setT(target())}
+ bar.addEventListener("pointerup",up);bar.addEventListener("pointercancel",function(e){if(e.pointerId!==pid)return;pid=null;drag=false;moved=false;setT(target())});
+ new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
+ if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
+ requestAnimationFrame(function(){setT(target())});
+})();
+</script>
+<script>
+(function(){
+/* Gemeinsames Gehirn (Schlüssel gehirn.v1): alle Apps lesen und schreiben hier. Die Abpackhilfe pflegt den Teil „silos“. Gerechnet wird nur beim Öffnen und Speichern. */
+const GK="gehirn.v1";
+const gLoad=()=>{try{const g=JSON.parse(localStorage.getItem(GK));return g&&typeof g==="object"?g:{v:1}}catch(e){return{v:1}}};
+const gSave=g=>{try{localStorage.setItem(GK,JSON.stringify(g,(k,x)=>k[0]==="_"?undefined:x));return true}catch(e){return false}};
+const $=id=>document.getElementById(id);
+const esc=s=>String(s==null?"":s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const f1=v=>(Math.round(v*10)/10).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
+const pk=s=>{const v=parseFloat(String(s).replace(",","."));return isNaN(v)?null:v};
+const iso=d=>d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+const today=()=>iso(new Date());
+const day=s=>new Date(s+"T12:00:00");
+const ddays=(a,b)=>Math.round((day(b)-day(a))/864e5);
+const dFmt=s=>day(s).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+const kwOf=s=>{const t=day(s),d=(t.getDay()+6)%7;t.setDate(t.getDate()-d+3);const y=t.getFullYear(),j=new Date(y,0,4);return{y,w:1+Math.round(((t-j)/864e5-3+((j.getDay()+6)%7))/7)}};
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+
+const START=[{id:"panea",name:"Panea Espresso",sorte:"",cap:10},{id:"igarape",name:"Igarape",sorte:"",cap:10},{id:"mogiana",name:"Mogiana",sorte:"",cap:10},{id:"m2",name:"Mühle 2",sorte:"",cap:10}];
+let G=gLoad();
+function S(){if(!G.silos||!Array.isArray(G.silos.list))G.silos={list:START.map(x=>({...x})),buch:[],plan:[]};G.silos.buch=G.silos.buch||[];G.silos.plan=G.silos.plan||[];return G.silos}
+// Vor jedem Schreiben frisch laden, damit Teile anderer Apps (Prognosen, Röstmengen) nicht überschrieben werden
+function commit(fn){const fresh=gLoad();fresh.silos=S();fn(fresh.silos);G=fresh;return gSave(G)}
+
+const T={rein:"Charge eingelagert",abf:"In Tüten abgefüllt",eigen:"Eigenbedarf",stand:"Stand eingegeben"};
+// Rechnet je Silo der Reihe nach: Stand, Verbrauch (Eigenbedarf) und Korrekturen
+function calc(id){
+  const B=S().buch.filter(b=>b.silo===id).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.n-b.n);
+  let st=0;const ev=[];
+  B.forEach(b=>{if(b.t==="rein")st+=b.kg;else if(b.t==="abf")st-=b.kg;else if(b.t==="eigen"){st-=b.kg;ev.push({d:b.d,kg:b.kg})}
+    else if(b.t==="stand"){const diff=st-b.kg;b._diff=diff;if(diff>0)ev.push({d:b.d,kg:diff});st=b.kg}b._st=st});
+  const first=B.length?B[0].d:null,span=first?Math.min(28,ddays(first,today())):0;
+  const last28=ev.filter(e=>ddays(e.d,today())<28).reduce((a,e)=>a+e.kg,0);
+  const perDay=span>=7?last28/span:null;
+  const plan=S().plan.filter(p=>p.silo===id).sort((a,b)=>a.d<b.d?-1:1),planKg=plan.reduce((a,p)=>a+p.kg,0);
+  return{st:Math.max(0,st),raw:st,ev,perWeek:perDay==null?null:perDay*7,perDay,plan,planKg,n:B.length,first,span};
+}
+const reach=(kg,perDay)=>{if(!perDay||perDay<=0)return null;const d=new Date();d.setDate(d.getDate()+Math.floor(kg/perDay));return iso(d)};
+
+let open=null,mode=null,page="S",askDel=null;
+function silo(id){return S().list.find(s=>s.id===id)}
+function render(){
+  const L=S().list;
+  $("sg").innerHTML=L.map(s=>{const c=calc(s.id),cap=s.cap||10,h=Math.min(100,c.st/cap*100),hp=Math.min(100,(c.st+c.planKg)/cap*100),r=reach(c.st,c.perDay);
+    return `<button class="silo" data-id="${esc(s.id)}" aria-expanded="${open===s.id}" aria-label="${esc(s.name)}: ${f1(c.st)} kg">
+      <span class="gauge" aria-hidden="true"><i style="height:${h}%"></i>${c.planKg?`<b style="bottom:${hp}%"></b>`:""}</span>
+      <span class="nm">${esc(s.name)}</span>${s.sorte?`<span class="so">${esc(s.sorte)}</span>`:""}
+      <span class="kg">${f1(c.st)}<small>kg</small></span>
+      <span class="ln${c.raw<0?" w":""}">${!c.n?"Noch kein Stand":c.raw<0?"Stand prüfen":c.perWeek==null?"Ø ab 7 Tagen Daten":"Ø "+f1(c.perWeek)+" kg/Woche"}</span>
+      ${r?`<span class="ln">reicht bis ${esc(dFmt(r))}</span>`:""}
+      ${c.plan.length?`<span class="ln">${c.plan.length} ${c.plan.length===1?"Charge":"Chargen"} geplant · ${f1(c.planKg)} kg</span>`:""}
+    </button>`}).join("")+`<button class="silo add" data-add="1"><span class="nm">+ Silo</span><span class="ln">z. B. für eine Gastsorte</span></button>`;
+  renderDet();renderE();
+}
+function renderDet(){
+  const d=$("det"),s=open&&silo(open);if(!s){d.hidden=true;return}
+  const c=calc(s.id),r=reach(c.st,c.perDay),r2=reach(c.st+c.planKg,c.perDay);
+  let f="";
+  if(mode==="stand"||mode==="rein"||mode==="abf"||mode==="eigen"){
+    const q=mode==="rein"?[2.5,4.2,5,10]:mode==="stand"?[]:[0.25,0.5,1,2];
+    f=`<form class="form" id="bf"><div class="row2"><label class="f">${mode==="stand"?"Stand jetzt (kg)":"Menge (kg)"}<input id="bKg" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${mode==="stand"&&c.n?f1(c.st):""}"></label>
+      <label class="f">Datum<input id="bD" type="date" value="${today()}" max="${today()}"></label></div>
+      ${q.length?`<div class="chips q">${q.map(v=>`<button type="button" data-q="${v}">${String(v).replace(".",",")} kg</button>`).join("")}</div>`:""}
+      <label class="f">Notiz (optional)<input id="bN" maxlength="60" autocomplete="off" placeholder="${mode==="rein"?"z. B. Röstdatum, Charge":"optional"}"></label>
+      <p class="say" id="bSay">${mode==="stand"?(c.n?`Bisher ${f1(c.st)} kg. Die Differenz zählt als Eigenbedarf, außer du buchst Abfüllungen extra.`:"Erster Stand: ab jetzt wird gerechnet."):mode==="abf"?"Zählt nicht als Eigenbedarf.":mode==="eigen"?"Direkt als Eigenbedarf gebucht.":"Erhöht den Stand."}</p>
+      <div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form>`;
+  }else if(mode==="plan"){
+    f=`<form class="form" id="pf"><div class="row2"><label class="f">Menge (kg)<input id="pKg" inputmode="decimal" autocomplete="off"></label><label class="f">Geplant für<input id="pD" type="date" value="${today()}"></label></div>
+      <div class="chips q">${[2.5,4.2,5,10].map(v=>`<button type="button" data-q="${v}">${String(v).replace(".",",")} kg</button>`).join("")}</div>
+      <label class="f">Notiz (optional)<input id="pN" maxlength="60" autocomplete="off" placeholder="z. B. aus Röstung Dienstag weglegen"></label>
+      <div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Vorplanen</button></div></form>`;
+  }else if(mode==="set"){
+    f=`<form class="form" id="sf"><label class="f">Name<input id="sNm" maxlength="30" value="${esc(s.name)}"></label>
+      <label class="f">Sorte darin (optional)<input id="sSo" maxlength="40" value="${esc(s.sorte||"")}" placeholder="z. B. bei Mühle 2 die aktuelle Sorte"></label>
+      <label class="f">Fassungsvermögen (kg)<input id="sCap" inputmode="decimal" value="${f1(s.cap||10)}"></label>
+      <div class="btns">${c.n||c.plan.length?"":`<button type="button" id="sDel">Silo entfernen</button>`}<button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form>`;
+  }
+  d.hidden=false;
+  d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2>${esc(s.name)}${s.sorte?` <span class="hint">· ${esc(s.sorte)}</span>`:""}</h2><button type="button" id="dX" aria-label="Schließen" style="min-height:36px;padding:2px 12px">×</button></div>
+    <p class="hint" style="margin-top:-6px">Stand ${f1(c.st)} kg${c.perWeek!=null?` · Ø ${f1(c.perWeek)} kg/Woche`:""}${r?` · reicht bis ${esc(dFmt(r))}`:""}${c.planKg&&r2?` · mit Geplantem bis ${esc(dFmt(r2))}`:""}</p>
+    <div class="acts">${[["stand","Stand eingeben"],["rein","Charge rein"],["abf","Abfüllen"],["eigen","Eigenbedarf"]].map(([m,t])=>`<button type="button" data-m="${m}" aria-pressed="${mode===m}">${t}</button>`).join("")}</div>
+    ${f}
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px"><h2 style="font-size:15px">Vorgeplante Chargen</h2><button type="button" data-m="plan" aria-pressed="${mode==="plan"}" style="min-height:36px;font-size:14px">+ Vorplanen</button></div>
+    <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t"><b>${f1(p.kg)} kg</b> · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}</span><button type="button" data-in="${p.id}">Eingelagert</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>
+    <button type="button" data-m="set" aria-pressed="${mode==="set"}" style="align-self:flex-start;min-height:36px;font-size:14px;border:0;background:none;color:var(--accent);padding:0">Silo bearbeiten</button>`;
+  const k=$("bKg")||$("pKg")||$("sNm");if(k&&mode!=="set")k.focus({preventScroll:true});
+}
+function weekKey(s){const k=kwOf(s);return k.y*100+k.w}
+function renderE(){
+  const L=S().list,C=L.map(s=>({s,c:calc(s.id)})),any=C.some(x=>x.c.ev.length);
+  // Letzte 8 Kalenderwochen, Summe über alle Silos
+  const now=new Date(),wk=[];for(let i=7;i>=0;i--){const d=new Date(now);d.setDate(d.getDate()-7*i);const s=iso(d),k=kwOf(s);wk.push({key:k.y*100+k.w,w:k.w,kg:0})}
+  C.forEach(x=>x.c.ev.forEach(e=>{const w=wk.find(z=>z.key===weekKey(e.d));if(w)w.kg+=e.kg}));
+  $("eCap").textContent=any?"letzte 8 Wochen":"";
+  if(!any){$("eChart").innerHTML="";$("eTab").innerHTML=`<p class="empty">Noch keine Daten. Gib bei jedem Silo einmal den Stand ein, beim nächsten Stand siehst du den Verbrauch.</p>`;return}
+  const W=340,H=120,mx=Math.max(1,...wk.map(w=>w.kg)),bw=W/8;
+  $("eChart").innerHTML=`<svg viewBox="0 0 ${W} ${H+18}" role="img" aria-label="Eigenbedarf pro Woche">${wk.map((w,i)=>{const h=w.kg/mx*(H-16);return `<rect x="${i*bw+6}" y="${H-h}" width="${bw-12}" height="${Math.max(h,w.kg?2:0)}" rx="4" fill="var(--accent)" opacity="${i===7?1:.75}"/>${w.kg?`<text x="${i*bw+bw/2}" y="${H-h-4}" text-anchor="middle" style="fill:var(--ink2)">${f1(w.kg)}</text>`:""}<text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle">KW ${w.w}</text>`}).join("")}</svg>`;
+  const tot=C.reduce((a,x)=>a+(x.c.perWeek||0),0),t4=x=>x.c.ev.filter(e=>ddays(e.d,today())<28).reduce((a,e)=>a+e.kg,0),all=x=>x.c.ev.reduce((a,e)=>a+e.kg,0);
+  $("eTab").innerHTML=`<table class="tb"><thead><tr><th>Silo</th><th>Ø/Woche</th><th>4 Wochen</th><th>gesamt</th></tr></thead><tbody>${C.map(x=>`<tr><td>${esc(x.s.name)}</td><td>${x.c.perWeek==null?"–":f1(x.c.perWeek)}</td><td>${f1(t4(x))}</td><td>${f1(all(x))}</td></tr>`).join("")}
+    <tr class="sum"><td>Zusammen</td><td>${f1(tot)}</td><td>${f1(C.reduce((a,x)=>a+t4(x),0))}</td><td>${f1(C.reduce((a,x)=>a+all(x),0))}</td></tr></tbody></table>`;
+}
+function renderV(){
+  const B=S().buch.slice().sort((a,b)=>a.d>b.d?-1:a.d<b.d?1:b.n-a.n);
+  if(!B.length){$("vk").innerHTML=`<p class="empty">Noch keine Buchungen.</p>`;return}
+  S().list.forEach(s=>calc(s.id));
+  let h="",cur=null;
+  B.forEach(b=>{const k=kwOf(b.d),key=k.y+"-"+k.w;if(key!==cur){cur=key;h+=`<h3>KW ${k.w}${k.y!==new Date().getFullYear()?" / "+k.y:""}</h3>`}
+    const s=silo(b.silo),v=b.t==="rein"?`<span class="v p">+${f1(b.kg)} kg</span>`:b.t==="stand"?`<span class="v m">= ${f1(b.kg)} kg</span>`:`<span class="v">−${f1(b.kg)} kg</span>`;
+    const ex=b.t==="stand"&&b._diff!=null&&Math.abs(b._diff)>=.05?(b._diff>0?` · ${f1(b._diff)} kg verbraucht`:` · ${f1(-b._diff)} kg mehr als erwartet`):"";
+    h+=`<div class="ve"><span class="t">${esc(T[b.t])} · ${esc(s?s.name:"?")}<small>${esc(dFmt(b.d))}${ex}${b.note?" · "+esc(b.note):""}</small></span>${v}<button type="button" data-del="${b.id}" aria-label="Löschen">×</button></div>`;
+    if(askDel===b.id)h+=`<div class="ask"><span>Diese Buchung löschen? Stand und Eigenbedarf werden neu gerechnet.</span><div class="btns"><button type="button" data-delno="1">Abbrechen</button><button type="button" class="primary" data-delyes="${b.id}">Löschen</button></div></div>`});
+  $("vk").innerHTML=h;
+}
+const say=t=>{$("msg").textContent=t;clearTimeout(say.t);if(t)say.t=setTimeout(()=>$("msg").textContent="",4000)};
+
+$("sg").addEventListener("click",e=>{const b=e.target.closest(".silo");if(!b)return;
+  if(b.dataset.add){let id;commit(s=>{id="s"+uid();s.list.push({id,name:"Neues Silo",sorte:"",cap:10})});open=id;mode="set";render();$("det").scrollIntoView({block:"nearest"});return}
+  open=open===b.dataset.id?null:b.dataset.id;mode=null;render();if(open)$("det").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+$("det").addEventListener("click",e=>{
+  if(e.target.closest("#dX")){open=null;mode=null;render();return}
+  const m=e.target.closest("[data-m]");if(m){mode=mode===m.dataset.m?null:m.dataset.m;renderDet();return}
+  if(e.target.closest("#bNo")){mode=null;renderDet();return}
+  const q=e.target.closest("[data-q]");if(q){const i=$("bKg")||$("pKg");i.value=String(q.dataset.q).replace(".",",");return}
+  const pi=e.target.closest("[data-in]");if(pi){const p=S().plan.find(x=>x.id===pi.dataset.in);if(!p)return;
+    commit(s=>{s.plan=s.plan.filter(x=>x.id!==p.id);s.buch.push({id:uid(),n:Date.now(),silo:p.silo,d:today(),t:"rein",kg:p.kg,note:p.note||"vorgeplant"})});say(f1(p.kg)+" kg eingelagert.");render();return}
+  const pd=e.target.closest("[data-pdel]");if(pd){commit(s=>{s.plan=s.plan.filter(x=>x.id!==pd.dataset.pdel)});render();return}
+  if(e.target.closest("#sDel")){commit(s=>{s.list=s.list.filter(x=>x.id!==open)});open=null;mode=null;render()}
+});
+$("det").addEventListener("submit",e=>{e.preventDefault();const f=e.target;
+  if(f.id==="bf"){const kg=pk($("bKg").value),d=$("bD").value||today();if(kg==null||kg<0||(mode!=="stand"&&kg===0)){$("bSay").textContent="Bitte eine Menge in kg eingeben.";return}
+    if(kg>500){$("bSay").textContent="Das sind mehr als 500 kg, bitte prüfen.";return}
+    const ok=commit(s=>s.buch.push({id:uid(),n:Date.now(),silo:open,d,t:mode,kg:Math.round(kg*1000)/1000,note:$("bN").value.trim()}));
+    if(!ok){$("bSay").textContent="Speichern hat nicht geklappt, der Speicher ist voll.";return}
+    const c=calc(open),last=S().buch[S().buch.length-1];
+    say(mode==="stand"&&last._diff>0.05?`Gespeichert. Seit dem letzten Stand ${f1(last._diff)} kg verbraucht.`:"Gespeichert.");mode=null;render()}
+  else if(f.id==="pf"){const kg=pk($("pKg").value);if(!kg||kg<=0){$("pKg").focus();return}
+    commit(s=>s.plan.push({id:uid(),silo:open,kg:Math.round(kg*1000)/1000,d:$("pD").value||today(),note:$("pN").value.trim()}));say("Vorgeplant.");mode=null;render()}
+  else if(f.id==="sf"){const nm=$("sNm").value.trim()||"Silo",cap=pk($("sCap").value);
+    commit(s=>{const x=s.list.find(y=>y.id===open);x.name=nm;x.sorte=$("sSo").value.trim();x.cap=cap&&cap>0?cap:10});mode=null;render()}
+});
+$("vk").addEventListener("click",e=>{
+  const d=e.target.closest("[data-del]");if(d){askDel=askDel===d.dataset.del?null:d.dataset.del;renderV();return}
+  if(e.target.closest("[data-delno]")){askDel=null;renderV();return}
+  const y=e.target.closest("[data-delyes]");if(y){commit(s=>{s.buch=s.buch.filter(b=>b.id!==y.dataset.delyes)});askDel=null;renderV();render()}
+});
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(!b)return;page=b.dataset.pg;
+  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));$("pgS").hidden=page!=="S";$("pgV").hidden=page!=="V";scrollTo(0,0);if(page==="V")renderV();else render()});
+// Kachel auf der Übersicht: kurzer Stand
+function kurz(){try{const L=S().list.map(s=>({s,c:calc(s.id)})),st=L.reduce((a,x)=>a+x.c.st,0),pw=L.reduce((a,x)=>a+(x.c.perWeek||0),0),n=L.reduce((a,x)=>a+x.c.n,0);
+  localStorage.setItem("abpack.kurz",JSON.stringify({st:Math.round(st*10)/10,pw:L.some(x=>x.c.perWeek!=null)?Math.round(pw*10)/10:null,n}))}catch(e){}}
+const _r=render;render=function(){_r();kurz()};
+if(!G.silos){commit(()=>{})}
+render();
+})();
+</script>
+<style>
+.lgx-home svg{transition:transform .5s linear}
+.lgx-home.lgx-arm svg{transform:scale(1.25)}
+.lgx-home.lgx-ready{color:var(--accent)!important}
+@media (prefers-reduced-motion:reduce){.lgx-home svg{transition:none}.lgx-home.lgx-arm svg{transform:none}}
+</style>
+<script>
+(function(){
+ var HOLD=500,home=document.querySelector(".lgx-home");if(!home)return;var bar=home.closest("nav");if(!bar)return;
+ var pid=null,x0=0,moved=false,t=null,armed=false,ready=false,block=false;
+ function isHome(px){var b=null,bd=1e9;[].forEach.call(bar.querySelectorAll("button"),function(l){var r=l.getBoundingClientRect(),d=Math.abs(px-(r.left+r.width/2));if(d<bd){bd=d;b=l}});return b===home}
+ function reset(){clearTimeout(t);t=null;armed=ready=false;home.classList.remove("lgx-arm","lgx-ready")}
+ bar.addEventListener("pointerdown",function(e){pid=e.pointerId;x0=e.clientX;moved=false;block=false;reset()},true);
+ bar.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;if(Math.abs(e.clientX-x0)>8)moved=true;if(!moved)return;
+  if(isHome(e.clientX)){if(!armed){armed=true;home.classList.add("lgx-arm");t=setTimeout(function(){ready=true;home.classList.add("lgx-ready");try{navigator.vibrate&&navigator.vibrate(12)}catch(z){}},HOLD)}}else reset()},true);
+ bar.addEventListener("pointerup",function(e){if(e.pointerId!==pid)return;pid=null;if(moved&&isHome(e.clientX)&&!ready)block=true;reset()},true);
+ bar.addEventListener("pointercancel",function(){pid=null;reset()},true);
+ window.lgxHomeOk=function(){var b=block;block=false;return !b};
+})();
+</script>
+<script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
+</body></html>

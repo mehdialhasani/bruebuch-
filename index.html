@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#F3EEE7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
 <style>
-/* Startseite: Bildkacheln (Tagesabschluss, Röstplan, Brühbuch, Verkauf) + Platzhalter Abpackhilfe im Farbschema Crema, ganz in Helvetica Neue */
+/* Startseite: Bildkacheln (Tagesabschluss, Röstplan, Brühbuch, Verkauf) + kleine Kachel Abpackhilfe (Silos) im Farbschema Crema, ganz in Helvetica Neue */
 :root{
   --bg:#F3EEE7; --paper:#FBF8F3; --ink:#2B211B; --muted:#7A6A5D; --line:#E3D9CC;
   --accent:#8A5A3B; --shadow:rgba(60,40,25,.13);
@@ -79,6 +79,9 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   .foot{margin-top:12px}
 }
 /* Kachel 4 Verkauf: Balken wachsen, Trend zeichnet sich, Prognose-Punkt pulsiert. Platzhalter Abpackhilfe: flach, gestrichelt */
+.tile.mini .ico{color:var(--accent)}
+@media (min-width:900px){.tile.mini{grid-column:1/-1}}
+@media (max-width:899px){.tile.mini{flex:none;min-height:0}.tile.mini .meta{padding:9px 14px 9px 12px}}
 .tile.soon{border-style:dashed;box-shadow:none;background:transparent;cursor:default}
 .tile.soon:active{transform:none}
 .ico{flex:none;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;background:var(--paper);color:var(--muted);border:1px solid var(--line)}
@@ -294,9 +297,9 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       </svg>
       <div class="meta"><div><h2 id="t4">Verkauf</h2><p id="s4">Verlauf · Vergleich · Prognose</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-    <div class="tile soon" aria-labelledby="t5" aria-disabled="true">
-      <div class="meta"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M10 13h4"/></svg></span><div><h2 id="t5">Abpackhilfe</h2><p>Tüten und Kisten planen</p></div><span class="soonb">Kommt bald</span></div>
-    </div>
+    <a class="tile mini" href="abpackhilfe.html" aria-labelledby="t5">
+      <div class="meta"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v13a5 5 0 0 1-10 0z"/><path d="M7 11h10"/><path d="M12 22v-1"/></svg></span><div><h2 id="t5">Abpackhilfe</h2><p id="s5">Silos · Eigenbedarf</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+    </a>
   </div>
 
   <p class="foot">Alle Daten bleiben auf diesem Handy. <span class="bk"><button type="button" id="bkSave">Sichern</button>·<label>Laden<input type="file" id="bkIn" accept=".json,application/json"></label></span></p>
@@ -351,8 +354,11 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   const vk = get("verkauf.kurz");
   if (vk && vk.kw) document.getElementById("s4").innerHTML = "<b>KW " + (vk.kw | 0) + "</b> · Ø " + Number(vk.avg).toLocaleString("de-DE", {maximumFractionDigits: 1}) + " kg/Woche" + (vk.d == null ? "" : " · " + (vk.d >= 0 ? "▲ +" : "▼ −") + Math.abs(vk.d) + " %");
   if (vk && vk.d != null) document.getElementById("vkp").textContent = (vk.d >= 0 ? "+" : "−") + Math.abs(vk.d) + " %";
+  // Abpackhilfe: Stand der Silos und Eigenbedarf
+  const ap = get("abpack.kurz");
+  if (ap && ap.n) document.getElementById("s5").innerHTML = "Silos <b>" + Number(ap.st).toLocaleString("de-DE", {maximumFractionDigits: 1}) + " kg</b>" + (ap.pw == null ? "" : " · Eigenbedarf Ø " + Number(ap.pw).toLocaleString("de-DE", {maximumFractionDigits: 1}) + " kg/Woche");
   // Datensicherung: alle Daten der drei Apps in einer Datei (Schlüssel bleiben unverändert)
-  const KEYS = k => /^(kasse\.|roestplan|bruehbuch|verkauf\.)/.test(k);
+  const KEYS = k => /^(kasse\.|roestplan|bruehbuch|verkauf\.|gehirn\.|abpack\.)/.test(k);
   const $ = id => document.getElementById(id), say = t => { $("bkMsg").textContent = t; };
   $("bkSave").onclick = async () => {
     const data = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (KEYS(k)) data[k] = localStorage.getItem(k); }
