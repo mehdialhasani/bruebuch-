@@ -289,7 +289,7 @@ const Core = (() => {
   // extra = percent more than sold (whole number), adj = manual +/- batches for this sort.
   function autoBatches(s, loss, extra, adj) {
     const size = s.size === 3 ? 3 : 5, sold = soldGrams(s);
-    if (sold <= 0) return [];
+    if (sold <= 0) return Array(Math.max(0, adj | 0)).fill(size);  // ohne Verkauf: nur von Hand dazugegebene Chargen
     const n = Math.max(0, Math.ceil(greenNeed(sold, loss) * (100 + (extra | 0)) / (size * 100000)) + (adj | 0));
     return Array(n).fill(size);
   }
@@ -497,10 +497,11 @@ function renderChargen() {
   $("allOpen").style.visibility = open.n ? "" : "hidden";
   const base = S.sorts.reduce((a, x) => a + Core.autoBatches(x, S.loss, 0, 0).length, 0), now = rows.reduce((a, r) => a + r.batches.length, 0);
   $("extraNote").textContent = now === base ? "Berechnet: " + base + " Chargen" : (now > base ? "+" : "−") + Math.abs(now - base) + (Math.abs(now - base) === 1 ? " Charge" : " Chargen") + " von Hand (berechnet: " + base + ")";
-  const vis = rows.filter(r => r.sold > 0);
+  // alle Sorten zeigen, auch ohne Verkauf (z. B. neu hinzugefügt): mit + einplanen
+  const vis = rows.filter(r => r.sold > 0 || r.batches.length || S.sorts.find(x => x.id === r.id).name.trim());
   $("cList").innerHTML = vis.length ? vis.map(r => `
     <div class="cs" data-id="${r.id}">
-      <div class="hh"><button class="h" data-act="sort" aria-label="Alle Chargen von ${esc(r.name)} auf ${esc(dn(S.active))}"><b>${esc(r.name)}</b><span>${r.batches.length ? batchText(r.batches.map(b => b.kg)) : "keine"}${S.adj[r.id] ? " (" + (S.adj[r.id] > 0 ? "+" : "−") + Math.abs(S.adj[r.id]) + ")" : ""}</span></button>
+      <div class="hh"><button class="h" data-act="sort" aria-label="Alle Chargen von ${esc(r.name)} auf ${esc(dn(S.active))}"><b>${esc(r.name)}</b><span>${r.batches.length ? batchText(r.batches.map(b => b.kg)) : r.sold ? "keine" : "kein Verkauf"}${S.adj[r.id] ? " (" + (S.adj[r.id] > 0 ? "+" : "−") + Math.abs(S.adj[r.id]) + ")" : ""}</span></button>
         <span class="adj"><button data-adj="-1" aria-label="Eine Charge weniger ${esc(r.name)}">−</button><button data-adj="1" aria-label="Eine Charge mehr ${esc(r.name)}">+</button></span></div>
       <div class="bs">${r.batches.map(b => `<button class="b${b.day != null ? " on" : ""}" data-k="${b.key}" ${b.day != null ? `style="${dc(b.day)}"` : ""} aria-label="${b.kg} kg${b.day != null ? ", " + esc(dn(b.day)) : ", offen"}">${b.kg} kg${b.day != null ? `<sup>${esc(dnShort(b.day))}</sup>` : ""}</button>`).join("")}</div>
     </div>`).join("") : `<div class="empty">Noch keine Verkaufszahlen.</div>`;
@@ -678,7 +679,7 @@ function snapshot() {
   const tot = listTotals(all), strip = l => l.map(x => ({ name: x.name, kgs: x.kgs }));
   days = days.map(strip); open = strip(open);
   return { id: "v" + Date.now().toString(36), at: new Date().toISOString(), week: S.week, loss: S.loss, extra: S.extra,
-    sorts: S.sorts.filter(s => Core.soldGrams(s) > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: s.size })),
+    sorts: S.sorts.filter(s => Core.soldGrams(s) > 0 || S.adj[s.id] > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: s.size })),
     soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open, dn: [0, 1, 2].map(d => dn(d)) };
 }
 /* Gemeinsames Gehirn (Schlüssel gehirn.v1, alle Apps): gesicherte Listen = geröstete Mengen pro Woche. Gleiche Woche nochmal gesichert = korrigierte Mengen, die neueste zählt. */
@@ -705,7 +706,7 @@ function keep() {
 }
 // Bericht der noch offenen Woche: der zuletzt aus der jetzigen Liste gesicherte Eintrag (ältere Stände ohne vId: neuester Eintrag mit gleicher Woche). Leere Liste = keiner.
 function curVId() {
-  if (!S.sorts.some(s => Core.soldGrams(s) > 0)) return null;
+  if (!S.sorts.some(s => Core.soldGrams(s) > 0 || S.adj[s.id] > 0)) return null;
   if (S.vId) return V.some(x => x.id === S.vId) ? S.vId : null;
   return V.length && V[0].week && V[0].week === S.week ? V[0].id : null;
 }
