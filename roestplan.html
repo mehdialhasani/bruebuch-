@@ -181,6 +181,7 @@ section[hidden]{display:none!important}
 .ed .empty{padding:16px 0;font-size:14px}
 @media (prefers-reduced-motion:reduce){.vh>button svg{transition:none}}
 .auto{display:flex;width:100%;align-items:center;justify-content:center;gap:8px;min-height:50px;margin-top:12px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-size:15px;font-weight:600}
+.auto:disabled{opacity:.4;cursor:default}
 .auto svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 /* Bild-Ansicht: liegt über der Leiste, Schließen oben rechts immer erreichbar, Tippen daneben schließt auch */
 .ov{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
@@ -491,10 +492,11 @@ function renderChargen() {
   $("dpick").innerHTML = t.map((x, d) => `<button data-d="${d}" style="${dc(d)}" aria-pressed="${d === S.active}"><b><i></i>${esc(dn(d))}</b><small>${x.n} Ch. · ${intFmt(x.kg)} kg</small></button>`).join("");
   $("openInfo").textContent = open.n ? `${open.n} Chargen noch offen` : "Alle Chargen sind verteilt.";
   $("allOpen").textContent = open.n ? `Alle offenen auf ${dn(S.active)}` : "";
-  $("autoAll").hidden = !open.n;
-  $("allOpen").hidden = !open.n;
+  // Knopf bleibt immer stehen (sonst springt die Seite beim Antippen), ohne offene Chargen nur ausgegraut
+  $("autoAll").disabled = !open.n;
+  $("allOpen").style.visibility = open.n ? "" : "hidden";
   const base = S.sorts.reduce((a, x) => a + Core.autoBatches(x, S.loss, 0, 0).length, 0), now = rows.reduce((a, r) => a + r.batches.length, 0);
-  $("extraNote").textContent = now === base ? "" : (now > base ? "+" : "−") + Math.abs(now - base) + (Math.abs(now - base) === 1 ? " Charge" : " Chargen") + " von Hand (berechnet: " + base + ")";
+  $("extraNote").textContent = now === base ? "Berechnet: " + base + " Chargen" : (now > base ? "+" : "−") + Math.abs(now - base) + (Math.abs(now - base) === 1 ? " Charge" : " Chargen") + " von Hand (berechnet: " + base + ")";
   const vis = rows.filter(r => r.sold > 0);
   $("cList").innerHTML = vis.length ? vis.map(r => `
     <div class="cs" data-id="${r.id}">
@@ -514,7 +516,7 @@ function autoAssign() {
   rows.forEach(r => { const d = out[r.id]; if (d != null) r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = d; }); });
   save();
 }
-$("autoAll").addEventListener("click", () => { autoAssign(); renderChargen(); });
+$("autoAll").addEventListener("click", () => { if ($("autoAll").disabled) return; autoAssign(); renderChargen(); });
 $("autoAll2").addEventListener("click", () => { autoAssign(); renderListe(); updBadges(); msg("Offene Chargen verteilt."); });
 $("dpick").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.active = +b.dataset.d; save(); renderChargen(); });
 $("allOpen").addEventListener("click", () => { computeBatches().forEach(r => r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = S.active; })); save(); renderChargen(); });
