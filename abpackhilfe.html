@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#F3EEE7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
 <style>
-/* Abpackhilfe (Laden-App, 5. Funktion): Silos mit Stand, Eigenbedarf, vorgeplante Chargen; Crema und Glasleiste wie Verkauf */
+/* Abpackhilfe (Laden-App, 5. Funktion): Woche (Bedarf, Rösttag bestätigen, Tüten wählen), Lager (Eigenbedarf-Kisten, Panea-Tonnen), Verlauf; Crema und Glasleiste wie Verkauf */
 :root{
   --bg:#F3EEE7; --paper:#FBF8F3; --ink:#2B211B; --ink2:#5E5047; --muted:#7A6A5D; --line:#E3D9CC; --grid:#EAE2D7;
   --accent:#8A5A3B; --accent-ink:#FFFFFF; --accent-soft:#EEDFD0;
@@ -134,31 +134,200 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .ask .btns{display:flex;gap:8px;justify-content:flex-end}
 .msg{min-height:1.2em;color:var(--accent);font-size:14px;margin:0}
 .empty{color:var(--muted);font-size:14px;text-align:center;padding:18px 8px}
+/* ---------- Abpackhilfe Entwurf 7: Woche · Lager · Verlauf ---------- */
+.top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
+.miss{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.miss div{display:flex;flex-direction:column;gap:2px}
+.miss b{font:700 30px/1 var(--f);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.miss span{font-size:12.5px;color:var(--muted)}
+.miss .big b{color:var(--accent)}
+.ok-line{font-size:14px;color:var(--good);font-weight:600;margin:0}
+.roast{display:flex;flex-direction:column;gap:10px;border:1.5px solid var(--accent);background:var(--accent-soft)}
+.roast .rl{display:flex;flex-direction:column;gap:6px}
+.rr{display:flex;align-items:center;gap:8px;font-size:14px}
+.rr .t{flex:1;min-width:0}.rr .t small{display:block;color:var(--muted);font-size:12px}
+.step{display:inline-flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:12px;background:var(--paper);overflow:hidden}
+.step button{border:0;border-radius:0;min-width:44px;min-height:44px;padding:0;font-size:20px;font-weight:500;background:transparent}
+.step output{min-width:44px;text-align:center;font:600 17px var(--f);font-variant-numeric:tabular-nums}
+.step.sm button{min-width:38px;min-height:38px;font-size:18px}.step.sm output{min-width:34px;font-size:15px}
+.legend{display:flex;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+.i-p{background:var(--good)}.i-w{background:var(--accent)}.i-m{background:transparent;border:1.5px dashed var(--muted)}
+.sl{display:flex;flex-direction:column;gap:8px}
+.so{background:var(--paper);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.so[data-open="1"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.so>button.h{width:100%;display:flex;flex-direction:column;gap:7px;text-align:left;border:0;border-radius:0;background:none;padding:12px 14px;font-weight:400;min-height:0}
+.so .r1{display:flex;align-items:baseline;gap:8px;width:100%}
+.so .nm{flex:1;min-width:0;font-weight:600;font-size:15px;line-height:1.25}
+.so .nm small{font-weight:500;color:var(--muted);font-size:12px;margin-left:4px}
+.so .st{font-size:13px;color:var(--ink2);white-space:nowrap;font-variant-numeric:tabular-nums}
+.so .st.done{color:var(--good);font-weight:600}
+.bar{position:relative;height:10px;border-radius:99px;background:var(--bg);overflow:hidden;display:flex;width:100%;box-shadow:inset 0 0 0 1.5px var(--line)}
+.bar i{display:block;height:100%}
+.bar .p{background:var(--good)}.bar .w{background:var(--accent)}
+.so .r3{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.pk{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
+.pr{display:flex;align-items:center;gap:10px}
+.pr .t{flex:1;min-width:0;font-size:15px;font-weight:600}.pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.pk .sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.pk .sum div{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.pk .sum b{display:block;font:700 26px/1.05 var(--f);font-variant-numeric:tabular-nums}
+.pk .sum span{font-size:12.5px;color:var(--muted)}
+.pk .sum .lab b{color:var(--accent)}
+.say{font-size:14px;margin:0;color:var(--ink2)}.say.w{color:var(--warn);font-weight:600}
+.btns{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.btns .primary{flex:1}
+/* Lager */
+.amp{display:inline-flex;align-items:center;gap:6px;font-size:13px;font-weight:600;padding:3px 10px;border-radius:99px}
+.amp.g{background:var(--good-soft);color:var(--good)}.amp.y{background:var(--warn-soft);color:var(--warn)}
+.amp::before{content:"";width:8px;height:8px;border-radius:99px;background:currentColor}
+.tn{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:8px}
+.tonne{display:flex;flex-direction:column;align-items:center;gap:4px;padding:10px 6px 8px;border-radius:14px;border:1px solid var(--line);background:var(--bg);font-weight:400;min-height:0;text-align:center}
+.tonne svg{width:40px;height:46px}
+.tonne b{font-size:13px}.tonne small{font-size:11.5px;color:var(--muted);line-height:1.3}
+.tonne.r{border-color:var(--good)}.tonne.r b{color:var(--good)}
+.tonne.g b{color:var(--warn)}
+.tonne[aria-pressed="true"]{box-shadow:0 0 0 2px var(--accent)}
+.tonne.add{border-style:dashed;color:var(--muted);justify-content:center}
+.kl{display:flex;flex-direction:column;gap:8px}
+.ki{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--bg)}
+.ki .t{flex:1;min-width:0;font-size:15px;font-weight:600}.ki .t small{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+.ki .kg{font:700 20px var(--f);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ki .kg small{font-size:13px;color:var(--muted);margin-left:2px}
+.set{display:flex;flex-direction:column;gap:8px;font-size:14px}
+.set .pr .t{font-weight:500;font-size:14px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{min-height:36px;padding:4px 12px;border-radius:99px;font-size:14px;font-weight:500}
+.vk{display:flex;flex-direction:column}
+.vk h3{font:600 13px var(--f);color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:12px 2px 6px}
+.ve{display:flex;align-items:flex-start;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-bottom:6px}
+.ve .dot{flex:none;width:10px;height:10px;border-radius:99px;margin-top:6px}
+.ve .t{flex:1;min-width:0;font-size:14px}.ve .t small{display:block;color:var(--muted);font-size:12.5px}
+.msg{min-height:1.2em;color:var(--accent);font-size:14px;margin:0}
+/* Entwurf 7b: Tüten-Rechner schlicht + Lager visuell */
+.rows{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:4px 12px}
+.rows .pr{padding:8px 0;border-bottom:1px solid var(--grid)}.rows .pr:last-child{border-bottom:0}
+.rows .pr output{min-width:52px}
+.restl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;min-height:44px}
+.restl.w{color:var(--warn);font-weight:600}
+.restl button{min-height:40px;font-size:14px;color:var(--accent)}
+.kgh{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.kgh b{font:700 26px/1 var(--f);letter-spacing:-.02em}.kgh div{font-size:14px;color:var(--muted)}
+.lossb{white-space:nowrap;min-height:34px;padding:4px 10px;font-size:13px;font-weight:500;color:var(--ink2);border-radius:99px}
+.fill{display:flex;height:26px;border-radius:8px;overflow:hidden;background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--line)}
+.fill i{display:block;height:100%;transition:width .25s}
+@media (prefers-reduced-motion:reduce){.fill i{transition:none}}
+.fe{background:var(--s1)}.f1{background:var(--accent)}.f2{background:color-mix(in srgb,var(--accent) 50%,var(--paper))}.fr{background:repeating-linear-gradient(135deg,var(--hatch) 0 4px,transparent 4px 8px)}
+.fleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:12.5px;color:var(--ink2);font-variant-numeric:tabular-nums;margin-top:-6px}
+.fleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:5px;vertical-align:-1px}.fleg i.fr{box-shadow:inset 0 0 0 1px var(--line)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:8px}.tiles.t3{grid-template-columns:1fr 1fr 1fr}
+.tile{background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;min-width:0}
+.tile .ti{display:flex;flex-direction:column;align-items:center;gap:0;font-size:13px;font-weight:600;color:var(--accent)}
+.tile .ti svg{width:30px;height:30px}
+.tile .tn2{font:700 34px/1 var(--f);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.tile .step{display:flex;width:100%;border-radius:10px}.tile .step button{flex:1;min-width:0}
+.tile .step button:first-child{border-right:1px solid var(--line)}
+.tile small{font-size:11.5px;color:var(--muted);line-height:1.3}
+.okk{color:var(--good);font-weight:600}
+.restb{min-height:44px;border-style:dashed;color:var(--accent);background:transparent}
+.primary.big{min-height:52px;font-size:16px}
+button:disabled{opacity:.45;cursor:default}
+.link{border:0;background:none;color:var(--muted);font-size:13px;font-weight:500;min-height:32px;padding:0;align-self:center}
+.big-st{display:flex;gap:14px;align-items:flex-start;padding:16px;border-radius:16px}
+.big-st.g{background:var(--good-soft);color:var(--good)}.big-st.y{background:var(--warn-soft);color:var(--warn)}
+.big-st .bi{flex:none;width:40px;height:40px;border-radius:99px;background:currentColor;display:grid;place-items:center;font:700 22px var(--f)}
+.big-st .bi{color:inherit}.big-st.g .bi{color:var(--good-soft);background:var(--good)}.big-st.y .bi{color:var(--warn-soft);background:var(--warn)}
+.big-st b{font-size:17px;display:block}.big-st small{font-size:14px;color:var(--ink2)}
+.big-st ul{margin:6px 0 0;padding-left:18px;font-size:14px;color:var(--ink);display:flex;flex-direction:column;gap:2px}.big-st ul b{display:inline;font-size:14px}
+.hrow{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tcount{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.tcount div{display:flex;flex-direction:column}.tcount b{font:700 30px/1 var(--f);font-variant-numeric:tabular-nums}.tcount span{font-size:12.5px;color:var(--muted)}
+.tcount .g b{color:var(--good)}.tcount .y b{color:var(--warn)}
+.tn{grid-template-columns:repeat(4,1fr)}
+.tonne{padding:8px 4px 6px;gap:2px}.tonne svg{width:46px;height:52px}
+.tonne.r{color:var(--good);background:var(--good-soft);border-color:transparent}.tonne.g{color:var(--warn);background:var(--warn-soft);border-color:transparent}
+.tonne small{color:var(--ink2)}
+.sheet{display:flex;flex-direction:column;gap:8px;padding:12px;border-radius:12px;background:var(--bg);font-size:14px}
+details.set{border-top:1px solid var(--line);padding-top:10px}details.set summary{font-size:13px;color:var(--muted);font-weight:500;list-style-position:inside}
+details.set .pr{margin-top:8px}
+.kb{display:flex;flex-direction:column;gap:6px;text-align:left;width:100%;font-weight:400;border-radius:14px;background:var(--bg);border:1px solid var(--line);padding:12px}
+.kb.on{border-color:var(--accent)}
+.kb .r1{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.kb .nm{font-weight:600;font-size:16px}.kb .nm small{font-weight:400;color:var(--muted);font-size:12.5px;margin-left:6px}
+.kb .kg{font:700 22px var(--f);font-variant-numeric:tabular-nums}.kb .kg small{font-size:13px;color:var(--muted)}
+.reach{position:relative;height:12px;border-radius:99px;background:var(--paper);box-shadow:inset 0 0 0 1.5px var(--line);overflow:hidden}
+.reach i{position:absolute;left:0;top:0;bottom:0;border-radius:99px}.reach i.g{background:var(--good)}.reach i.y{background:var(--warn)}
+.reach em{position:absolute;top:0;bottom:0;width:1.5px;background:var(--line)}
+.kb .r3{display:flex;justify-content:space-between;gap:8px;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}.kb .r3 .wt{color:var(--warn);font-weight:600}
+.ked{padding:4px 4px 2px}
+.scale{position:relative;height:16px;font-size:11px;color:var(--muted);margin:-4px 12px 0}.scale span{position:absolute;left:0;transform:translateX(-50%)}.scale span:first-child{transform:none}.scale span:last-child{transform:none}
+/* laden-v20: Lager-Zeilen mit Röstdatum-Kreis und Reichweite */
+.sg{display:flex;flex-direction:column;gap:8px}
+@media (min-width:640px){.sg{display:flex}}
+.silo{display:flex;flex-direction:column;gap:6px;width:100%;text-align:left;padding:12px;border-radius:14px;background:var(--bg);border:1px solid var(--line);font-weight:400}
+.silo .r1{display:flex;align-items:center;gap:10px;width:100%}
+.silo .nm{flex:1;min-width:0;font-weight:600;font-size:16px;padding:0;line-height:1.25}
+.silo .nm small{display:block;font-weight:400;font-size:12.5px;color:var(--muted)}
+.silo .kg{font:700 22px/1 var(--f);white-space:nowrap}.silo .kg small{font-size:13px}
+.silo .ln.w{color:var(--warn);font-weight:600}
+.silo.add{flex-direction:row;align-items:baseline;gap:10px;background:transparent;border-style:dashed}
+.ring{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--muted);white-space:nowrap;flex:none}
+.ring svg text{font:700 10px var(--f);fill:var(--ink2)}.ring.ok svg text{fill:var(--good);font-size:12px}
+.ring.ok>span{color:var(--good);font-weight:600}
+.so .r1 .ring{margin-left:auto}.so .r1 .ring+.st{margin-left:0}
+.pi .ring{margin-right:2px}
+.roast label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+.roast input{font:16px var(--f);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
+.roast .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.vl{display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--paper);border:1px solid var(--line);border-radius:12px;margin-bottom:6px}
+.vl .dot{flex:none;width:10px;height:10px;border-radius:99px}
+.vl .t{flex:1;min-width:0;font-size:14px}.vl .t small{display:block;color:var(--muted);font-size:12px}
+.vl .v{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap;font-size:14px}.vl .v.p{color:var(--good)}
+.vl button{min-height:36px;padding:4px 10px;font-size:13px}
+.scale{margin:-2px 12px 0}
 </style>
 </head><body>
 
-<div class="wrap" id="pgS">
-  <div><h1>Abpackhilfe</h1><p class="sub" id="sCover">Silos · Stand und Eigenbedarf</p></div>
-  <div class="sg" id="sg"></div>
+<div class="wrap" id="pgW">
+  <div><h1>Abpackhilfe</h1><p class="sub" id="wSub"></p></div>
+  <div class="card" id="missC"></div>
+  <div class="card roast" id="roastC" hidden></div>
+  <div class="card">
+    <div class="hrow"><h2>Sorten</h2><span class="hint" id="sCnt"></span></div>
+    <div class="legend"><span><i class="i-p"></i>abgepackt</span><span><i class="i-w"></i>geröstet, wartet</span><span><i class="i-m"></i>fehlt noch</span></div>
+    <div class="sl" id="sl"></div>
+  </div>
+  <p class="msg" id="wmsg" role="status"></p>
+</div>
+
+<div class="wrap" id="pgS" hidden>
+  <div><h1>Lager</h1><p class="sub">Eigenbedarf im Regal · Ist genug da?</p></div>
+  <div id="lst"></div>
+  <div class="card">
+    <div class="hrow"><h2>Kisten und Tonnen</h2></div>
+    <p class="hint" style="margin-top:-6px">Kreis = Tage seit dem Rösten, grün ab 2 Wochen. Balken = wie lange es reicht.</p>
+    <div class="sg" id="sg"></div>
+    <div class="scale"><span>heute</span><span style="left:33.3%">1 Wo</span><span style="left:66.7%">2 Wo</span><span style="right:0;left:auto">3 Wo</span></div>
+  </div>
   <div class="card" id="det" hidden></div>
   <p class="msg" id="msg" role="status"></p>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Eigenbedarf</h2><span class="hint" id="eCap"></span></div>
     <div class="chart" id="eChart"></div>
     <div id="eTab"></div>
-    <p class="hint">Eigenbedarf entsteht aus dem Stand: Was seit dem letzten Stand weniger geworden ist und nicht in Tüten abgefüllt wurde, ist verbraucht. Direkt gebuchter Eigenbedarf zählt dazu.</p>
+    <p class="hint">Eigenbedarf entsteht aus dem Stand: Was seit dem letzten Stand weniger geworden ist und nicht in Tüten abgefüllt wurde, ist verbraucht. Leere Tonnen und direkt gebuchter Eigenbedarf zählen dazu.</p>
   </div>
-  <div class="soon"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/><path d="M10 13h4"/></svg><span><b>Abpackliste kommt bald.</b> Tüten pro Sorte aus dem Lightspeed-Bericht, hier in derselben Kachel.</span></div>
 </div>
 
 <div class="wrap" id="pgV" hidden>
-  <div><h1>Verlauf</h1><p class="sub">Alle Buchungen der Silos, neueste oben</p></div>
+  <div><h1>Verlauf</h1><p class="sub">Rösttage, Abpacken und Lager, neueste oben. × nimmt einen Eintrag zurück.</p></div>
   <div class="vk" id="vk"></div>
 </div>
 
 <nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
   <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
-  <button role="tab" data-pg="S" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v13a5 5 0 0 1-10 0z"/><path d="M7 11h10"/><path d="M12 22v-1"/></svg>Silos</button>
+  <button role="tab" data-pg="W" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Woche</button>
+  <button role="tab" data-pg="S" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M3 12h18M3 19h18"/><path d="M6 5v14M18 5v14"/><path d="M9 9h4v3H9zM12 16h4v3h-4z"/></svg>Lager</button>
   <button role="tab" data-pg="V" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>Verlauf</button>
 </div></nav>
 <script>
@@ -195,7 +364,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 </script>
 <script>
 (function(){
-/* Gemeinsames Gehirn (Schlüssel gehirn.v1): alle Apps lesen und schreiben hier. Die Abpackhilfe pflegt den Teil „silos“. Gerechnet wird nur beim Öffnen und Speichern. */
+/* Gemeinsames Gehirn (Schlüssel gehirn.v1): alle Apps lesen und schreiben hier. Die Abpackhilfe pflegt den Teil „silos“ (Lager: Eigenbedarf-Kisten, Panea-Tonnen mit Röstdatum). Gerechnet wird nur beim Öffnen und Speichern. */
 const GK="gehirn.v1";
 const gLoad=()=>{try{const g=JSON.parse(localStorage.getItem(GK));return g&&typeof g==="object"?g:{v:1}}catch(e){return{v:1}}};
 const gSave=g=>{try{localStorage.setItem(GK,JSON.stringify(g,(k,x)=>k[0]==="_"?undefined:x));return true}catch(e){return false}};
@@ -232,19 +401,22 @@ function calc(id){
 }
 const reach=(kg,perDay)=>{if(!perDay||perDay<=0)return null;const d=new Date();d.setDate(d.getDate()+Math.floor(kg/perDay));return iso(d)};
 
-let open=null,mode=null,page="S",askDel=null;
+let open=null,mode=null,page="W",askDel=null;
 function silo(id){return S().list.find(s=>s.id===id)}
+// Neuestes Röstdatum im Lager: Panea = älteste Tonne (die als nächstes dran ist), sonst letzte eingelagerte Charge
+function rdOf(s){if(s.ton&&s.ton.length)return s.ton.map(t=>t.d).sort()[0];const b=S().buch.filter(x=>x.silo===s.id&&x.t==="rein").sort((a,b)=>a.d<b.d?1:-1)[0];return b?b.d:null}
 function render(){
-  const L=S().list;
-  $("sg").innerHTML=L.map(s=>{const c=calc(s.id),cap=s.cap||10,h=Math.min(100,c.st/cap*100),hp=Math.min(100,(c.st+c.planKg)/cap*100),r=reach(c.st,c.perDay);
+  const L=S().list,C=L.map(s=>({s,c:calc(s.id)})),MX=21;
+  const warn=C.filter(x=>x.c.perDay&&x.c.st/x.c.perDay<7);
+  $("lst").innerHTML=!C.some(x=>x.c.n)?"":`<div class="big-st ${warn.length?"y":"g"}"><span class="bi">${warn.length?"!":"✓"}</span><div><b>${warn.length?warn.length+(warn.length===1?" Sache wird knapp":" Sachen werden knapp"):"Eigenbedarf reicht mindestens 1 Woche"}</b>${warn.length?`<ul>${warn.map(x=>{const r=reach(x.c.st,x.c.perDay);return `<li><b>${esc(x.s.name)}:</b> reicht nur bis ${esc(dFmt(r))}</li>`}).join("")}</ul>`:`<small>Gerechnet aus deinem Verbrauch der letzten 4 Wochen.</small>`}</div></div>`;
+  $("sg").innerHTML=C.map(({s,c})=>{const r=reach(c.st,c.perDay),dd=c.perDay?Math.floor(c.st/c.perDay):null,nt=s.ton?s.ton.length:0,ripe=nt?s.ton.filter(t=>ddays(t.d,today())>=RIPE).length:0;
     return `<button class="silo" data-id="${esc(s.id)}" aria-expanded="${open===s.id}" aria-label="${esc(s.name)}: ${f1(c.st)} kg">
-      <span class="gauge" aria-hidden="true"><i style="height:${h}%"></i>${c.planKg?`<b style="bottom:${hp}%"></b>`:""}</span>
-      <span class="nm">${esc(s.name)}</span>${s.sorte?`<span class="so">${esc(s.sorte)}</span>`:""}
-      <span class="kg">${f1(c.st)}<small>kg</small></span>
-      <span class="ln${c.raw<0?" w":""}">${!c.n?"Noch kein Stand":c.raw<0?"Stand prüfen":c.perWeek==null?"Ø ab 7 Tagen Daten":"Ø "+f1(c.perWeek)+" kg/Woche"}</span>
-      ${r?`<span class="ln">reicht bis ${esc(dFmt(r))}</span>`:""}
+      <span class="r1"><span class="nm">${esc(s.name)}${s.sorte?`<small>${esc(s.sorte)}</small>`:""}</span>${ring(rdOf(s))}<span class="kg">${f1(c.st)}<small>kg</small></span></span>
+      ${dd!=null?`<span class="reach"><i class="${dd<7?"y":"g"}" style="width:${Math.min(100,dd/MX*100)}%"></i><em style="left:${7/MX*100}%"></em><em style="left:${14/MX*100}%"></em></span>`:""}
+      <span class="ln${c.raw<0||(dd!=null&&dd<7)?" w":""}">${!c.n?"Noch kein Stand":c.raw<0?"Stand prüfen":c.perWeek==null?"Ø ab 7 Tagen Daten":(r?"reicht bis "+esc(dFmt(r))+" · ":"")+"Ø "+f1(c.perWeek)+" kg/Woche"}</span>
+      ${nt?`<span class="ln">${nt} ${nt===1?"Tonne":"Tonnen"}${ripe<nt?` · ${nt-ripe} jünger als 2 Wochen`:""}</span>`:""}
       ${c.plan.length?`<span class="ln">${c.plan.length} ${c.plan.length===1?"Charge":"Chargen"} geplant · ${f1(c.planKg)} kg</span>`:""}
-    </button>`}).join("")+`<button class="silo add" data-add="1"><span class="nm">+ Silo</span><span class="ln">z. B. für eine Gastsorte</span></button>`;
+    </button>`}).join("")+`<button class="silo add" data-add="1"><span class="nm">+ Kiste</span><span class="ln">z. B. für eine Gastsorte</span></button>`;
   renderDet();renderE();
 }
 function renderDet(){
@@ -268,16 +440,19 @@ function renderDet(){
     f=`<form class="form" id="sf"><label class="f">Name<input id="sNm" maxlength="30" value="${esc(s.name)}"></label>
       <label class="f">Sorte darin (optional)<input id="sSo" maxlength="40" value="${esc(s.sorte||"")}" placeholder="z. B. bei Mühle 2 die aktuelle Sorte"></label>
       <label class="f">Fassungsvermögen (kg)<input id="sCap" inputmode="decimal" value="${f1(s.cap||10)}"></label>
-      <div class="btns">${c.n||c.plan.length?"":`<button type="button" id="sDel">Silo entfernen</button>`}<button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form>`;
+      <div class="btns">${c.n||c.plan.length?"":`<button type="button" id="sDel">Entfernen</button>`}<button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form>`;
   }
   d.hidden=false;
   d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2>${esc(s.name)}${s.sorte?` <span class="hint">· ${esc(s.sorte)}</span>`:""}</h2><button type="button" id="dX" aria-label="Schließen" style="min-height:36px;padding:2px 12px">×</button></div>
     <p class="hint" style="margin-top:-6px">Stand ${f1(c.st)} kg${c.perWeek!=null?` · Ø ${f1(c.perWeek)} kg/Woche`:""}${r?` · reicht bis ${esc(dFmt(r))}`:""}${c.planKg&&r2?` · mit Geplantem bis ${esc(dFmt(r2))}`:""}</p>
     <div class="acts">${[["stand","Stand eingeben"],["rein","Charge rein"],["abf","Abfüllen"],["eigen","Eigenbedarf"]].map(([m,t])=>`<button type="button" data-m="${m}" aria-pressed="${mode===m}">${t}</button>`).join("")}</div>
     ${f}
+    ${s.id==="panea"?`<div class="hrow" style="margin-top:4px"><h2 style="font-size:15px">Tonnen</h2><button type="button" data-m="ton" aria-pressed="${mode==="ton"}" style="min-height:36px;font-size:14px">+ Tonne</button></div>
+    ${mode==="ton"?`<form class="form" id="tf"><div class="row2"><label class="f">Menge (kg)<input id="tKg" inputmode="decimal" autocomplete="off" value="10"></label><label class="f">Geröstet am<input id="tD" type="date" value="${today()}" max="${today()}"></label></div><div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Tonne dazu</button></div></form>`:""}
+    <div class="pl">${(s.ton||[]).length?s.ton.slice().sort((a,b)=>a.d<b.d?-1:1).map(t=>`<div class="pi">${ring(t.d,1)}<span class="t"><b>${kgT(t.kg)} kg</b><small>geröstet ${esc(dFmt(t.d))}</small></span><button type="button" data-tleer="${t.id}">Leer</button></div>`).join(""):`<p class="hint">Noch keine Tonnen mit Röstdatum. Mit „+ Tonne“ eintragen oder beim Abpacken Tonnen wählen.</p>`}</div>`:""}
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px"><h2 style="font-size:15px">Vorgeplante Chargen</h2><button type="button" data-m="plan" aria-pressed="${mode==="plan"}" style="min-height:36px;font-size:14px">+ Vorplanen</button></div>
     <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t"><b>${f1(p.kg)} kg</b> · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}</span><button type="button" data-in="${p.id}">Eingelagert</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>
-    <button type="button" data-m="set" aria-pressed="${mode==="set"}" style="align-self:flex-start;min-height:36px;font-size:14px;border:0;background:none;color:var(--accent);padding:0">Silo bearbeiten</button>`;
+    <button type="button" data-m="set" aria-pressed="${mode==="set"}" style="align-self:flex-start;min-height:36px;font-size:14px;border:0;background:none;color:var(--accent);padding:0">Bearbeiten</button>`;
   const k=$("bKg")||$("pKg")||$("sNm");if(k&&mode!=="set")k.focus({preventScroll:true});
 }
 function weekKey(s){const k=kwOf(s);return k.y*100+k.w}
@@ -294,13 +469,16 @@ function renderE(){
   $("eTab").innerHTML=`<table class="tb"><thead><tr><th>Silo</th><th>Ø/Woche</th><th>4 Wochen</th><th>gesamt</th></tr></thead><tbody>${C.map(x=>`<tr><td>${esc(x.s.name)}</td><td>${x.c.perWeek==null?"–":f1(x.c.perWeek)}</td><td>${f1(t4(x))}</td><td>${f1(all(x))}</td></tr>`).join("")}
     <tr class="sum"><td>Zusammen</td><td>${f1(tot)}</td><td>${f1(C.reduce((a,x)=>a+t4(x),0))}</td><td>${f1(C.reduce((a,x)=>a+all(x),0))}</td></tr></tbody></table>`;
 }
-function renderV(){
-  const B=S().buch.slice().sort((a,b)=>a.d>b.d?-1:a.d<b.d?1:b.n-a.n);
-  if(!B.length){$("vk").innerHTML=`<p class="empty">Noch keine Buchungen.</p>`;return}
+function renderV(){AN();
+  const B=S().buch.map(b=>({b,d:b.d,n:b.n||0})).concat(A.log.map(l=>({l,d:l.d,n:l.n||0}))).sort((a,b)=>a.d>b.d?-1:a.d<b.d?1:b.n-a.n);
+  if(!B.length){$("vk").innerHTML=`<p class="empty">Noch keine Einträge.</p>`;return}
   S().list.forEach(s=>calc(s.id));
   let h="",cur=null;
-  B.forEach(b=>{const k=kwOf(b.d),key=k.y+"-"+k.w;if(key!==cur){cur=key;h+=`<h3>KW ${k.w}${k.y!==new Date().getFullYear()?" / "+k.y:""}</h3>`}
-    const s=silo(b.silo),v=b.t==="rein"?`<span class="v p">+${f1(b.kg)} kg</span>`:b.t==="stand"?`<span class="v m">= ${f1(b.kg)} kg</span>`:`<span class="v">−${f1(b.kg)} kg</span>`;
+  B.forEach(x=>{const k=kwOf(x.d),key=k.y+"-"+k.w;if(key!==cur){cur=key;h+=`<h3>KW ${k.w}${k.y!==new Date().getFullYear()?" / "+k.y:""}</h3>`}
+    if(x.l){const l=x.l,kg=l.t==="roast"?Object.values(l.add||{}).reduce((a,v)=>a+v,0):l.roh;
+      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span><span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span><button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
+      if(askL===l.id)h+=`<div class="ask"><span>Zurücknehmen? Die Mengen werden zurückgerechnet${l.bid?", die Buchung im Lager auch":""}.</span><div class="btns"><button type="button" data-ldelno="1">Abbrechen</button><button type="button" class="primary" data-ldelyes="${l.id}">Zurücknehmen</button></div></div>`;return}
+    const b=x.b,s=silo(b.silo),v=b.t==="rein"?`<span class="v p">+${f1(b.kg)} kg</span>`:b.t==="stand"?`<span class="v m">= ${f1(b.kg)} kg</span>`:`<span class="v">−${f1(b.kg)} kg</span>`;
     const ex=b.t==="stand"&&b._diff!=null&&Math.abs(b._diff)>=.05?(b._diff>0?` · ${f1(b._diff)} kg verbraucht`:` · ${f1(-b._diff)} kg mehr als erwartet`):"";
     h+=`<div class="ve"><span class="t">${esc(T[b.t])} · ${esc(s?s.name:"?")}<small>${esc(dFmt(b.d))}${ex}${b.note?" · "+esc(b.note):""}</small></span>${v}<button type="button" data-del="${b.id}" aria-label="Löschen">×</button></div>`;
     if(askDel===b.id)h+=`<div class="ask"><span>Diese Buchung löschen? Stand und Eigenbedarf werden neu gerechnet.</span><div class="btns"><button type="button" data-delno="1">Abbrechen</button><button type="button" class="primary" data-delyes="${b.id}">Löschen</button></div></div>`});
@@ -309,7 +487,7 @@ function renderV(){
 const say=t=>{$("msg").textContent=t;clearTimeout(say.t);if(t)say.t=setTimeout(()=>$("msg").textContent="",4000)};
 
 $("sg").addEventListener("click",e=>{const b=e.target.closest(".silo");if(!b)return;
-  if(b.dataset.add){let id;commit(s=>{id="s"+uid();s.list.push({id,name:"Neues Silo",sorte:"",cap:10})});open=id;mode="set";render();$("det").scrollIntoView({block:"nearest"});return}
+  if(b.dataset.add){let id;commit(s=>{id="s"+uid();s.list.push({id,name:"Neue Kiste",sorte:"",cap:10})});open=id;mode="set";render();$("det").scrollIntoView({block:"nearest"});return}
   open=open===b.dataset.id?null:b.dataset.id;mode=null;render();if(open)$("det").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 $("det").addEventListener("click",e=>{
   if(e.target.closest("#dX")){open=null;mode=null;render();return}
@@ -319,6 +497,8 @@ $("det").addEventListener("click",e=>{
   const pi=e.target.closest("[data-in]");if(pi){const p=S().plan.find(x=>x.id===pi.dataset.in);if(!p)return;
     commit(s=>{s.plan=s.plan.filter(x=>x.id!==p.id);s.buch.push({id:uid(),n:Date.now(),silo:p.silo,d:today(),t:"rein",kg:p.kg,note:p.note||"vorgeplant"})});say(f1(p.kg)+" kg eingelagert.");render();return}
   const pd=e.target.closest("[data-pdel]");if(pd){commit(s=>{s.plan=s.plan.filter(x=>x.id!==pd.dataset.pdel)});render();return}
+  const tl=e.target.closest("[data-tleer]");if(tl){const s0=silo(open),t=(s0.ton||[]).find(x=>x.id===tl.dataset.tleer);if(!t)return;
+    commit(s=>{const z=s.list.find(y=>y.id===open);z.ton=z.ton.filter(x=>x.id!==t.id);s.buch.push({id:uid(),n:Date.now(),silo:open,d:today(),t:"eigen",kg:t.kg,note:"Tonne leer (geröstet "+dFmt(t.d)+")"})});say("Tonne leer, "+f1(t.kg)+" kg als Eigenbedarf gebucht.");render();return}
   if(e.target.closest("#sDel")){commit(s=>{s.list=s.list.filter(x=>x.id!==open)});open=null;mode=null;render()}
 });
 $("det").addEventListener("submit",e=>{e.preventDefault();const f=e.target;
@@ -330,24 +510,158 @@ $("det").addEventListener("submit",e=>{e.preventDefault();const f=e.target;
     say(mode==="stand"&&last._diff>0.05?`Gespeichert. Seit dem letzten Stand ${f1(last._diff)} kg verbraucht.`:"Gespeichert.");mode=null;render()}
   else if(f.id==="pf"){const kg=pk($("pKg").value);if(!kg||kg<=0){$("pKg").focus();return}
     commit(s=>s.plan.push({id:uid(),silo:open,kg:Math.round(kg*1000)/1000,d:$("pD").value||today(),note:$("pN").value.trim()}));say("Vorgeplant.");mode=null;render()}
+  else if(f.id==="tf"){const kg=pk($("tKg").value),d=$("tD").value||today();if(!kg||kg<=0||kg>50){$("tKg").focus();return}const bid=uid();
+    commit(s=>{s.buch.push({id:bid,n:Date.now(),silo:open,d,t:"rein",kg,note:"Tonne"});const z=s.list.find(y=>y.id===open);z.ton=z.ton||[];z.ton.push({id:uid(),kg,d,b:bid})});say("Tonne eingetragen.");mode=null;render()}
   else if(f.id==="sf"){const nm=$("sNm").value.trim()||"Silo",cap=pk($("sCap").value);
     commit(s=>{const x=s.list.find(y=>y.id===open);x.name=nm;x.sorte=$("sSo").value.trim();x.cap=cap&&cap>0?cap:10});mode=null;render()}
 });
 $("vk").addEventListener("click",e=>{
   const d=e.target.closest("[data-del]");if(d){askDel=askDel===d.dataset.del?null:d.dataset.del;renderV();return}
   if(e.target.closest("[data-delno]")){askDel=null;renderV();return}
-  const y=e.target.closest("[data-delyes]");if(y){commit(s=>{s.buch=s.buch.filter(b=>b.id!==y.dataset.delyes)});askDel=null;renderV();render()}
+  const y=e.target.closest("[data-delyes]");if(y){commit(s=>{s.buch=s.buch.filter(b=>b.id!==y.dataset.delyes);s.list.forEach(z=>{if(z.ton)z.ton=z.ton.filter(t=>t.b!==y.dataset.delyes)})});askDel=null;renderV();render();return}
+  const ld=e.target.closest("[data-ldel]");if(ld){askL=askL===ld.dataset.ldel?null:ld.dataset.ldel;renderV();return}
+  if(e.target.closest("[data-ldelno]")){askL=null;renderV();return}
+  const ly=e.target.closest("[data-ldelyes]");if(ly){undoLog(ly.dataset.ldelyes);askL=null;renderV();render()}
 });
 document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(!b)return;page=b.dataset.pg;
-  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));$("pgS").hidden=page!=="S";$("pgV").hidden=page!=="V";scrollTo(0,0);if(page==="V")renderV();else render()});
+  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));["W","S","V"].forEach(p=>$("pg"+p).hidden=page!==p);scrollTo(0,0);if(page==="V")renderV();else if(page==="W")renderW();else render()});
 // Kachel auf der Übersicht: kurzer Stand
 function kurz(){try{const L=S().list.map(s=>({s,c:calc(s.id)})),st=L.reduce((a,x)=>a+x.c.st,0),pw=L.reduce((a,x)=>a+(x.c.perWeek||0),0),n=L.reduce((a,x)=>a+x.c.n,0);
-  localStorage.setItem("abpack.kurz",JSON.stringify({st:Math.round(st*10)/10,pw:L.some(x=>x.c.perWeek!=null)?Math.round(pw*10)/10:null,n}))}catch(e){}}
+  AN();const lossD=WD?WD.loss:16,wk=Object.entries(A.wait).reduce((a,[k,w])=>a+(w.roh||0)*(1-(A.loss[k]!=null?A.loss[k]:lossD)/100),0);
+  localStorage.setItem("abpack.kurz",JSON.stringify({st:Math.round(st*10)/10,pw:L.some(x=>x.c.perWeek!=null)?Math.round(pw*10)/10:null,n,wk:Math.round(wk*10)/10}))}catch(e){}}
 const _r=render;render=function(){_r();kurz()};
+/* ---------- Woche: Bedarf aus Lightspeed, Rösttag aus dem Röstplan bestätigen, pro Sorte Tüten wählen (Schlüssel abpack.v1) ---------- */
+const AK="abpack.v1";
+const rLoad=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+let A=rLoad(AK);if(!A||typeof A!=="object")A={v:1};
+const AN=()=>{A.wait=A.wait||{};A.conf=A.conf||{};A.loss=A.loss||{};A.log=A.log||[];A.pw=A.pw||{key:"",p:{}};return A};
+const aSave=()=>{try{localStorage.setItem(AK,JSON.stringify(A));return true}catch(e){return false}};
+const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const kgT=v=>(Math.round(v*100)/100).toLocaleString("de-DE",{maximumFractionDigits:2});
+const nB=kg=>Math.max(0,Math.floor(kg+1e-9)),nS=kg=>Math.max(0,Math.floor(kg/.25+1e-9));
+const RIPE=14;
+// Kreis mit Tagen seit dem Röstdatum: füllt sich, nach 2 Wochen grün
+function ring(d,big){if(!d)return "";const n=Math.max(0,ddays(d,today())),p=Math.min(1,n/RIPE),r=12,c=2*Math.PI*r,ok=n>=RIPE,sz=big?34:28;
+  return `<span class="ring${ok?" ok":""}" title="geröstet ${esc(dFmt(d))}, vor ${n} ${n===1?"Tag":"Tagen"}"><svg viewBox="0 0 30 30" width="${sz}" height="${sz}" aria-hidden="true"><circle cx="15" cy="15" r="${r}" fill="none" stroke="var(--line)" stroke-width="3"/><circle cx="15" cy="15" r="${r}" fill="none" stroke="${ok?"var(--good)":"var(--accent)"}" stroke-width="3" stroke-linecap="round" stroke-dasharray="${(c*p).toFixed(1)} ${c.toFixed(1)}" transform="rotate(-90 15 15)"/><text x="15" y="19" text-anchor="middle">${ok?"✓":n}</text></svg><span>${esc(day(d).toLocaleDateString("de-DE",{day:"numeric",month:"short"}))}</span></span>`}
+function wData(){
+  const R=rLoad("roestplan.v4")||{},V=rLoad("roestplan.verlauf")||[],K=rLoad("verkauf.v1");
+  const wk=R.week||"",kw=parseInt(String(wk).replace(/[^0-9]+/g," ").trim().split(" ")[0],10)||null,loss=+R.loss||16;
+  const vs=K&&Array.isArray(K.sorts)?K.sorts:[];let vkW=null;
+  if(K&&K.weeks){const ks=Object.keys(K.weeks).map(Number).filter(w=>vs.some(s=>s.u&&s.u[w])).sort((a,b)=>a-b);vkW=kw&&ks.includes(kw)?kw:ks.length?ks[ks.length-1]:null}
+  const geb=name=>{const n=norm(name);if(!n||!vkW)return null;const v=vs.find(x=>norm(x.name)===n)||vs.find(x=>norm(x.name).split(" ")[0]===n.split(" ")[0]);const u=v&&v.u&&v.u[vkW];return u?{n1:u["1000"]|0,n2:u["250"]|0,unv:+u.unv||0}:null};
+  const sorts=(Array.isArray(R.sorts)?R.sorts:[]).filter(s=>(s.totalG|0)>0).map(s=>({n:s.name||"Ohne Namen",g:s.totalG|0}));
+  const e=(R.vId&&V.find(x=>x&&x.id===R.vId))||(V[0]&&V[0].week&&V[0].week===wk?V[0]:null);
+  return{wk,kw,loss,vkW,sorts,geb,e};
+}
+function siloFor(n){const m=norm(n);return S().list.find(x=>{const b=norm(x.sorte),a=norm(x.name);return (b&&m.includes(b))||(a&&a!=="muhle 2"&&(m.includes(a)||m.split(" ")[0]===a.split(" ")[0]))})||null}
+let WD=null,openS=null,lossOpen=null,PS={},rcDay=null,RC={},askL=null;
+function rowsW(){
+  AN();if(A.pw.key!==WD.wk){A.pw={key:WD.wk,p:{}};aSave()}
+  const names=[...new Set(WD.sorts.map(s=>s.n).concat(Object.keys(A.wait).filter(n=>A.wait[n].roh>.001)))];
+  return names.map(n=>{const s=WD.sorts.find(x=>x.n===n),g=WD.geb(n),p=A.pw.p[n]||{p1:0,p2:0},w=A.wait[n]||{roh:0},loss=A.loss[n]!=null?A.loss[n]:WD.loss;
+    const n1=g?g.n1:null,n2=g?g.n2:null,needKg=g?n1+n2*.25:(s?s.g/1000:0),pk=p.p1+p.p2*.25;
+    return{n,g,n1,n2,needKg,p1:p.p1,p2:p.p2,pk,roh:w.roh||0,d:w.d,loss,w:Math.round((w.roh||0)*(1-loss/100)*100)/100,silo:siloFor(n),
+      m1:n1==null?null:Math.max(0,n1-p.p1),m2:n2==null?null:Math.max(0,n2-p.p2),missKg:Math.max(0,needKg-pk)}});
+}
+const isDone=r=>r.needKg>0&&(r.g?r.m1+r.m2===0:r.missKg<.01);
+function suggest(r){let a=r.w;const x={e:0,s1:0,s2:0};if(r.g){x.s1=Math.min(r.m1,nB(a));a-=x.s1;x.s2=Math.min(r.m2,nS(a))}PS[r.n]=x}
+function renderW(){
+  WD=wData();const R=rowsW();
+  $("wSub").textContent=WD.wk?`${WD.wk} · Bedarf ${WD.vkW?"aus Lightspeed KW "+WD.vkW:"aus dem Röstplan (kg)"}`:"Noch kein Bericht im Röstplan";
+  const wk=R.reduce((x,r)=>x+r.w,0),ms=R.filter(r=>r.needKg>0&&!isDone(r)),bags=ms.reduce((x,r)=>x+(r.g?r.m1+r.m2:0),0),mkg=ms.reduce((x,r)=>x+r.missKg,0),ready=ms.filter(r=>r.w>0);
+  $("missC").innerHTML=`<h2>Jetzt abpackbar</h2>${wk>0?`<div class="miss"><div class="big"><b>${f1(wk)}</b><span>kg geröstet</span></div><div><b>${nS(wk)}</b><span>× 250 g möglich</span></div><div><b>${nB(wk)}</b><span>× 1 kg möglich</span></div></div>`:`<p class="hint">Nichts geröstet, das wartet. Erst den Rösttag bestätigen.</p>`}
+   ${R.length?`<h2 style="font-size:15px;margin-top:4px">Fehlt diese Woche noch</h2>${ms.length?`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""} · ${f1(mkg)} kg</b>${ready.length?` · davon jetzt abpackbar: ${ready.length}`:""}</p>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`}`:`<p class="hint">Im Röstplan einen Wochenbericht laden, dann steht hier der Bedarf.</p>`}`;
+  renderRoast();renderSorts(R);kurz();
+}
+function renderRoast(){
+  const c=$("roastC"),e=WD.e;
+  if(!e){c.hidden=!WD.sorts.length;c.innerHTML=`<h2>Rösttag bestätigen</h2><p class="hint">Im Röstplan auf „Liste“ die Liste im Verlauf sichern, dann erscheinen die Rösttage hier.</p>`;return}
+  const days=[0,1,2].map(d=>({d,l:(e.days||[])[d]||[],nm:(e.dn||[])[d]||"Tag "+(d+1)})).concat([{d:3,l:e.open||[],nm:"Ohne Tag"}]).filter(x=>x.l.length);
+  const open=days.filter(x=>!A.conf[e.id+"#"+x.d]);
+  if(!open.length){c.hidden=false;c.className="card";c.innerHTML=`<div class="hrow"><h2>Rösttage ${esc(e.week||"")}</h2><span class="okk">alle bestätigt ✓</span></div>`;return}
+  c.hidden=false;c.className="card roast";
+  if(rcDay==null||!open.some(x=>x.d===rcDay))rcDay=open[0].d;
+  const cur=open.find(x=>x.d===rcDay),key=e.id+"#"+rcDay;
+  if(!RC[key])RC[key]=cur.l.map(x=>({n:x.name,size:(x.kgs||[])[0]||5,c:(x.kgs||[]).length}));
+  const rows=RC[key],n=rows.reduce((a,r)=>a+r.c,0),roh=rows.reduce((a,r)=>a+r.c*r.size,0);
+  const lossOf=nm=>A.loss[nm]!=null?A.loss[nm]:WD.loss;
+  c.innerHTML=`<div class="hrow"><h2>Rösttag bestätigen</h2><span class="hint">aus dem Röstplan</span></div>
+   ${open.length>1?`<div class="chips">${open.map(x=>`<button data-rday="${x.d}" aria-pressed="${x.d===rcDay}">${esc(x.nm)}</button>`).join("")}</div>`:`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${esc(cur.nm)}</b></p>`}
+   <p class="hint" style="margin-top:-4px">${n} Chargen · ${kgT(roh)} kg roh. Anders geröstet? Mit − und + ändern.</p>
+   <div class="rl">${rows.map((r,i)=>{const g=r.c*r.size*(1-lossOf(r.n)/100);return `<div class="rr"><span class="t"><b>${esc(r.n)}</b><small>${r.c} × ${kgT(r.size)} kg roh = ${f1(g)} kg geröstet</small></span><span class="step sm"><button data-rc="${i}" data-v="-1" aria-label="Eine Charge weniger">−</button><output>${r.c}</output><button data-rc="${i}" data-v="1" aria-label="Eine Charge mehr">+</button></span></div>`}).join("")}</div>
+   <div class="row2"><label class="f">Geröstet am<input id="rDate" type="date" value="${today()}" max="${today()}"></label></div>
+   <button class="primary" id="rOk">So geröstet</button>`;
+}
+function bar(r){const N=Math.max(r.needKg,r.pk+r.w,.01),p=r.pk/N*100,w=Math.min(r.w,Math.max(0,N-r.pk))/N*100;return `<span class="bar" aria-hidden="true"><i class="p" style="width:${p}%"></i><i class="w" style="width:${w}%"></i></span>`}
+function renderSorts(R){
+  const rank=r=>isDone(r)&&r.w<=0?2:r.w>0?0:1,L2=R.slice().sort((a,b)=>rank(a)-rank(b));
+  $("sCnt").textContent=R.length?R.filter(isDone).length+" von "+R.filter(r=>r.needKg>0).length+" fertig":"";
+  if(!R.length){$("sl").innerHTML=`<p class="empty">Noch keine Sorten. Sie kommen aus dem Wochenbericht im Röstplan.</p>`;return}
+  $("sl").innerHTML=L2.map(r=>{const done=isDone(r),o=openS===r.n;
+    const st=r.w>0?`<span class="st">${f1(r.w)} kg wartet</span>`:done?`<span class="st done">✓ fertig</span>`:`<span class="st">noch rösten</span>`;
+    const miss=r.g?[r.m1?r.m1+" × 1 kg":"",r.m2?r.m2+" × 250 g":""].filter(Boolean).join(" · "):f1(r.missKg)+" kg";
+    return `<div class="so" data-open="${o?1:0}"><button class="h" data-s="${esc(r.n)}" aria-expanded="${o}">
+      <span class="r1"><span class="nm">${esc(r.n)}${r.silo?`<small>+ ${r.silo.id==="panea"?"Tonnen":"Eigenbedarf"}</small>`:""}</span>${r.w>0&&r.d?ring(r.d):""}${st}</span>${bar(r)}
+      <span class="r3">${done?`${r.p1} × 1 kg · ${r.p2} × 250 g abgepackt`:`Fehlt: ${miss}${r.p1+r.p2?` · schon ${r.p1+r.p2} Tüten`:""}`}</span></button>
+      ${o?pack(r):""}</div>`}).join("");
+}
+function pack(r){
+  if(!(r.w>0))return `<div class="pk"><p class="say">Davon ist nichts geröstet, das wartet. Sobald der Rösttag bestätigt ist, kannst du hier abpacken.</p></div>`;
+  if(!PS[r.n])suggest(r);const x=PS[r.n],u=x.e+x.s1+x.s2*.25,rest=Math.round((r.w-u)*100)/100,fr=r.w-x.e,m1=nB(fr-x.s2*.25),m2=nS(fr-x.s1),ton=r.silo&&r.silo.id==="panea";
+  const row=(k,lab,v,sub)=>`<div class="pr"><span class="t">${lab}<small>${sub}</small></span><span class="step"><button data-st="${k}" data-v="-1" aria-label="${lab} weniger">−</button><output>${v}</output><button data-st="${k}" data-v="1" aria-label="${lab} mehr">+</button></span></div>`;
+  const nd=(need,v)=>need==null?"Bedarf unbekannt":need>0?(v>=need?`<span class="okk">Bedarf ${need} ✓</span>`:`Bedarf ${need}`):"kein Bedarf";
+  return `<div class="pk">
+   <div class="kgh"><div><b>${f1(r.w)} kg</b> geröstet</div><button class="lossb" data-lossopen="1" aria-expanded="${lossOpen===r.n}">${kgT(r.roh)} kg roh · −${r.loss} %</button></div>
+   ${lossOpen===r.n?`<div class="pr"><span class="t" style="font-weight:500;font-size:14px">Röstverlust dieser Sorte</span><span class="step sm"><button data-loss="-1" aria-label="Röstverlust weniger">−</button><output>${r.loss} %</output><button data-loss="1" aria-label="Röstverlust mehr">+</button></span></div>`:""}
+   <div class="rows">
+    ${r.silo?(ton?row("e","Tonnen 10 kg",x.e/10,"für die Mühlen"):row("e","Eigenbedarf-Kiste",kgT(x.e)+" kg","ins Regal · "+esc(r.silo.name))):""}
+    ${row("1","1-kg-Tüten",x.s1,nd(r.m1,x.s1)+" · max "+m1)}
+    ${row("2","250-g-Tüten",x.s2,nd(r.m2,x.s2)+" · max "+m2)}
+   </div>
+   <div class="restl ${rest<-0.001?"w":""}"><span>${rest<-0.001?`${f1(-rest)} kg zu viel`:`Rest <b>${f1(rest)} kg</b>`}</span>${rest>=.25?`<button data-fill="1">+ ${nS(rest)} × 250 g</button>`:""}</div>
+   ${rest>0.001&&rest<.25||rest>=.25?`<p class="hint" style="margin-top:-8px">Der Rest bleibt unverpackt im Regal und steht beim nächsten Mal wieder hier.</p>`:""}
+   <button class="primary big" data-ok="1"${rest<-0.001||u<=0?" disabled":""}>Fertig abgepackt</button>
+   <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1">Zurück zum Vorschlag</button><button class="link" data-drop="1">Nichts mehr da</button></div></div>`;
+}
+const say2=t=>{$("wmsg").textContent=t;clearTimeout(say2.t);say2.t=setTimeout(()=>$("wmsg").textContent="",4000)};
+$("roastC").addEventListener("click",e=>{
+  const dy=e.target.closest("[data-rday]");if(dy){rcDay=+dy.dataset.rday;renderRoast();return}
+  const b=e.target.closest("[data-rc]");if(b){const r=RC[WD.e.id+"#"+rcDay][+b.dataset.rc];r.c=Math.max(0,r.c+ +b.dataset.v);renderRoast();return}
+  if(e.target.closest("#rOk")){const key=WD.e.id+"#"+rcDay,rows=RC[key].filter(r=>r.c>0),d=$("rDate").value||today();AN();const add={};
+    rows.forEach(r=>{const w=A.wait[r.n]||(A.wait[r.n]={roh:0});w.roh=Math.round((w.roh+r.c*r.size)*1000)/1000;w.d=d;add[r.n]=r.c*r.size});
+    const dnm=[0,1,2].includes(rcDay)?((WD.e.dn||[])[rcDay]||"Tag "+(rcDay+1)):"ohne Tag";
+    A.conf[key]=d;A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key,add,txt:"Rösttag "+dnm+" bestätigt",sub:rows.map(r=>r.n.split(" ")[0]+" "+r.c+"×").join(" · ")});
+    if(!aSave()){say2("Speichern hat nicht geklappt.");return}delete RC[key];rcDay=null;say2(rows.reduce((a,r)=>a+r.c,0)+" Chargen übernommen.");renderW()}});
+$("sl").addEventListener("click",e=>{
+  const h=e.target.closest("[data-s]");if(h){openS=openS===h.dataset.s?null:h.dataset.s;delete PS[openS];lossOpen=null;renderW();return}
+  const R=rowsW(),r=R.find(x=>x.n===openS);if(!r)return;const x=PS[r.n];
+  if(e.target.closest("[data-lossopen]")){lossOpen=lossOpen===r.n?null:r.n;renderSorts(R);return}
+  const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,r.loss+ +lo.dataset.v));aSave();renderW();return}
+  const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,x.s1+v);else if(k==="2")x.s2=Math.max(0,x.s2+v);else x.e=Math.max(0,Math.round((x.e+(r.silo.id==="panea"?10:.5)*v)*10)/10);renderSorts(R);return}
+  if(e.target.closest("[data-fill]")){x.s2+=nS(r.w-x.e-x.s1-x.s2*.25);renderSorts(R);return}
+  if(e.target.closest("[data-sg]")){suggest(r);renderSorts(R);return}
+  if(e.target.closest("[data-drop]")){const w=A.wait[r.n];A.log.unshift({id:uid(),n:Date.now(),d:today(),t:"drop",n:r.n,roh:w.roh,wd:w.d,txt:r.n+": Rest ausgebucht",sub:f1(r.w)+" kg geröstet nicht mehr da"});delete A.wait[r.n];aSave();openS=null;renderW();return}
+  if(e.target.closest("[data-ok]")){const u=x.e+x.s1+x.s2*.25;if(u<=0||u>r.w+.001)return;const used=u/(1-r.loss/100),rd=r.d||today(),en={id:uid(),n:Date.now(),d:today(),t:"pack",n:r.n,wk:WD.wk,s1:x.s1,s2:x.s2,e:x.e,roh:used};
+    if(x.e>0&&r.silo){const bid=uid();en.silo=r.silo.id;en.bid=bid;en.tids=[];
+      commit(s=>{s.buch.push({id:bid,n:Date.now(),silo:r.silo.id,d:rd,t:"rein",kg:x.e,note:"aus Abpacken"});if(r.silo.id==="panea"){const z=s.list.find(y=>y.id==="panea");z.ton=z.ton||[];for(let i=0;i<Math.round(x.e/10);i++){const tid=uid()+i;en.tids.push(tid);z.ton.push({id:tid,kg:10,d:rd,b:bid})}}})}
+    const w=A.wait[r.n];w.roh=Math.round((w.roh-used)*1000)/1000;if(w.roh<.01)delete A.wait[r.n];
+    const p=A.pw.p[r.n]||(A.pw.p[r.n]={p1:0,p2:0});p.p1+=x.s1;p.p2+=x.s2;
+    en.txt=r.n+" abgepackt";en.sub=[x.s1?x.s1+" × 1 kg":"",x.s2?x.s2+" × 250 g":"",x.e?(r.silo.id==="panea"?x.e/10+" × Tonne":kgT(x.e)+" kg Eigenbedarf"):""].filter(Boolean).join(" · ");
+    A.log.unshift(en);aSave();delete PS[r.n];openS=null;say2(r.n+" abgepackt.");renderW()}
+});
+// Eintrag aus dem Verlauf zurücknehmen
+function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
+  if(l.t==="roast"){Object.entries(l.add||{}).forEach(([n,kg])=>{const w=A.wait[n];if(w){w.roh=Math.round((w.roh-kg)*1000)/1000;if(w.roh<.01)delete A.wait[n]}});delete A.conf[l.key]}
+  if(l.t==="pack"){const w=A.wait[l.n]||(A.wait[l.n]={roh:0});w.roh=Math.round((w.roh+l.roh)*1000)/1000;if(l.wk===A.pw.key&&A.pw.p[l.n]){A.pw.p[l.n].p1=Math.max(0,A.pw.p[l.n].p1-l.s1);A.pw.p[l.n].p2=Math.max(0,A.pw.p[l.n].p2-l.s2)}
+    if(l.bid)commit(s=>{s.buch=s.buch.filter(b=>b.id!==l.bid);s.list.forEach(z=>{if(z.ton)z.ton=z.ton.filter(t=>t.b!==l.bid)})})}
+  if(l.t==="drop"){A.wait[l.n]={roh:l.roh,d:l.wd}}
+  A.log=A.log.filter(x=>x!==l);aSave()}
+
 if(!G.silos){commit(()=>{})}
-render();
+render();renderW();
 })();
 </script>
+
 <style>
 .lgx-home svg{transition:transform .5s linear}
 .lgx-home.lgx-arm svg{transform:scale(1.25)}

@@ -298,7 +298,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       <div class="meta"><div><h2 id="t4">Verkauf</h2><p id="s4">Verlauf · Vergleich · Prognose</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <a class="tile mini" href="abpackhilfe.html" aria-labelledby="t5">
-      <div class="meta"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v13a5 5 0 0 1-10 0z"/><path d="M7 11h10"/><path d="M12 22v-1"/></svg></span><div><h2 id="t5">Abpackhilfe</h2><p id="s5">Silos · Eigenbedarf</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v13a5 5 0 0 1-10 0z"/><path d="M7 11h10"/><path d="M12 22v-1"/></svg></span><div><h2 id="t5">Abpackhilfe</h2><p id="s5">Abpacken · Lager</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
   </div>
 
@@ -354,9 +354,9 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   const vk = get("verkauf.kurz");
   if (vk && vk.kw) document.getElementById("s4").innerHTML = "<b>KW " + (vk.kw | 0) + "</b> · Ø " + Number(vk.avg).toLocaleString("de-DE", {maximumFractionDigits: 1}) + " kg/Woche" + (vk.d == null ? "" : " · " + (vk.d >= 0 ? "▲ +" : "▼ −") + Math.abs(vk.d) + " %");
   if (vk && vk.d != null) document.getElementById("vkp").textContent = (vk.d >= 0 ? "+" : "−") + Math.abs(vk.d) + " %";
-  // Abpackhilfe: Stand der Silos und Eigenbedarf
-  const ap = get("abpack.kurz");
-  if (ap && ap.n) document.getElementById("s5").innerHTML = "Silos <b>" + Number(ap.st).toLocaleString("de-DE", {maximumFractionDigits: 1}) + " kg</b>" + (ap.pw == null ? "" : " · Eigenbedarf Ø " + Number(ap.pw).toLocaleString("de-DE", {maximumFractionDigits: 1}) + " kg/Woche");
+  // Abpackhilfe: was aufs Abpacken wartet, Stand im Lager (Eigenbedarf)
+  const ap = get("abpack.kurz"), fk = v => Number(v).toLocaleString("de-DE", {maximumFractionDigits: 1});
+  if (ap && (ap.n || ap.wk > 0)) document.getElementById("s5").innerHTML = (ap.wk > 0 ? "<b>" + fk(ap.wk) + " kg</b> zum Abpacken · " : "") + "Lager <b>" + fk(ap.st) + " kg</b>" + (ap.pw == null || ap.wk > 0 ? "" : " · Ø " + fk(ap.pw) + " kg/Woche");
   // Datensicherung: alle Daten der drei Apps in einer Datei (Schlüssel bleiben unverändert)
   const KEYS = k => /^(kasse\.|roestplan|bruehbuch|verkauf\.|gehirn\.|abpack\.)/.test(k);
   const $ = id => document.getElementById(id), say = t => { $("bkMsg").textContent = t; };
