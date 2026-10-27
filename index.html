@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="de"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Laden</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -13,18 +13,18 @@
 <meta name="theme-color" content="#F3EEE7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
 <style>
-/* Startseite: Bildkacheln (Tagesabschluss, Röstplan, Brühbuch, Verkauf) + kleine Kachel Abpackhilfe (Silos) im Farbschema Crema, ganz in Helvetica Neue */
+/* Startseite: Bildkacheln Brühbuch, Tagesabschluss, Röstplan, Abpackhilfe, Verkauf im Farbschema Crema, ganz in Helvetica Neue */
 :root{
   --bg:#F3EEE7; --paper:#FBF8F3; --ink:#2B211B; --muted:#7A6A5D; --line:#E3D9CC;
   --accent:#8A5A3B; --shadow:rgba(60,40,25,.13);
-  --c1a:#EBD6BC; --c1b:#D7AE84; --c2a:#6A4630; --c2b:#2F1F16; --c3a:#E3E8D9; --c3b:#BCC8AC; --c4a:#EFD3C0; --c4b:#C98E6B;
+  --c1a:#EBD6BC; --c1b:#D7AE84; --c2a:#6A4630; --c2b:#2F1F16; --c3a:#E3E8D9; --c3b:#BCC8AC; --c4a:#EFD3C0; --c4b:#C98E6B; --c5a:#ECE1CC; --c5b:#CDB38C;
   --f:"Helvetica Neue",Helvetica,Arial,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#17120F; --paper:#211A16; --ink:#EFE7DF; --muted:#AD9E91; --line:#3A2F28;
   --accent:#D3A27C; --shadow:rgba(0,0,0,.5);
-  --c1a:#5A412E; --c1b:#3B2A1E; --c2a:#3E2A1D; --c2b:#1B120D; --c3a:#39402F; --c3b:#1F241A; --c4a:#5B3A2A; --c4b:#2A1A12;
+  --c1a:#5A412E; --c1b:#3B2A1E; --c2a:#3E2A1D; --c2b:#1B120D; --c3a:#39402F; --c3b:#1F241A; --c4a:#5B3A2A; --c4b:#2A1A12; --c5a:#4C4030; --c5b:#251D15;
   color-scheme:dark}
   .sheen{opacity:.35}}
 *{box-sizing:border-box}
@@ -34,7 +34,7 @@ body{color:var(--ink);font:16px/1.45 var(--f);-webkit-font-smoothing:antialiased
 .date{margin:0;color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.025em}
 .tiles{display:grid;gap:16px}
-@media (min-width:900px){.wrap{max-width:1040px}.tiles{grid-template-columns:repeat(4,1fr)}.tile.soon{grid-column:1/-1}}
+@media (min-width:900px){.wrap{max-width:1040px}.tiles{grid-template-columns:repeat(5,1fr)}.tile.soon{grid-column:1/-1}}
 .tile{display:block;text-decoration:none;color:inherit;background:var(--paper);border:1px solid var(--line);border-radius:26px;overflow:hidden;
   box-shadow:0 1px 1px rgba(0,0,0,.03),0 12px 30px var(--shadow);-webkit-tap-highlight-color:transparent;
   transition:transform .18s cubic-bezier(.3,.7,.4,1),box-shadow .18s}
@@ -60,6 +60,9 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   .steam path{animation:steam 4.2s ease-in-out infinite}
   .steam path:nth-child(2){animation-delay:1.4s}.steam path:nth-child(3){animation-delay:2.8s}
   @keyframes steam{0%{opacity:0;transform:translateY(8px)}35%{opacity:.75}100%{opacity:0;transform:translateY(-14px)}}
+  .fall{animation:fall 1.6s cubic-bezier(.5,0,1,1) infinite}.fall.f2{animation-delay:.8s}
+  @keyframes fall{0%{opacity:0;transform:translateY(-4px)}15%{opacity:1}75%{opacity:1;transform:translateY(16px)}100%{opacity:0;transform:translateY(18px)}}
+  .tick{transform-box:fill-box;transform-origin:center;animation:tick 3.2s ease-in-out infinite}@keyframes tick{0%,55%{transform:scale(0);opacity:0}65%{transform:scale(1.15);opacity:1}72%,92%{transform:none;opacity:1}100%{transform:scale(.6);opacity:0}}
   .tumble{animation:tumble 9s linear infinite;transform-origin:150px 104px;transform-box:view-box}
   @keyframes tumble{to{transform:rotate(360deg)}}
 }
@@ -68,14 +71,16 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   .wrap{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
   h1{margin-bottom:16px}
   .tiles{flex:1;display:flex;flex-direction:column;gap:12px;min-height:0}
-  .tile{flex:1 1 0;display:flex;flex-direction:column;min-height:112px;border-radius:22px}
+  .tile{flex:1 1 0;display:flex;flex-direction:column;border-radius:20px}
+  .tile .meta{flex:none}
   .tile.soon{flex:none;min-height:0}
   .tile.soon .meta{padding:9px 14px 9px 12px}
-  .art{flex:1 1 0;min-height:0;aspect-ratio:auto;height:auto}
-  .meta{padding:11px 14px 12px 18px}
-  .meta h2{font-size:20px}
-  .meta p{font-size:14px;margin-top:1px}
-  .go{width:34px;height:34px}
+  .art{flex:1 1 0;min-height:44px;aspect-ratio:auto;height:auto}
+  .meta{padding:8px 12px 9px 16px}
+  .meta h2{font-size:19px}
+  .meta p{font-size:13.5px;margin-top:0}
+  .go{width:30px;height:30px}
+  .tiles{gap:10px}
   .foot{margin-top:12px}
 }
 /* Kachel 4 Verkauf: Balken wachsen, Trend zeichnet sich, Prognose-Punkt pulsiert. Platzhalter Abpackhilfe: flach, gestrichelt */
@@ -138,6 +143,47 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   <h1 id="hello">Hallo</h1>
 
   <div class="tiles">
+    <a class="tile" href="bruehbuch.html" aria-labelledby="t3">
+      <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c3a)"/><stop offset="1" stop-color="var(--c3b)"/></linearGradient>
+          <linearGradient id="brew" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9744E"/><stop offset="1" stop-color="#5B3523"/></linearGradient>
+          <linearGradient id="kettle" x1="0" x2="1"><stop offset="0" stop-color="#3B3A38"/><stop offset=".5" stop-color="#5C5A56"/><stop offset="1" stop-color="#2E2D2B"/></linearGradient>
+        </defs>
+        <rect width="340" height="170" fill="url(#g3)"/>
+        <g class="sheen"><circle cx="40" cy="-20" r="90" fill="#fff" opacity=".14"/><circle cx="330" cy="180" r="60" fill="#fff" opacity=".08"/></g>
+        <!-- Wasserkocher mit Schwanenhals -->
+        <path d="M44 74h62l8 62H36z" fill="url(#kettle)"/>
+        <rect x="40" y="64" width="70" height="12" rx="6" fill="#4A4946"/>
+        <rect x="68" y="54" width="14" height="10" rx="4" fill="#2E2D2B"/>
+        <path d="M110 84c20 2 26 8 34 34" fill="none" stroke="#2E2D2B" stroke-width="8" stroke-linecap="round"/>
+        <path d="M144 118c4-26 14-36 34-38" fill="none" stroke="#2E2D2B" stroke-width="6" stroke-linecap="round"/>
+        <path d="M36 86c-12 0-14 30 2 34" fill="none" stroke="#2E2D2B" stroke-width="7" stroke-linecap="round"/>
+        <!-- Wasserstrahl -->
+        <path class="pour" d="M180 80c3 4 4 10 4 22" fill="none" stroke="#9CC3D9" stroke-width="3" stroke-linecap="round" stroke-dasharray="10 4"/>
+        <!-- V60 -->
+        <path d="M150 100h68l-24 34h-20z" fill="#FBF6EE"/>
+        <path d="M150 100h68" stroke="#E2D6C6" stroke-width="3"/>
+        <g stroke="#E5D9C9" stroke-width="1.6"><path d="M166 106l12 24"/><path d="M184 106v24"/><path d="M202 106l-12 24"/></g>
+        <path d="M218 104h8a7 7 0 0 1 0 14h-10" fill="none" stroke="#FBF6EE" stroke-width="5"/>
+        <rect x="166" y="134" width="36" height="6" rx="2" fill="#E9DFD0"/>
+        <!-- Tropfen -->
+        <ellipse class="drip" cx="184" cy="146" rx="2.4" ry="3.4" fill="#6A4029"/>
+        <!-- Kanne -->
+        <path d="M160 140h48l4 22a6 6 0 0 1-6 6h-44a6 6 0 0 1-6-6z" fill="#fff" opacity=".55"/>
+        <path d="M159 152h50l2 10a6 6 0 0 1-6 6h-42a6 6 0 0 1-6-6z" fill="url(#brew)"/>
+        <!-- Rezeptkarte -->
+        <g transform="rotate(5 282 82)">
+          <rect x="248" y="34" width="68" height="96" rx="6" fill="#FBF6EE"/>
+          <text x="282" y="62" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial" font-weight="700" font-size="17" fill="#6A4029">1:16</text>
+          <rect x="258" y="74" width="48" height="4" rx="2" fill="#DCCDBB"/>
+          <rect x="258" y="86" width="38" height="4" rx="2" fill="#DCCDBB"/>
+          <rect x="258" y="98" width="44" height="4" rx="2" fill="#DCCDBB"/>
+          <circle cx="263" cy="116" r="4" fill="#4D6FA8"/><rect x="273" y="112" width="8" height="8" rx="1.5" fill="#D9822B"/><path d="M291 111l5 5-5 5-5-5z" fill="#8A63B0"/>
+        </g>
+      </svg>
+      <div class="meta"><div><h2 id="t3">Brühbuch</h2><p id="s3">Rezepte · Brühhilfe · Tagebuch</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+    </a>
     <a class="tile" href="tagesabschluss.html" aria-labelledby="t1">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
@@ -178,7 +224,6 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       </svg>
       <div class="meta"><div><h2 id="t1">Tagesabschluss</h2><p id="s1">Kasse zählen · Trinkgeld verteilen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-
     <a class="tile" href="roestplan.html" aria-labelledby="t2">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
@@ -222,46 +267,53 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       </svg>
       <div class="meta"><div><h2 id="t2">Röstplan</h2><p id="s2">Verkauf rein · Chargen planen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-    <a class="tile" href="bruehbuch.html" aria-labelledby="t3">
+    <a class="tile" href="abpackhilfe.html" aria-labelledby="t5">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
-          <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c3a)"/><stop offset="1" stop-color="var(--c3b)"/></linearGradient>
-          <linearGradient id="brew" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#A9744E"/><stop offset="1" stop-color="#5B3523"/></linearGradient>
-          <linearGradient id="kettle" x1="0" x2="1"><stop offset="0" stop-color="#3B3A38"/><stop offset=".5" stop-color="#5C5A56"/><stop offset="1" stop-color="#2E2D2B"/></linearGradient>
+          <linearGradient id="g5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c5a)"/><stop offset="1" stop-color="var(--c5b)"/></linearGradient>
+          <linearGradient id="kraft" x1="0" x2="1"><stop offset="0" stop-color="#B98E62"/><stop offset=".5" stop-color="#D2AB7E"/><stop offset="1" stop-color="#A97E54"/></linearGradient>
+          <linearGradient id="silo" x1="0" x2="1"><stop offset="0" stop-color="#C9C2BA"/><stop offset=".5" stop-color="#EEE9E3"/><stop offset="1" stop-color="#B3ABA2"/></linearGradient>
+          <symbol id="bn5" viewBox="-6 -8 12 16" overflow="visible"><ellipse rx="4.4" ry="6" fill="#7A4A2A"/><path d="M0-5c-1.7 2.6 1.7 7 0 10" fill="none" stroke="#3E2414" stroke-width="1.2" stroke-linecap="round"/></symbol>
         </defs>
-        <rect width="340" height="170" fill="url(#g3)"/>
-        <g class="sheen"><circle cx="40" cy="-20" r="90" fill="#fff" opacity=".14"/><circle cx="330" cy="180" r="60" fill="#fff" opacity=".08"/></g>
-        <!-- Wasserkocher mit Schwanenhals -->
-        <path d="M44 74h62l8 62H36z" fill="url(#kettle)"/>
-        <rect x="40" y="64" width="70" height="12" rx="6" fill="#4A4946"/>
-        <rect x="68" y="54" width="14" height="10" rx="4" fill="#2E2D2B"/>
-        <path d="M110 84c20 2 26 8 34 34" fill="none" stroke="#2E2D2B" stroke-width="8" stroke-linecap="round"/>
-        <path d="M144 118c4-26 14-36 34-38" fill="none" stroke="#2E2D2B" stroke-width="6" stroke-linecap="round"/>
-        <path d="M36 86c-12 0-14 30 2 34" fill="none" stroke="#2E2D2B" stroke-width="7" stroke-linecap="round"/>
-        <!-- Wasserstrahl -->
-        <path class="pour" d="M180 80c3 4 4 10 4 22" fill="none" stroke="#9CC3D9" stroke-width="3" stroke-linecap="round" stroke-dasharray="10 4"/>
-        <!-- V60 -->
-        <path d="M150 100h68l-24 34h-20z" fill="#FBF6EE"/>
-        <path d="M150 100h68" stroke="#E2D6C6" stroke-width="3"/>
-        <g stroke="#E5D9C9" stroke-width="1.6"><path d="M166 106l12 24"/><path d="M184 106v24"/><path d="M202 106l-12 24"/></g>
-        <path d="M218 104h8a7 7 0 0 1 0 14h-10" fill="none" stroke="#FBF6EE" stroke-width="5"/>
-        <rect x="166" y="134" width="36" height="6" rx="2" fill="#E9DFD0"/>
-        <!-- Tropfen -->
-        <ellipse class="drip" cx="184" cy="146" rx="2.4" ry="3.4" fill="#6A4029"/>
-        <!-- Kanne -->
-        <path d="M160 140h48l4 22a6 6 0 0 1-6 6h-44a6 6 0 0 1-6-6z" fill="#fff" opacity=".55"/>
-        <path d="M159 152h50l2 10a6 6 0 0 1-6 6h-42a6 6 0 0 1-6-6z" fill="url(#brew)"/>
-        <!-- Rezeptkarte -->
-        <g transform="rotate(5 282 82)">
-          <rect x="248" y="34" width="68" height="96" rx="6" fill="#FBF6EE"/>
-          <text x="282" y="62" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial" font-weight="700" font-size="17" fill="#6A4029">1:16</text>
-          <rect x="258" y="74" width="48" height="4" rx="2" fill="#DCCDBB"/>
-          <rect x="258" y="86" width="38" height="4" rx="2" fill="#DCCDBB"/>
-          <rect x="258" y="98" width="44" height="4" rx="2" fill="#DCCDBB"/>
-          <circle cx="263" cy="116" r="4" fill="#4D6FA8"/><rect x="273" y="112" width="8" height="8" rx="1.5" fill="#D9822B"/><path d="M291 111l5 5-5 5-5-5z" fill="#8A63B0"/>
+        <rect width="340" height="170" fill="url(#g5)"/>
+        <g class="sheen"><circle cx="300" cy="-14" r="86" fill="#fff" opacity=".13"/><circle cx="20" cy="186" r="64" fill="#fff" opacity=".08"/></g>
+        <!-- Silo mit Bohnen -->
+        <path d="M36 22h68v58l-22 22h-24l-22-22z" fill="url(#silo)"/>
+        <path d="M42 46h56v32l-19 19h-18l-19-19z" fill="#6B4129"/>
+        <g opacity=".55"><use href="#bn5" x="48" y="50" width="12" height="16"/><use href="#bn5" x="64" y="56" width="12" height="16"/><use href="#bn5" x="80" y="50" width="12" height="16"/><use href="#bn5" x="58" y="70" width="12" height="16"/><use href="#bn5" x="74" y="72" width="12" height="16"/></g>
+        <rect x="32" y="16" width="76" height="10" rx="5" fill="#9E968D"/>
+        <rect x="60" y="102" width="20" height="10" rx="2" fill="#8E867D"/>
+        <!-- fallende Bohnen in die Tüte -->
+        <g class="fall"><use href="#bn5" x="64" y="112" width="12" height="16"/></g>
+        <g class="fall f2"><use href="#bn5" x="64" y="112" width="12" height="16"/></g>
+        <!-- offene Tüte auf der Waage -->
+        <path d="M50 124h40l-3 26H53z" fill="url(#kraft)"/>
+        <path d="M50 124l4-6h32l4 6z" fill="#E0C29C"/>
+        <rect x="38" y="150" width="64" height="10" rx="3" fill="#3A2D23" opacity=".85"/>
+        <rect x="58" y="152.5" width="24" height="5" rx="1.5" fill="#9FD3A8"/>
+        <!-- fertige Tüten: 1 kg + 250 g -->
+        <g>
+          <path d="M150 58h52l6 92h-64z" fill="url(#kraft)"/>
+          <path d="M150 58h52v-8h-52z" fill="#9E7650"/><path d="M150 50h52" stroke="#7D5A3A" stroke-width="2"/>
+          <rect x="160" y="84" width="32" height="30" rx="3" fill="#FBF6EE"/>
+          <text x="176" y="104" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial" font-weight="700" font-size="11" fill="#6A4029">1 kg</text>
+          <ellipse cx="176" cy="152" rx="36" ry="5" fill="#000" opacity=".12"/>
         </g>
+        <g>
+          <path d="M222 86h36l4 64h-44z" fill="url(#kraft)"/><path d="M222 86h36v-6h-36z" fill="#9E7650"/>
+          <rect x="228" y="104" width="24" height="22" rx="2.5" fill="#FBF6EE"/>
+          <text x="240" y="119" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial" font-weight="700" font-size="8.5" fill="#6A4029">250 g</text>
+        </g>
+        <g>
+          <path d="M270 86h36l4 64h-44z" fill="url(#kraft)"/><path d="M270 86h36v-6h-36z" fill="#9E7650"/>
+          <rect x="276" y="104" width="24" height="22" rx="2.5" fill="#FBF6EE"/>
+          <text x="288" y="119" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial" font-weight="700" font-size="8.5" fill="#6A4029">250 g</text>
+          <ellipse cx="264" cy="152" rx="50" ry="5" fill="#000" opacity=".12"/>
+        </g>
+        <!-- Haken: abgepackt -->
+        <g class="tick"><circle cx="300" cy="44" r="15" fill="#FBF6EE"/><path d="M293 44l5 5 9-10" fill="none" stroke="#5B7A3E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
       </svg>
-      <div class="meta"><div><h2 id="t3">Brühbuch</h2><p id="s3">Rezepte · Brühhilfe · Tagebuch</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t5">Abpackhilfe</h2><p id="s5">Abpacken · Lager</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <a class="tile" href="verkauf.html" aria-labelledby="t4">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -296,9 +348,6 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
         </g>
       </svg>
       <div class="meta"><div><h2 id="t4">Verkauf</h2><p id="s4">Verlauf · Vergleich · Prognose</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
-    </a>
-    <a class="tile mini" href="abpackhilfe.html" aria-labelledby="t5">
-      <div class="meta"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4h10v13a5 5 0 0 1-10 0z"/><path d="M7 11h10"/><path d="M12 22v-1"/></svg></span><div><h2 id="t5">Abpackhilfe</h2><p id="s5">Abpacken · Lager</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
   </div>
 
@@ -418,6 +467,34 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
  new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
  if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
  requestAnimationFrame(function(){setT(target())});
+})();
+</script>
+<style>
+html{touch-action:manipulation}
+.pm-hold{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+</style>
+<script>
+(function(){
+ var HOLD=400,FIRST=170,MIN=35,F=.86;
+ function isPM(b){if(!b||b.tagName!=="BUTTON"||b.disabled)return false;var t=(b.textContent||"").trim();return t==="+"||t==="−"||t==="-"||t==="–"}
+ function key(b){return (b.getAttribute("aria-label")||"")+"|"+b.textContent.trim()}
+ [].forEach.call(document.querySelectorAll("button"),function(b){if(isPM(b))b.classList.add("pm-hold")});
+ new MutationObserver(function(){[].forEach.call(document.querySelectorAll("button:not(.pm-hold)"),function(b){if(isPM(b))b.classList.add("pm-hold")})}).observe(document.body,{childList:true,subtree:true});
+ var pid=null,x=0,y=0,x0=0,y0=0,k="",t=null,iv=FIRST,fired=0,eat=false;
+ function stop(){clearTimeout(t);t=null;pid=null}
+ function tick(){var el=document.elementFromPoint(x,y),b=el&&el.closest("button");
+  if(!isPM(b)||key(b)!==k){stop();return}
+  b.click();fired++;iv=Math.max(MIN,iv*F);t=setTimeout(tick,iv)}
+ document.addEventListener("pointerdown",function(e){var b=e.target.closest&&e.target.closest("button");stop();eat=false;
+  if(!isPM(b)||(e.pointerType==="mouse"&&e.button!==0))return;
+  pid=e.pointerId;x=x0=e.clientX;y=y0=e.clientY;k=key(b);iv=FIRST;fired=0;
+  t=setTimeout(function(){eat=true;tick()},HOLD)},true);
+ document.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;x=e.clientX;y=e.clientY;if(Math.abs(x-x0)>14||Math.abs(y-y0)>14)stop()},true);
+ function up(e){if(e.pointerId===pid)stop()}
+ document.addEventListener("pointerup",up,true);document.addEventListener("pointercancel",function(e){up(e);eat=false},true);
+ // Nach dem Halten nicht noch einen Extra-Schritt durch den normalen Klick beim Loslassen
+ document.addEventListener("click",function(e){if(eat&&e.isTrusted){eat=false;e.preventDefault();e.stopPropagation()}},true);
+ document.addEventListener("contextmenu",function(e){var b=e.target.closest&&e.target.closest("button");if(isPM(b))e.preventDefault()},true);
 })();
 </script>
 <script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>

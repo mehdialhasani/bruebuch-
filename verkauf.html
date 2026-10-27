@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="de"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
 <title>Verkauf</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
@@ -982,6 +982,34 @@ all();
  bar.addEventListener("pointerup",function(e){if(e.pointerId!==pid)return;pid=null;if(moved&&isHome(e.clientX)&&!ready)block=true;reset()},true);
  bar.addEventListener("pointercancel",function(){pid=null;reset()},true);
  window.lgxHomeOk=function(){var b=block;block=false;return !b};
+})();
+</script>
+<style>
+html{touch-action:manipulation}
+.pm-hold{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+</style>
+<script>
+(function(){
+ var HOLD=400,FIRST=170,MIN=35,F=.86;
+ function isPM(b){if(!b||b.tagName!=="BUTTON"||b.disabled)return false;var t=(b.textContent||"").trim();return t==="+"||t==="−"||t==="-"||t==="–"}
+ function key(b){return (b.getAttribute("aria-label")||"")+"|"+b.textContent.trim()}
+ [].forEach.call(document.querySelectorAll("button"),function(b){if(isPM(b))b.classList.add("pm-hold")});
+ new MutationObserver(function(){[].forEach.call(document.querySelectorAll("button:not(.pm-hold)"),function(b){if(isPM(b))b.classList.add("pm-hold")})}).observe(document.body,{childList:true,subtree:true});
+ var pid=null,x=0,y=0,x0=0,y0=0,k="",t=null,iv=FIRST,fired=0,eat=false;
+ function stop(){clearTimeout(t);t=null;pid=null}
+ function tick(){var el=document.elementFromPoint(x,y),b=el&&el.closest("button");
+  if(!isPM(b)||key(b)!==k){stop();return}
+  b.click();fired++;iv=Math.max(MIN,iv*F);t=setTimeout(tick,iv)}
+ document.addEventListener("pointerdown",function(e){var b=e.target.closest&&e.target.closest("button");stop();eat=false;
+  if(!isPM(b)||(e.pointerType==="mouse"&&e.button!==0))return;
+  pid=e.pointerId;x=x0=e.clientX;y=y0=e.clientY;k=key(b);iv=FIRST;fired=0;
+  t=setTimeout(function(){eat=true;tick()},HOLD)},true);
+ document.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;x=e.clientX;y=e.clientY;if(Math.abs(x-x0)>14||Math.abs(y-y0)>14)stop()},true);
+ function up(e){if(e.pointerId===pid)stop()}
+ document.addEventListener("pointerup",up,true);document.addEventListener("pointercancel",function(e){up(e);eat=false},true);
+ // Nach dem Halten nicht noch einen Extra-Schritt durch den normalen Klick beim Loslassen
+ document.addEventListener("click",function(e){if(eat&&e.isTrusted){eat=false;e.preventDefault();e.stopPropagation()}},true);
+ document.addEventListener("contextmenu",function(e){var b=e.target.closest&&e.target.closest("button");if(isPM(b))e.preventDefault()},true);
 })();
 </script>
 <script>if("serviceWorker"in navigator)addEventListener("load",()=>navigator.serviceWorker.register("sw.js").catch(()=>{}));</script>
