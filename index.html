@@ -116,6 +116,21 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 .bkask p{margin:0 0 10px}.bkask .bk{margin:0}
 .bkask .bk button.main{background:var(--accent);color:var(--paper);border-color:var(--accent)}
 .bkmsg{margin:6px 0 0;text-align:center;color:var(--accent);font-size:14px;min-height:1.2em}
+/* laden-v22: Titel liegt als durchscheinender Verlauf auf dem Bild, das Bild füllt die ganze Kachel */
+.tile{position:relative;isolation:isolate}
+.tile .meta{position:absolute;left:0;right:0;bottom:0;z-index:1;padding-top:26px;
+  background:linear-gradient(to bottom,color-mix(in srgb,var(--paper) 0%,transparent),color-mix(in srgb,var(--paper) 62%,transparent) 42%,color-mix(in srgb,var(--paper) 80%,transparent))}
+.tile .meta h2{text-shadow:0 1px 10px var(--paper),0 0 2px var(--paper)}
+.tile .meta p{color:var(--ink);opacity:.78;text-shadow:0 1px 8px var(--paper)}
+.tile .go{background:color-mix(in srgb,var(--bg) 75%,transparent)}
+@media (max-width:899px){
+  h1{margin-bottom:14px}
+  .tiles{gap:10px}
+  .art{min-height:96px}
+  .tile .meta{padding-top:22px}
+  .foot{margin-top:10px}
+  .bkmsg{margin-top:2px;min-height:0}
+}
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
 :root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
@@ -135,7 +150,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 @media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
 .lgx.solo{width:auto}
 .lgx.solo button{padding:4px 28px}
-.wrap{padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))}
+.wrap{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
 </style>
 </head><body>
 <div class="wrap">
