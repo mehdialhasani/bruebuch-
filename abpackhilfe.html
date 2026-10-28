@@ -879,6 +879,18 @@ const PROZ=["Washed","Natural","Honey","Anaerob","Andere"],TYP=["Espresso","Filt
 function kSugg(){AN();let R={},K={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}try{K=JSON.parse(localStorage.getItem("verkauf.v1"))||{}}catch(e){}
   const have=new Set(A.sort.map(x=>norm(x.name))),out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!have.has(k)&&!seen.has(k)){seen.add(k);out.push(n)}};
   (Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>add(x.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(x=>add(x.name));Object.keys(A.wait).forEach(add);return out.sort((a,b)=>a.localeCompare(b,"de"))}
+// einmalig (laden-v29): Angaben der fünf neuen Kaffees von den Etiketten (Übersicht 2026-08-24); nur leere Felder werden gefüllt
+const ETI=[{k:"mesgo",name:"MESGO Filter",land:"Kenia",vari:"SL 28, SL 34",proz:"Washed",typ:"Filter",notiz:"Single Estate. Wir schmecken: Rote Früchte, Schwarztee, Vanille"},
+ {k:"san cristobal",name:"San Cristóbal Filter",land:"Costa Rica",vari:"Caturra, Catuaí, Obatã, Marsellesa",proz:"Natural",typ:"Filter",notiz:"Single Origin, Natural Microlot. Wir schmecken: Erdbeere, Mango, Milchschokolade"},
+ {k:"mariscal",name:"MARISCAL Espresso",land:"Mexiko",vari:"Bourbon, Caturra, Marsellesa, Oro Azteca",proz:"Washed",typ:"Espresso",notiz:"Single Origin, Bio. Wir schmecken: Milchschokolade, Toffee, Aprikose"},
+ {k:"huila",name:"HUILA Espresso",land:"Kolumbien, Huila",vari:"Caturra",proz:"Washed",typ:"Espresso",notiz:"Single Origin. Wir schmecken: Milchschokolade, Nougat, Rote Früchte"},
+ {k:"kerinci",name:"Kerinci Filter",land:"Indonesien, Kerinci",vari:"S-Lini, Caturra",proz:"Natural",typ:"Filter",notiz:"Single Origin. Wir schmecken: Ananas, Honig, Orange. Aufbereitung vorläufig: Honey oder Natural mit aktuellem Factsheet prüfen"}];
+function etiMig(){AN();if(A.etiMig)return;A.etiMig=1;const sug=kSugg();
+  // Sortiment noch leer: erst alle bekannten Sorten übernehmen (wie „Alle übernehmen“), sonst blieben in den Auswahllisten nur diese fünf
+  if(!A.sort.length)sug.forEach(kAdd);
+  ETI.forEach(e=>{let x=A.sort.find(y=>norm(y.name).includes(e.k));
+    if(!x){const n=sug.find(m=>norm(m).includes(e.k))||e.name;kAdd(n);x=A.sort[A.sort.length-1]}
+    ["land","vari","proz","typ","notiz"].forEach(f=>{if(!x[f])x[f]=e[f]})});aSave()}
 function kAdd(n){AN();A.sort.push({id:uid(),name:n,land:"",farm:"",vari:"",proz:"",typ:"",notiz:"",aus:false,size:rpSize(n)||5})}
 function kRename(o,n){if(norm(o)===norm(n)&&o===n)return;AN();[A.loss,A.wait,A.reg].forEach(m=>{if(m[o]!=null&&m[n]==null){m[n]=m[o];delete m[o]}});
   commit(x=>{x.buch.forEach(b=>{if(b.sorte===o)b.sorte=n});x.plan.forEach(q=>{if(q.sorte===o)q.sorte=n});x.list.forEach(z=>{if(z.sorte===o)z.sorte=n;if(z.cur&&z.cur.sorte===o)z.cur.sorte=n})})}
@@ -947,6 +959,7 @@ function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
 
 if(!G.silos){commit(()=>{})}
 try{tonMig()}catch(e){}
+try{etiMig()}catch(e){}
 render();renderW();
 })();
 </script>
