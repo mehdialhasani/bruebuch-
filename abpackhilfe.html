@@ -486,6 +486,12 @@ function chNames(s){const out=[],seen=new Set(),add=n=>{n=String(n||"").trim();c
 // Sorte, die zur Kiste passt (Mogiana -> „Brasil Mogiana“), sonst der Kistenname
 function chDef(s,L){if(soFld(s))return s.sorte||L.find(n=>norm(n)!==norm(s.name))||"";const a=norm(s.name);return L.find(n=>norm(n)===a)||L.find(n=>norm(n).includes(a))||s.name}
 function chLoss(n){AN();return A.loss[n]!=null?A.loss[n]:rpLoss()}
+// Chargengröße je Sorte: Profil im Sortiment, sonst bisheriger Schalter im Röstplan, sonst 5 kg
+function rpSize(n){try{const R=JSON.parse(localStorage.getItem("roestplan.v4"))||{},x=(R.sorts||[]).find(y=>norm(y.name)===norm(n));return x&&x.size===3?3:x?5:null}catch(e){return null}}
+function sizeOf(n){AN();const x=n&&A.sort.find(y=>norm(y.name)===norm(n));return x&&(x.size===3||x.size===5)?x.size:rpSize(n)||5}
+// 1 Tonne = 2 Chargen = 10 kg roh; drin ist das geröstete Gewicht
+const TON_ROH=10;function tonName(){const z=S().list.find(y=>y.id==="panea");return (z&&(z.sorte||z.name))||"Panea Espresso"}
+function tonKg(l){return Math.round(TON_ROH*(1-(l!=null?l:chLoss(tonName()))/100)*100)/100}
 const chName=()=>CH.so==="__x"?(($("chT")||{}).value||"").trim():CH.so;
 function chBody(){const n=chName(),l=chLoss(n||"?"),kg=Math.round(CH.n*CH.size*(1-l/100)*100)/100;
   return `<div class="pr"><span class="t">Chargen<small>à ${CH.size} kg roh · ${l} % Röstverlust <button type="button" class="lk" data-chadv="1">${CH.adv?"fertig":"ändern"}</button></small></span><span class="step"><button type="button" data-chn="-1" aria-label="Eine Charge weniger">−</button><output>${CH.n}</output><button type="button" data-chn="1" aria-label="Eine Charge mehr">+</button></span></div>
@@ -500,7 +506,7 @@ function chargeKg(so,size){return Math.round(size*(1-chLoss(so)/100)*100)/100}
 function millCur(s,c){if(s.cur&&S().buch.some(b=>b.id===s.cur.bid))return s.cur;if(c.st>.05&&s.sorte)return{sorte:s.sorte,kg:c.st,d:null,old:1};return null}
 function millQueue(id){return S().plan.filter(p=>p.silo===id).sort((a,b)=>(a.o??1e9)-(b.o??1e9)||(a.d<b.d?-1:1))}
 function renderMill(s,c){const d=$("det"),cur=millCur(s,c),Q=millQueue(s.id),L=soList(s);
-  if(!MQ||MQ.k!==s.id){MQ={k:s.id,so:(Q.length?Q[Q.length-1].sorte:s.sorte)||L[0]||"",size:5,adv:false}}
+  if(!MQ||MQ.k!==s.id){MQ={k:s.id,so:(Q.length?Q[Q.length-1].sorte:s.sorte)||L[0]||"",size:5,adv:false};MQ.size=sizeOf(MQ.so)}
   const hist=S().buch.filter(b=>b.silo===s.id&&b.t==="eigen"&&b.dur!=null).sort((a,b)=>b.n-a.n).slice(0,3);
   const nx=Q[0],nxOk=nx&&nx.sorte&&avail(nx.sorte)+.001>=nx.kg;
   const days=cur&&cur.d?Math.max(0,ddays(cur.d,today())):null;
@@ -576,7 +582,7 @@ function takeStock(n,kg,bid,kiste){const k=wKey(n);if(!k)return;const w=A.wait[k
   A.log.unshift({id:uid(),d:today(),t:"pack",n:k,wk:"",s1:0,s2:0,e:kg,roh:used,silo:open,bid,txt:k+" → "+kiste,sub:kgT(kg)+" kg ins Regal"});aSave()}
 function chKg(){const l=chLoss(chName()||"?");return Math.round(CH.n*CH.size*(1-l/100)*100)/100}
 function chUpd(){const b=$("chB");if(b)b.innerHTML=chBody();const i=$("bKg")||$("pKg");if(i)i.value=kgT(chKg())}
-function chHtml(s){const L=chNames(s);if(!CH||CH.k!==s.id+mode){const so=chDef(s,L);if(so&&!L.some(n=>norm(n)===norm(so)))L.unshift(so);CH={k:s.id+mode,n:1,size:5,so}}
+function chHtml(s){const L=chNames(s);if(!CH||CH.k!==s.id+mode){const so=chDef(s,L);if(so&&!L.some(n=>norm(n)===norm(so)))L.unshift(so);CH={k:s.id+mode,n:1,size:sizeOf(so),so}}
   else if(CH.so!=="__x"&&CH.so&&!L.includes(CH.so))L.unshift(CH.so);
   CH.need=needStock(s);
   return `<label class="f">Kaffee<select id="chS">${CH.so?"":`<option value="" selected>Sorte wählen …</option>`}${L.map(n=>`<option value="${esc(n)}"${n===CH.so?" selected":""}>${esc(n)}</option>`).join("")}<option value="__x"${CH.so==="__x"?" selected":""}>Andere …</option></select></label>
@@ -632,7 +638,7 @@ function renderDet(){
     <div class="more">${[["abf","Abfüllen"],["eigen","Eigenbedarf"],["set","Bearbeiten"]].map(([m,t])=>`<button type="button" data-m="${m}" aria-pressed="${mode===m}">${t}</button>`).join("")}</div>
     ${f}
     ${s.id==="panea"?`<div class="hrow" style="margin-top:4px"><h2 style="font-size:15px">Tonnen</h2><button type="button" data-m="ton" aria-pressed="${mode==="ton"}" style="min-height:36px;font-size:14px">+ Tonne</button></div>
-    ${mode==="ton"?`<form class="form" id="tf"><div class="row2"><label class="f">Menge (kg)<input id="tKg" inputmode="decimal" autocomplete="off" value="10"></label><label class="f">Geröstet am<input id="tD" type="date" value="${today()}" max="${today()}"></label></div><div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Tonne dazu</button></div></form>`:""}
+    ${mode==="ton"?`<form class="form" id="tf"><div class="row2"><label class="f">Menge geröstet (kg)<input id="tKg" inputmode="decimal" autocomplete="off" value="${String(tonKg()).replace(".",",")}"></label><label class="f">Geröstet am<input id="tD" type="date" value="${today()}" max="${today()}"></label></div><div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Tonne dazu</button></div></form>`:""}
     <div class="pl">${(s.ton||[]).length?s.ton.slice().sort((a,b)=>a.d<b.d?-1:1).map(t=>`<div class="pi">${ring(t.d,1)}<span class="t"><b>${kgT(t.kg)} kg</b><small>geröstet ${esc(dFmt(t.d))}</small></span><button type="button" data-tleer="${t.id}">Leer</button></div>`).join(""):`<p class="hint">Noch keine Tonnen mit Röstdatum. Mit „+ Tonne“ eintragen oder beim Abpacken Tonnen wählen.</p>`}</div>`:""}
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px"><h2 style="font-size:15px">${soFld(s)?"Als Nächstes":"Vorgeplante Chargen"}</h2><button type="button" data-m="plan" aria-pressed="${mode==="plan"}" style="min-height:36px;font-size:14px">+ Vorplanen</button></div>
     <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t">${p.sorte?`<span class="sn">${esc(p.sorte)}</span><small>${f1(p.kg)} kg · ${esc(dFmt(p.d))}${p.note?" · "+esc(p.note):""}</small>`:`<b>${f1(p.kg)} kg</b> · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}`}</span><button type="button" data-in="${p.id}">${soFld(s)?"Jetzt rein":"Eingelagert"}</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>`;
@@ -694,11 +700,11 @@ $("det").addEventListener("click",e=>{
   if(e.target.closest("#sDel")){commit(s=>{s.list=s.list.filter(x=>x.id!==open)});open=null;mode=null;render()}
 });
 $("det").addEventListener("change",e=>{
-  if(e.target.id==="mqS"&&MQ){MQ.so=e.target.value;renderDet();return}
+  if(e.target.id==="mqS"&&MQ){MQ.so=e.target.value;MQ.size=sizeOf(MQ.so);renderDet();return}
   if(e.target.id==="curS"){const v=e.target.value;if(v==="__x"){mode="sw";const t=$("curST");t.hidden=false;t.focus();
       if(!$("det").querySelector("[data-curok]"))t.insertAdjacentHTML("afterend",`<div class="btns"><button type="button" id="bNo">Abbrechen</button><button type="button" class="primary" data-curok="1">Ist jetzt drin</button></div>`);return}
     if(v){commit(s=>{s.list.find(y=>y.id===open).sorte=v});say(silo(open).name+": jetzt "+v+".");mode=null;render()}return}
-  if(e.target.classList&&e.target.classList.contains("sosel")&&e.target.id!=="curS"){const t=$(e.target.id+"T");if(t){t.hidden=e.target.value!=="__x";if(!t.hidden)t.focus()}}if(e.target.id==="chS"&&CH){CH.so=e.target.value;const t=$("chT");if(t){t.hidden=CH.so!=="__x";if(!t.hidden)t.focus()}chUpd()}});
+  if(e.target.classList&&e.target.classList.contains("sosel")&&e.target.id!=="curS"){const t=$(e.target.id+"T");if(t){t.hidden=e.target.value!=="__x";if(!t.hidden)t.focus()}}if(e.target.id==="chS"&&CH){CH.so=e.target.value;if(CH.so&&CH.so!=="__x")CH.size=sizeOf(CH.so);const t=$("chT");if(t){t.hidden=CH.so!=="__x";if(!t.hidden)t.focus()}chUpd()}});
 $("det").addEventListener("input",e=>{if(e.target.id==="chT"&&CH)chUpd()});
 $("det").addEventListener("submit",e=>{e.preventDefault();const f=e.target;
   if(f.id==="bf"){const kg=pk($("bKg").value),d=$("bD").value||today();if(kg==null||kg<0||(mode!=="stand"&&kg===0)){$("bSay").textContent="Bitte eine Menge in kg eingeben.";return}
@@ -739,7 +745,19 @@ const _r=render;render=function(){_r();kurz()};
 const AK="abpack.v1";
 const rLoad=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 let A=rLoad(AK);if(!A||typeof A!=="object")A={v:1};
-const AN=()=>{A.sort=A.sort||[];A.reg=A.reg||{};A.wait=A.wait||{};A.conf=A.conf||{};A.loss=A.loss||{};A.log=A.log||[];A.pw=A.pw||{key:"",p:{}};return A};
+const AN=()=>{A.sort=A.sort||[];A.reg=A.reg||{};A.wait=A.wait||{};A.conf=A.conf||{};A.loss=A.loss||{};A.log=A.log||[];A.pw=A.pw||{key:"",p:{}};if(!A.regMig)regMig();return A};
+// einmalig: Tonnen von vor v28 hatten 10 kg; richtig ist das Röstgewicht von 2 Chargen
+function tonMig(){AN();if(A.tonMig)return;A.tonMig=1;const k=tonKg(),bids={};
+  commit(s=>{const z=s.list.find(y=>y.id==="panea");if(z&&z.ton)z.ton.forEach(t=>{if(t.kg===10){t.kg=k;bids[t.b]=(bids[t.b]||0)+1}});
+    s.buch.forEach(b=>{if(b.silo!=="panea")return;if(b.t==="rein"&&bids[b.id]&&b.kg===10*bids[b.id])b.kg=Math.round(k*bids[b.id]*100)/100;
+      else if(b.t==="eigen"&&b.kg===10&&/^Tonne leer/.test(b.note||""))b.kg=k})});
+  A.log.forEach(l=>{if(l.t==="pack"&&l.tids&&l.tids.length&&l.e===10*l.tids.length){l.e=Math.round(k*l.tids.length*100)/100}});aSave()}
+// einmalig: Tüten aus „Fertig abgepackt“ vor dem Regal (vor v27) ins Regal übernehmen; Sorten mit späterer Inventur nicht
+function regMig(){A.regMig=1;const seen=new Set();
+  A.log.forEach(l=>{if(l.t==="reg"){seen.add(l.n);return}
+    if(l.t!=="pack"||l.rg||!(l.s1||l.s2)||!(l.d<"2026-10-28")||seen.has(l.n))return;
+    const g=A.reg[l.n]||(A.reg[l.n]={p1:0,p2:0});g.p1=(g.p1|0)+(l.s1|0);g.p2=(g.p2|0)+(l.s2|0);l.rg=1});
+  try{aSave()}catch(e){}}
 const aSave=()=>{try{localStorage.setItem(AK,JSON.stringify(A));return true}catch(e){return false}};
 const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 const kgT=v=>(Math.round(v*100)/100).toLocaleString("de-DE",{maximumFractionDigits:2});
@@ -819,7 +837,7 @@ function pack(r){
    <div class="kgh"><div><b>${f1(r.w)} kg</b> geröstet</div><button class="lossb" data-lossopen="1" aria-expanded="${lossOpen===r.n}">${kgT(r.roh)} kg roh · −${r.loss} %</button></div>
    ${lossOpen===r.n?`<div class="pr"><span class="t" style="font-weight:500;font-size:14px">Röstverlust dieser Sorte</span><span class="step sm"><button data-loss="-1" aria-label="Röstverlust weniger">−</button><output>${r.loss} %</output><button data-loss="1" aria-label="Röstverlust mehr">+</button></span></div>`:""}
    <div class="rows">
-    ${r.silo?(ton?row("e","Tonnen 10 kg",x.e/10,"für die Mühlen"):row("e","Eigenbedarf-Kiste",kgT(x.e)+" kg","ins Regal · "+esc(r.silo.name))):""}
+    ${r.silo?(ton?row("e","Tonnen",Math.round(x.e/tonKg(r.loss)),"je 2 Chargen = "+kgT(tonKg(r.loss))+" kg · für die Mühlen"):row("e","Eigenbedarf-Kiste",kgT(x.e)+" kg","ins Regal · "+esc(r.silo.name))):""}
     ${row("1","1-kg-Tüten",x.s1,nd(r.m1,x.s1)+" · max "+m1)}
     ${row("2","250-g-Tüten",x.s2,nd(r.m2,x.s2)+" · max "+m2)}
    </div>
@@ -842,17 +860,17 @@ $("sl").addEventListener("click",e=>{
   const R=rowsW(),r=R.find(x=>x.n===openS);if(!r)return;const x=PS[r.n];
   if(e.target.closest("[data-lossopen]")){lossOpen=lossOpen===r.n?null:r.n;renderSorts(R);return}
   const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,r.loss+ +lo.dataset.v));aSave();renderW();return}
-  const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,x.s1+v);else if(k==="2")x.s2=Math.max(0,x.s2+v);else x.e=Math.max(0,Math.round((x.e+(r.silo.id==="panea"?10:.5)*v)*10)/10);renderSorts(R);return}
+  const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,x.s1+v);else if(k==="2")x.s2=Math.max(0,x.s2+v);else x.e=r.silo.id==="panea"?Math.max(0,Math.round((Math.round(x.e/tonKg(r.loss))+v)*tonKg(r.loss)*100)/100):Math.max(0,Math.round((x.e+.5*v)*10)/10);renderSorts(R);return}
   if(e.target.closest("[data-fill]")){x.s2+=nS(r.w-x.e-x.s1-x.s2*.25);renderSorts(R);return}
   if(e.target.closest("[data-sg]")){suggest(r);renderSorts(R);return}
   if(e.target.closest("[data-drop]")){const w=A.wait[r.n];A.log.unshift({id:uid(),n:Date.now(),d:today(),t:"drop",n:r.n,roh:w.roh,wd:w.d,txt:r.n+": Rest ausgebucht",sub:f1(r.w)+" kg geröstet nicht mehr da"});delete A.wait[r.n];aSave();openS=null;renderW();return}
-  if(e.target.closest("[data-ok]")){const u=x.e+x.s1+x.s2*.25;if(u<=0||u>r.w+.001)return;const used=u/(1-r.loss/100),rd=r.d||today(),en={id:uid(),n:Date.now(),d:today(),t:"pack",n:r.n,wk:WD.wk,s1:x.s1,s2:x.s2,e:x.e,roh:used};
+  if(e.target.closest("[data-ok]")){const u=x.e+x.s1+x.s2*.25;if(u<=0||u>r.w+.001)return;const used=u/(1-r.loss/100),rd=r.d||today(),en={id:uid(),n:Date.now(),d:today(),t:"pack",n:r.n,wk:WD.wk,s1:x.s1,s2:x.s2,e:x.e,roh:used,rg:1};
     if(x.e>0&&r.silo){const bid=uid();en.silo=r.silo.id;en.bid=bid;en.tids=[];
-      commit(s=>{s.buch.push({id:bid,n:Date.now(),silo:r.silo.id,d:rd,t:"rein",kg:x.e,note:"aus Abpacken"});if(r.silo.id==="panea"){const z=s.list.find(y=>y.id==="panea");z.ton=z.ton||[];for(let i=0;i<Math.round(x.e/10);i++){const tid=uid()+i;en.tids.push(tid);z.ton.push({id:tid,kg:10,d:rd,b:bid})}}})}
+      commit(s=>{s.buch.push({id:bid,n:Date.now(),silo:r.silo.id,d:rd,t:"rein",kg:x.e,note:"aus Abpacken"});if(r.silo.id==="panea"){const z=s.list.find(y=>y.id==="panea");z.ton=z.ton||[];const nt=Math.round(x.e/tonKg(r.loss));for(let i=0;i<nt;i++){const tid=uid()+i;en.tids.push(tid);z.ton.push({id:tid,kg:Math.round(x.e/nt*100)/100,d:rd,b:bid})}}})}
     const w=A.wait[r.n];w.roh=Math.round((w.roh-used)*1000)/1000;if(w.roh<.01)delete A.wait[r.n];
     const p=A.pw.p[r.n]||(A.pw.p[r.n]={p1:0,p2:0});p.p1+=x.s1;p.p2+=x.s2;
     const rg=A.reg[r.n]||(A.reg[r.n]={p1:0,p2:0});rg.p1+=x.s1;rg.p2+=x.s2;
-    en.txt=r.n+" abgepackt";en.sub=[x.s1?x.s1+" × 1 kg":"",x.s2?x.s2+" × 250 g":"",x.e?(r.silo.id==="panea"?x.e/10+" × Tonne":kgT(x.e)+" kg Eigenbedarf"):""].filter(Boolean).join(" · ");
+    en.txt=r.n+" abgepackt";en.sub=[x.s1?x.s1+" × 1 kg":"",x.s2?x.s2+" × 250 g":"",x.e?(r.silo.id==="panea"?Math.round(x.e/tonKg(r.loss))+" × Tonne":kgT(x.e)+" kg Eigenbedarf"):""].filter(Boolean).join(" · ");
     A.log.unshift(en);aSave();delete PS[r.n];openS=null;say2(r.n+" abgepackt.");renderW()}
 });
 /* ---------- Sortiment: ein Profil pro Kaffee, Röstverlust je Sorte (laden-v27) ---------- */
@@ -861,7 +879,7 @@ const PROZ=["Washed","Natural","Honey","Anaerob","Andere"],TYP=["Espresso","Filt
 function kSugg(){AN();let R={},K={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}try{K=JSON.parse(localStorage.getItem("verkauf.v1"))||{}}catch(e){}
   const have=new Set(A.sort.map(x=>norm(x.name))),out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!have.has(k)&&!seen.has(k)){seen.add(k);out.push(n)}};
   (Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>add(x.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(x=>add(x.name));Object.keys(A.wait).forEach(add);return out.sort((a,b)=>a.localeCompare(b,"de"))}
-function kAdd(n){AN();A.sort.push({id:uid(),name:n,land:"",farm:"",vari:"",proz:"",typ:"",notiz:"",aus:false})}
+function kAdd(n){AN();A.sort.push({id:uid(),name:n,land:"",farm:"",vari:"",proz:"",typ:"",notiz:"",aus:false,size:rpSize(n)||5})}
 function kRename(o,n){if(norm(o)===norm(n)&&o===n)return;AN();[A.loss,A.wait,A.reg].forEach(m=>{if(m[o]!=null&&m[n]==null){m[n]=m[o];delete m[o]}});
   commit(x=>{x.buch.forEach(b=>{if(b.sorte===o)b.sorte=n});x.plan.forEach(q=>{if(q.sorte===o)q.sorte=n});x.list.forEach(z=>{if(z.sorte===o)z.sorte=n;if(z.cur&&z.cur.sorte===o)z.cur.sorte=n})})}
 function renderK(){AN();WD=WD||wData();const sg=kSugg(),L=A.sort.filter(x=>kFil==="a"?!x.aus:x.aus).sort((a,b)=>a.name.localeCompare(b.name,"de"));
@@ -869,15 +887,16 @@ function renderK(){AN();WD=WD||wData();const sg=kSugg(),L=A.sort.filter(x=>kFil=
   const na=A.sort.filter(x=>!x.aus).length,nx=A.sort.length-na;
   $("kF").innerHTML=`<button type="button" data-kf="a" aria-pressed="${kFil==="a"}">Aktiv ${na}</button><button type="button" data-kf="x" aria-pressed="${kFil==="x"}">Ausgelaufen ${nx}</button>`;
   $("kl").innerHTML=(kOpen==="new"?kForm(null):"")+(L.length?L.map(x=>{const l=A.loss[x.name]!=null?A.loss[x.name]:WD.loss,sub=[x.land,x.proz,x.typ].filter(Boolean).join(" · ");
-    return kOpen===x.id?kForm(x):`<button type="button" class="krow" data-kid="${x.id}"><span class="t"><b>${esc(x.name)}</b><small>${sub?esc(sub)+" · ":""}${l} % Röstverlust${A.loss[x.name]==null?" (Standard)":""}</small></span><span class="ch">›</span></button>`}).join(""):kOpen==="new"?"":`<p class="hint">${kFil==="a"?"Noch keine Kaffees. Oben übernehmen oder neu anlegen.":"Keine ausgelaufenen Kaffees."}</p>`);
+    return kOpen===x.id?kForm(x):`<button type="button" class="krow" data-kid="${x.id}"><span class="t"><b>${esc(x.name)}</b><small>${sub?esc(sub)+" · ":""}${l} % Röstverlust${A.loss[x.name]==null?" (Standard)":""} · ${sizeOf(x.name)}-kg-Chargen</small></span><span class="ch">›</span></button>`}).join(""):kOpen==="new"?"":`<p class="hint">${kFil==="a"?"Noch keine Kaffees. Oben übernehmen oder neu anlegen.":"Keine ausgelaufenen Kaffees."}</p>`);
 }
-function kForm(x){if(!KD||KD.id!==(x?x.id:"new"))KD={id:x?x.id:"new",loss:x&&A.loss[x.name]!=null?A.loss[x.name]:WD.loss,aus:x?!!x.aus:false};
+function kForm(x){if(!KD||KD.id!==(x?x.id:"new"))KD={id:x?x.id:"new",loss:x&&A.loss[x.name]!=null?A.loss[x.name]:WD.loss,aus:x?!!x.aus:false,size:x?sizeOf(x.name):5};
   const v=k=>esc(x?x[k]||"":""),sel=(id,L,cur)=>`<select id="${id}" class="sosel"><option value="">–</option>${L.map(o=>`<option${o===cur?" selected":""}>${o}</option>`).join("")}</select>`;
   return `<form class="form kf" id="kfm"><label class="f">Name<input id="kN" maxlength="40" autocomplete="off" value="${v("name")}" placeholder="z. B. Äthiopien Guji"></label>
    <div class="row2"><label class="f">Herkunft<input id="kL" maxlength="40" autocomplete="off" value="${v("land")}" placeholder="Land, Region"></label><label class="f">Produzent / Farm<input id="kFa" maxlength="40" autocomplete="off" value="${v("farm")}"></label></div>
    <div class="row2"><label class="f">Varietät<input id="kV" maxlength="40" autocomplete="off" value="${v("vari")}"></label><label class="f">Aufbereitung${sel("kP",PROZ,x?x.proz:"")}</label></div>
    <label class="f">Für${sel("kT",TYP,x?x.typ:"")}</label>
    <div class="pr"><span class="t">Röstverlust<small>rechnet roh → geröstet, überall in der App</small></span><span class="step sm"><button type="button" data-kl="-1" aria-label="Röstverlust weniger">−</button><output id="kLo">${KD.loss} %</output><button type="button" data-kl="1" aria-label="Röstverlust mehr">+</button></span></div>
+   <div class="pr"><span class="t">Chargengröße<small>so rechnet der Röstplan</small></span><span class="seg ksz" role="group" aria-label="Chargengröße">${[3,5].map(v=>`<button type="button" data-ksz="${v}" aria-pressed="${KD.size===v}">${v} kg</button>`).join("")}</span></div>
    <label class="f">Notizen<textarea id="kNo" rows="3" maxlength="400" placeholder="Geschmack, Röstprofil, Lieferant …">${v("notiz")}</textarea></label>
    ${x?`<label class="tg"><input type="checkbox" id="kAus"${KD.aus?" checked":""}> Ausgelaufen (nicht mehr in den Auswahllisten)</label>`:""}
    <p class="say w" id="kSay"></p>
@@ -889,12 +908,13 @@ $("pgK").addEventListener("click",e=>{AN();
   if(e.target.closest("[data-knew]")){kOpen="new";KD=null;renderK();$("kN")&&$("kN").focus();return}
   const r=e.target.closest("[data-kid]");if(r){kOpen=r.dataset.kid;KD=null;renderK();return}
   if(e.target.closest("[data-kx]")){kOpen=null;KD=null;renderK();return}
+  const kz=e.target.closest("[data-ksz]");if(kz&&KD){KD.size=+kz.dataset.ksz;document.querySelectorAll("[data-ksz]").forEach(b=>b.setAttribute("aria-pressed",b===kz));return}
   const kl=e.target.closest("[data-kl]");if(kl&&KD){KD.loss=Math.min(30,Math.max(5,KD.loss+ +kl.dataset.kl));$("kLo").textContent=KD.loss+" %";return}
   if(e.target.closest("[data-kdel]")){const x=A.sort.find(y=>y.id===kOpen);if(!x)return;if(!confirm(x.name+" aus dem Sortiment entfernen? Lager und Verlauf bleiben."))return;A.sort=A.sort.filter(y=>y!==x);aSave();kOpen=null;renderK();return}});
 $("pgK").addEventListener("change",e=>{if(e.target.id==="kAus"&&KD)KD.aus=e.target.checked});
 $("pgK").addEventListener("submit",e=>{e.preventDefault();AN();const n=$("kN").value.trim();if(!n){$("kSay").textContent="Bitte einen Namen eingeben.";return}
   const x=kOpen==="new"?null:A.sort.find(y=>y.id===kOpen);if(A.sort.some(y=>y!==x&&norm(y.name)===norm(n))){$("kSay").textContent="Diesen Kaffee gibt es schon.";return}
-  const d={name:n,land:$("kL").value.trim(),farm:$("kFa").value.trim(),vari:$("kV").value.trim(),proz:$("kP").value,typ:$("kT").value,notiz:$("kNo").value.trim(),aus:x?KD.aus:false};
+  const d={name:n,land:$("kL").value.trim(),farm:$("kFa").value.trim(),vari:$("kV").value.trim(),proz:$("kP").value,typ:$("kT").value,notiz:$("kNo").value.trim(),aus:x?KD.aus:false,size:KD.size};
   if(x){if(x.name!==n)kRename(x.name,n);Object.assign(x,d)}else A.sort.push({id:uid(),...d});
   A.loss[n]=KD.loss;aSave();kOpen=null;KD=null;renderK();$("kmsg").textContent=n+" gespeichert."});
 /* ---------- Regal: abgepackte Tüten je Sorte, Inventur (laden-v27) ---------- */
@@ -926,6 +946,7 @@ function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
   A.log=A.log.filter(x=>x!==l);aSave()}
 
 if(!G.silos){commit(()=>{})}
+try{tonMig()}catch(e){}
 render();renderW();
 })();
 </script>

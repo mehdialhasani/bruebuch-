@@ -68,6 +68,7 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .zr .n{width:76px;height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);text-align:right;padding:0 10px}
 .sz{display:flex;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:2px}
 .sz button{flex:1;height:34px;border-radius:8px;font-size:15px;font-weight:500;color:var(--muted)}
+.szl{text-align:center;font-size:14px;color:var(--muted);white-space:nowrap}
 .sz button[aria-pressed="true"]{background:var(--card);color:var(--fg);font-weight:600;box-shadow:0 1px 3px var(--shadow)}
 .zr.unsure .n{border-color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn);background:var(--warn-soft)}
 .zr.unsure .nm{color:var(--warn)}
@@ -229,12 +230,12 @@ section[hidden]{display:none!important}
     <p class="note" id="srcInfo"></p>
     <p class="note warn" id="warnBox"></p>
     <div class="lbl">Verkauf letzte Woche</div>
-    <p class="cap">Je Sorte: Chargengröße 3 oder 5 kg und verkaufte Menge in kg (Gesamt KG).</p>
+    <p class="cap">Je Sorte die verkaufte Menge in kg (Gesamt KG). Chargengröße und Röstverlust kommen aus dem Sortiment der Abpackhilfe.</p>
     <div class="card" id="zBody"></div>
     <div class="zfoot"><span>Gesamt</span><span id="zTot"></span></div>
     <div class="row2"><button class="link" id="addRow">+ Sorte hinzufügen</button></div>
     <div class="lbl">Einstellung</div>
-    <div class="card"><div class="loss"><span>Röstverlust</span><span class="step"><button data-loss="-1" aria-label="Röstverlust verringern">−</button><output id="lossOut"></output><button data-loss="1" aria-label="Röstverlust erhöhen">+</button></span></div>
+    <div class="card"><div class="loss"><span>Röstverlust<br><small style="color:var(--muted);font-size:13px">für Sorten ohne Angabe im Sortiment</small></span><span class="step"><button data-loss="-1" aria-label="Röstverlust verringern">−</button><output id="lossOut"></output><button data-loss="1" aria-label="Röstverlust erhöhen">+</button></span></div>
       <div class="loss"><label for="wkIn">Woche</label><input class="wk" id="wkIn" autocomplete="off" enterkeyhint="done" placeholder="KW 42"></div>
       <div class="loss days"><span>Rösttage</span><span class="dsel" id="dSel"></span></div></div>
   </section>
@@ -399,10 +400,18 @@ function liveWarn() {
   return w.join(" ");
 }
 
+/* Chargengröße und Röstverlust je Sorte kommen aus dem Sortiment der Abpackhilfe (abpack.v1), sonst Standard. */
+const normN = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+function sortimentInfo() { try { const A = JSON.parse(localStorage.getItem("abpack.v1")) || {}; return { sort: Array.isArray(A.sort) ? A.sort : [], loss: A.loss || {} }; } catch (e) { return { sort: [], loss: {} }; } }
+function prof(s) { const I = sortimentInfo(), n = normN(s.name), p = n ? I.sort.find(x => normN(x.name) === n) : null;
+  const lk = n ? Object.keys(I.loss).find(k => normN(k) === n) : null, l = lk != null ? +I.loss[lk] : NaN;
+  return { size: p && (p.size === 3 || p.size === 5) ? p.size : (s.size === 3 ? 3 : 5), loss: l >= 0 && l < 60 ? l : S.loss, inSort: !!p }; }
+const effSort = s => { const p = prof(s); return { s: p.size === s.size ? s : { ...s, size: p.size }, loss: p.loss }; };
+
 /* Every batch is one item; S.assign maps "sortId#index" -> day (0..2). */
 function computeBatches() {
   const rows = S.sorts.map(s => {
-    const batches = Core.autoBatches(s, S.loss, S.extra, S.adj[s.id]);
+    const e = effSort(s), batches = Core.autoBatches(e.s, e.loss, S.extra, S.adj[s.id]);
     return { id: s.id, name: s.name || "Ohne Namen", sold: Core.soldGrams(s), batches: batches.map((kg, i) => ({ key: s.id + "#" + i, kg, day: S.assign[s.id + "#" + i] })) };
   });
   return rows;
@@ -437,7 +446,7 @@ function renderZahlen() {
   $("zBody").innerHTML = S.sorts.map(s => `
     <div class="zr${s.unsure ? " unsure" : ""}" data-id="${s.id}">
       <input class="nm" id="nm-${s.id}" data-f="name" value="${esc(s.name)}" placeholder="Name der Sorte" aria-label="Sortenname" autocomplete="off" enterkeyhint="done">
-      <span class="sz" role="group" aria-label="${esc(s.name)}: Chargengröße"><button data-sz="3" aria-pressed="${s.size === 3}" aria-label="3-kg-Chargen">3</button><button data-sz="5" aria-pressed="${s.size === 5}" aria-label="5-kg-Chargen">5</button></span>
+      <span class="szl" title="Chargengröße, ändern im Sortiment der Abpackhilfe">${prof(s).size} kg</span>
       <input class="n" id="kg-${s.id}" data-f="totalG" inputmode="decimal" value="${kgInput(s.totalG)}" aria-label="${esc(s.name)}: verkaufte kg" enterkeyhint="done">
     </div>`).join("");
   $("srcInfo").textContent = { preset: "Verkauf KW 41 aus deiner Röstplanung übernommen. Für eine neue Woche den Bericht als Datei laden.", photo: "Aus dem Foto gelesen. Bitte kurz prüfen.", file: "Aus der Datei gelesen. Bitte kurz prüfen.", cleared: "Liste geleert, die alte ist im Verlauf. Für die neue Woche Datei laden oder Mengen eintippen." }[S.source] || "";
@@ -495,7 +504,7 @@ function renderChargen() {
   // Knopf bleibt immer stehen (sonst springt die Seite beim Antippen), ohne offene Chargen nur ausgegraut
   $("autoAll").disabled = !open.n;
   $("allOpen").style.visibility = open.n ? "" : "hidden";
-  const base = S.sorts.reduce((a, x) => a + Core.autoBatches(x, S.loss, 0, 0).length, 0), now = rows.reduce((a, r) => a + r.batches.length, 0);
+  const base = S.sorts.reduce((a, x) => { const e = effSort(x); return a + Core.autoBatches(e.s, e.loss, 0, 0).length; }, 0), now = rows.reduce((a, r) => a + r.batches.length, 0);
   $("extraNote").textContent = now === base ? "Berechnet: " + base + " Chargen" : (now > base ? "+" : "−") + Math.abs(now - base) + (Math.abs(now - base) === 1 ? " Charge" : " Chargen") + " von Hand (berechnet: " + base + ")";
   // alle Sorten zeigen, auch ohne Verkauf (z. B. neu hinzugefügt): mit + einplanen
   const vis = rows.filter(r => r.sold > 0 || r.batches.length || S.sorts.find(x => x.id === r.id).name.trim());
@@ -679,7 +688,7 @@ function snapshot() {
   const tot = listTotals(all), strip = l => l.map(x => ({ name: x.name, kgs: x.kgs }));
   days = days.map(strip); open = strip(open);
   return { id: "v" + Date.now().toString(36), at: new Date().toISOString(), week: S.week, loss: S.loss, extra: S.extra,
-    sorts: S.sorts.filter(s => Core.soldGrams(s) > 0 || S.adj[s.id] > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: s.size })),
+    sorts: S.sorts.filter(s => Core.soldGrams(s) > 0 || S.adj[s.id] > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: prof(s).size })),
     soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open, dn: [0, 1, 2].map(d => dn(d)) };
 }
 /* Gemeinsames Gehirn (Schlüssel gehirn.v1, alle Apps): gesicherte Listen = geröstete Mengen pro Woche. Gleiche Woche nochmal gesichert = korrigierte Mengen, die neueste zählt. */
