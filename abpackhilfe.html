@@ -276,6 +276,23 @@ details.set .pr{margin-top:8px}
 .ring.ok>span{color:var(--good);font-weight:600}
 .so .r1 .ring{margin-left:auto}.so .r1 .ring+.st{margin-left:0}
 .pi .ring{margin-right:2px}
+/* Mühle 2: gerade drin + als Nächstes (laden-v26) */
+.drin{display:flex;flex-direction:column;gap:8px;padding:12px;border:1px solid var(--accent);border-radius:14px;background:var(--accent-soft)}
+.drin .lb{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
+.drin .now{font-size:20px;font-weight:600;color:var(--ink)}
+.drin .chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.pi .t .sn{font-weight:600;font-size:15px}
+.drin label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
+.drin input{font:16px var(--f);min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);padding:10px 12px;width:100%}
+.drin .btns{display:flex;gap:8px;justify-content:flex-end}
+select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);padding:0 12px}
+.chb .res{margin:0;font-size:15px;color:var(--ink2)}.chb .res b{font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
+.lk{border:0;background:none;padding:0 0 0 4px;min-height:0;font-size:12px;font-weight:600;color:var(--accent)}
+.more{display:flex;gap:18px;justify-content:center;flex-wrap:wrap}.more button{border:0;background:none;color:var(--accent);font-size:14px;font-weight:600;min-height:36px;padding:0}
+.more button[aria-pressed="true"]{text-decoration:underline}
+.chb{display:flex;flex-direction:column;gap:10px;padding:12px;border:1px solid var(--line);border-radius:14px;background:var(--paper)}
+.chb .pr .t{flex:1;font-weight:600;font-size:15px}.chb .pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.chb .chips button[aria-pressed="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
 .roast label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
 .roast input{font:16px var(--f);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
 .roast .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
@@ -401,10 +418,55 @@ function calc(id){
 }
 const reach=(kg,perDay)=>{if(!perDay||perDay<=0)return null;const d=new Date();d.setDate(d.getDate()+Math.floor(kg/perDay));return iso(d)};
 
-let open=null,mode=null,page="W",askDel=null;
+let autoM=false,open=null,mode=null,page="W",askDel=null;
 function silo(id){return S().list.find(s=>s.id===id)}
 // Neuestes Röstdatum im Lager: Panea = älteste Tonne (die als nächstes dran ist), sonst letzte eingelagerte Charge
-function rdOf(s){if(s.ton&&s.ton.length)return s.ton.map(t=>t.d).sort()[0];const b=S().buch.filter(x=>x.silo===s.id&&x.t==="rein").sort((a,b)=>a.d<b.d?1:-1)[0];return b?b.d:null}
+function rdOf(s){if(s.ton&&s.ton.length)return s.ton.map(t=>t.d).sort()[0];const b=S().buch.filter(x=>x.silo===s.id&&(x.t==="rein"||(x.t==="stand"&&x.rd))).map(x=>x.rd||x.d).sort().pop();return b||null}
+// Kaffee-Feld nur bei Kisten mit wechselnder Sorte (Mühle 2 oder Kiste mit eingetragener Sorte) (laden-v26)
+const soFld=s=>s.id==="m2"||!!s.sorte;
+function soNames(s){const out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&k!==norm(s.name)&&!seen.has(k)){seen.add(k);out.push(n)}};
+  add(s.sorte);S().buch.filter(b=>b.silo===s.id&&b.sorte).sort((a,b)=>b.n-a.n).forEach(b=>add(b.sorte));
+  let R={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}(Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>add(x.name));return out.slice(0,12)}
+// Sorten immer als Auswahlliste; „Andere …“ zeigt ein Namensfeld
+function soSel(id,cur,L,none){cur=cur||"";if(cur&&!L.some(n=>norm(n)===norm(cur)))L=[cur].concat(L);
+  return `<select id="${id}" class="sosel">${none?`<option value=""${cur?"":" selected"}>${none}</option>`:""}${L.map(n=>`<option value="${esc(n)}"${cur&&norm(n)===norm(cur)?" selected":""}>${esc(n)}</option>`).join("")}<option value="__x">Andere …</option></select><input id="${id}T" maxlength="40" autocomplete="off" placeholder="Name der Sorte" hidden>`}
+const selVal=id=>{const e=$(id);if(!e)return null;return e.value==="__x"?(($(id+"T")||{}).value||"").trim():e.value};
+const soList=s=>chNames(s).filter(n=>norm(n)!==norm(s.name));
+const soHtml=(s,id)=>soFld(s)?`<label class="f">Kaffee darin${soSel(id,s.sorte,soList(s),"Sorte wählen …")}</label>`:"";
+/* Chargen-Rechner: Sorte aus Liste, Chargen × roh − Röstverlust der Sorte = kg (laden-v26) */
+let CH=null;
+const rpLoss=()=>{try{return +(JSON.parse(localStorage.getItem("roestplan.v4"))||{}).loss||16}catch(e){return 16}};
+function chNames(s){const out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!seen.has(k)){seen.add(k);out.push(n)}};
+  let R={},K={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}try{K=JSON.parse(localStorage.getItem("verkauf.v1"))||{}}catch(e){}
+  if(s.sorte)add(s.sorte);S().buch.filter(b=>b.silo===s.id&&b.sorte).sort((a,b)=>b.n-a.n).forEach(b=>add(b.sorte));
+  const rest=[];(Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>rest.push(x.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(x=>rest.push(x.name));
+  rest.sort((a,b)=>String(a).localeCompare(String(b),"de")).forEach(add);return out}
+// Sorte, die zur Kiste passt (Mogiana -> „Brasil Mogiana“), sonst der Kistenname
+function chDef(s,L){if(soFld(s))return s.sorte||L.find(n=>norm(n)!==norm(s.name))||"";const a=norm(s.name);return L.find(n=>norm(n)===a)||L.find(n=>norm(n).includes(a))||s.name}
+function chLoss(n){AN();return A.loss[n]!=null?A.loss[n]:rpLoss()}
+const chName=()=>CH.so==="__x"?(($("chT")||{}).value||"").trim():CH.so;
+function chBody(){const n=chName(),l=chLoss(n||"?"),kg=Math.round(CH.n*CH.size*(1-l/100)*100)/100;
+  return `<div class="pr"><span class="t">Chargen<small>à ${CH.size} kg roh · ${l} % Röstverlust <button type="button" class="lk" data-chadv="1">${CH.adv?"fertig":"ändern"}</button></small></span><span class="step"><button type="button" data-chn="-1" aria-label="Eine Charge weniger">−</button><output>${CH.n}</output><button type="button" data-chn="1" aria-label="Eine Charge mehr">+</button></span></div>
+    ${CH.adv?`<div class="chips q">${[3,5].map(v=>`<button type="button" data-chs="${v}" aria-pressed="${CH.size===v}">${v} kg roh</button>`).join("")}</div>
+    <div class="pr"><span class="t">Röstverlust<small>${n?esc(n):"Sorte wählen"} · gilt auch in der Woche</small></span><span class="step sm"><button type="button" data-chl="-1" aria-label="Röstverlust weniger">−</button><output>${l} %</output><button type="button" data-chl="1" aria-label="Röstverlust mehr">+</button></span></div>`:""}
+    <p class="res"><b>${kgT(kg)} kg</b> geröstet</p>
+    ${CH.need&&n?(()=>{const a=avail(n);return a>0?`<p class="say${a+.001<kg?" w":""}">Im Lager: ${kgT(a)} kg${a+.001<kg?" · zu wenig":""}</p>`:`<p class="say w">${esc(n)} ist nicht im Lager. Erst in der Woche den Rösttag bestätigen.</p>`})():""}`}
+// Geröstet und unverpackt da (Woche „wartet“): nur das darf in eine Kiste, außer Vorplanen bei Mühle 2 (laden-v26)
+function wKey(n){AN();const k=norm(n);return Object.keys(A.wait).find(x=>norm(x)===k)||null}
+function avail(n){const k=n&&wKey(n);if(!k)return 0;return Math.round(A.wait[k].roh*(1-chLoss(k)/100)*100)/100}
+const needStock=s=>mode==="rein"||(mode==="plan"&&!soFld(s));
+function takeStock(n,kg,bid,kiste){const k=wKey(n);if(!k)return;const w=A.wait[k],used=Math.round(kg/(1-chLoss(k)/100)*1000)/1000;
+  w.roh=Math.round((w.roh-used)*1000)/1000;if(w.roh<.01)delete A.wait[k];
+  A.log.unshift({id:uid(),d:today(),t:"pack",n:k,wk:"",s1:0,s2:0,e:kg,roh:used,silo:open,bid,txt:k+" → "+kiste,sub:kgT(kg)+" kg ins Regal"});aSave()}
+function chKg(){const l=chLoss(chName()||"?");return Math.round(CH.n*CH.size*(1-l/100)*100)/100}
+function chUpd(){const b=$("chB");if(b)b.innerHTML=chBody();const i=$("bKg")||$("pKg");if(i)i.value=kgT(chKg())}
+function chHtml(s){const L=chNames(s);if(!CH||CH.k!==s.id+mode){const so=chDef(s,L);if(so&&!L.some(n=>norm(n)===norm(so)))L.unshift(so);CH={k:s.id+mode,n:1,size:5,so}}
+  else if(CH.so!=="__x"&&CH.so&&!L.includes(CH.so))L.unshift(CH.so);
+  CH.need=needStock(s);
+  return `<label class="f">Kaffee<select id="chS">${CH.so?"":`<option value="" selected>Sorte wählen …</option>`}${L.map(n=>`<option value="${esc(n)}"${n===CH.so?" selected":""}>${esc(n)}</option>`).join("")}<option value="__x"${CH.so==="__x"?" selected":""}>Andere …</option></select></label>
+    <input id="chT" maxlength="40" autocomplete="off" placeholder="Name der Sorte"${CH.so==="__x"?"":" hidden"}>
+    <div class="chb" id="chB">${chBody()}</div>`}
+const soVal=(s,id)=>{const v=selVal(id);if(v==null)return null;return v&&norm(v)!==norm(s.name)?v:""};
 function render(){
   const L=S().list,C=L.map(s=>({s,c:calc(s.id)})),MX=21;
   const warn=C.filter(x=>x.c.perDay&&x.c.st/x.c.perDay<7);
@@ -413,7 +475,7 @@ function render(){
     return `<button class="silo" data-id="${esc(s.id)}" aria-expanded="${open===s.id}" aria-label="${esc(s.name)}: ${f1(c.st)} kg">
       <span class="r1"><span class="nm">${esc(s.name)}${s.sorte?`<small>${esc(s.sorte)}</small>`:""}</span>${ring(rdOf(s))}<span class="kg">${f1(c.st)}<small>kg</small></span></span>
       ${dd!=null?`<span class="reach"><i class="${dd<7?"y":"g"}" style="width:${Math.min(100,dd/MX*100)}%"></i><em style="left:${7/MX*100}%"></em><em style="left:${14/MX*100}%"></em></span>`:""}
-      <span class="ln${c.raw<0||(dd!=null&&dd<7)?" w":""}">${!c.n?"Noch kein Stand":c.raw<0?"Stand prüfen":c.perWeek==null?"Ø ab 7 Tagen Daten":(r?"reicht bis "+esc(dFmt(r))+" · ":"")+"Ø "+f1(c.perWeek)+" kg/Woche"}</span>
+      <span class="ln${c.raw<0||(dd!=null&&dd<7)?" w":""}">${!c.n?"Noch kein Stand · antippen und eintragen":c.raw<0?"Stand prüfen":c.perWeek==null?"Ø ab 7 Tagen Daten":(r?"reicht bis "+esc(dFmt(r))+" · ":"")+"Ø "+f1(c.perWeek)+" kg/Woche"}</span>
       ${nt?`<span class="ln">${nt} ${nt===1?"Tonne":"Tonnen"}${ripe<nt?` · ${nt-ripe} jünger als 2 Wochen`:""}</span>`:""}
       ${c.plan.length?`<span class="ln">${c.plan.length} ${c.plan.length===1?"Charge":"Chargen"} geplant · ${f1(c.planKg)} kg</span>`:""}
     </button>`}).join("")+`<button class="silo add" data-add="1"><span class="nm">+ Kiste</span><span class="ln">z. B. für eine Gastsorte</span></button>`;
@@ -424,36 +486,41 @@ function renderDet(){
   const c=calc(s.id),r=reach(c.st,c.perDay),r2=reach(c.st+c.planKg,c.perDay);
   let f="";
   if(mode==="stand"||mode==="rein"||mode==="abf"||mode==="eigen"){
-    const q=mode==="rein"?[2.5,4.2,5,10]:mode==="stand"?[]:[0.25,0.5,1,2];
-    f=`<form class="form" id="bf"><div class="row2"><label class="f">${mode==="stand"?"Stand jetzt (kg)":"Menge (kg)"}<input id="bKg" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${mode==="stand"&&c.n?f1(c.st):""}"></label>
-      <label class="f">Datum<input id="bD" type="date" value="${today()}" max="${today()}"></label></div>
+    const q=mode==="rein"?[]:mode==="stand"?[1,2,5,10]:[0.25,0.5,1,2],dt=mode==="abf"||mode==="eigen";
+    f=`<form class="form" id="bf">${mode==="rein"?chHtml(s)+`<input type="hidden" id="bKg">`:`<div class="row2"><label class="f">${mode==="stand"?"Stand jetzt (kg)":"Menge (kg)"}<input id="bKg" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${mode==="stand"&&c.n?f1(c.st):""}"></label>
+      ${dt?`<label class="f">Datum<input id="bD" type="date" value="${today()}" max="${today()}"></label>`:""}</div>`}
+      ${dt?"":`<input type="hidden" id="bD" value="${today()}">`}<input type="hidden" id="bN" value="">
       ${q.length?`<div class="chips q">${q.map(v=>`<button type="button" data-q="${v}">${String(v).replace(".",",")} kg</button>`).join("")}</div>`:""}
-      <label class="f">Notiz (optional)<input id="bN" maxlength="60" autocomplete="off" placeholder="${mode==="rein"?"z. B. Röstdatum, Charge":"optional"}"></label>
-      <p class="say" id="bSay">${mode==="stand"?(c.n?`Bisher ${f1(c.st)} kg. Die Differenz zählt als Eigenbedarf, außer du buchst Abfüllungen extra.`:"Erster Stand: ab jetzt wird gerechnet."):mode==="abf"?"Zählt nicht als Eigenbedarf.":mode==="eigen"?"Direkt als Eigenbedarf gebucht.":"Erhöht den Stand."}</p>
-      <div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form>`;
+      ${mode==="stand"?soHtml(s,"bSo"):""}
+      ${mode==="stand"?`<label class="f">Geröstet am (optional)<input id="bRd" type="date" max="${today()}"></label>`:""}
+      <p class="say" id="bSay">${mode==="stand"?(c.n?`Bisher ${f1(c.st)} kg. Weniger zählt als Eigenbedarf, mehr wird übernommen.`:"Was jetzt im Regal steht, auch Kisten von vor der App."):mode==="abf"?"Zählt nicht als Eigenbedarf.":mode==="eigen"?"Direkt als Eigenbedarf gebucht.":""}</p>
+      <div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">${mode==="rein"?"In die Kiste":"Speichern"}</button></div></form>`;
   }else if(mode==="plan"){
-    f=`<form class="form" id="pf"><div class="row2"><label class="f">Menge (kg)<input id="pKg" inputmode="decimal" autocomplete="off"></label><label class="f">Geplant für<input id="pD" type="date" value="${today()}"></label></div>
-      <div class="chips q">${[2.5,4.2,5,10].map(v=>`<button type="button" data-q="${v}">${String(v).replace(".",",")} kg</button>`).join("")}</div>
-      <label class="f">Notiz (optional)<input id="pN" maxlength="60" autocomplete="off" placeholder="z. B. aus Röstung Dienstag weglegen"></label>
+    f=`<form class="form" id="pf">${chHtml(s)}<input type="hidden" id="pKg"><input type="hidden" id="pN" value="">
+      <label class="f">Geplant für<input id="pD" type="date" value="${today()}"></label>
+      <p class="say w" id="pSay"></p>
       <div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Vorplanen</button></div></form>`;
   }else if(mode==="set"){
     f=`<form class="form" id="sf"><label class="f">Name<input id="sNm" maxlength="30" value="${esc(s.name)}"></label>
-      <label class="f">Sorte darin (optional)<input id="sSo" maxlength="40" value="${esc(s.sorte||"")}" placeholder="z. B. bei Mühle 2 die aktuelle Sorte"></label>
+      <label class="f">Sorte darin (optional)${soSel("sSo",s.sorte,soList(s),"keine, Kistenname reicht")}</label>
       <label class="f">Fassungsvermögen (kg)<input id="sCap" inputmode="decimal" value="${f1(s.cap||10)}"></label>
       <div class="btns">${c.n||c.plan.length?"":`<button type="button" id="sDel">Entfernen</button>`}<button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form>`;
   }
   d.hidden=false;
   d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2>${esc(s.name)}${s.sorte?` <span class="hint">· ${esc(s.sorte)}</span>`:""}</h2><button type="button" id="dX" aria-label="Schließen" style="min-height:36px;padding:2px 12px">×</button></div>
     <p class="hint" style="margin-top:-6px">Stand ${f1(c.st)} kg${c.perWeek!=null?` · Ø ${f1(c.perWeek)} kg/Woche`:""}${r?` · reicht bis ${esc(dFmt(r))}`:""}${c.planKg&&r2?` · mit Geplantem bis ${esc(dFmt(r2))}`:""}</p>
-    <div class="acts">${[["stand","Stand eingeben"],["rein","Charge rein"],["abf","Abfüllen"],["eigen","Eigenbedarf"]].map(([m,t])=>`<button type="button" data-m="${m}" aria-pressed="${mode===m}">${t}</button>`).join("")}</div>
+    ${soFld(s)?`<div class="drin"><span class="lb">Gerade drin</span><span class="now">${s.sorte?esc(s.sorte):"Noch keine Sorte eingetragen"}</span>
+      <label class="f" style="margin:0">Wechseln zu${soSel("curS",s.sorte,soList(s),"Noch keine Sorte")}</label></div>`:""}
+    <div class="acts">${[["stand","Stand eingeben"],["rein","Charge rein"]].map(([m,t])=>`<button type="button" data-m="${m}" aria-pressed="${mode===m}">${t}</button>`).join("")}</div>
+    <div class="more">${[["abf","Abfüllen"],["eigen","Eigenbedarf"],["set","Bearbeiten"]].map(([m,t])=>`<button type="button" data-m="${m}" aria-pressed="${mode===m}">${t}</button>`).join("")}</div>
     ${f}
     ${s.id==="panea"?`<div class="hrow" style="margin-top:4px"><h2 style="font-size:15px">Tonnen</h2><button type="button" data-m="ton" aria-pressed="${mode==="ton"}" style="min-height:36px;font-size:14px">+ Tonne</button></div>
     ${mode==="ton"?`<form class="form" id="tf"><div class="row2"><label class="f">Menge (kg)<input id="tKg" inputmode="decimal" autocomplete="off" value="10"></label><label class="f">Geröstet am<input id="tD" type="date" value="${today()}" max="${today()}"></label></div><div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Tonne dazu</button></div></form>`:""}
     <div class="pl">${(s.ton||[]).length?s.ton.slice().sort((a,b)=>a.d<b.d?-1:1).map(t=>`<div class="pi">${ring(t.d,1)}<span class="t"><b>${kgT(t.kg)} kg</b><small>geröstet ${esc(dFmt(t.d))}</small></span><button type="button" data-tleer="${t.id}">Leer</button></div>`).join(""):`<p class="hint">Noch keine Tonnen mit Röstdatum. Mit „+ Tonne“ eintragen oder beim Abpacken Tonnen wählen.</p>`}</div>`:""}
-    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px"><h2 style="font-size:15px">Vorgeplante Chargen</h2><button type="button" data-m="plan" aria-pressed="${mode==="plan"}" style="min-height:36px;font-size:14px">+ Vorplanen</button></div>
-    <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t"><b>${f1(p.kg)} kg</b> · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}</span><button type="button" data-in="${p.id}">Eingelagert</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>
-    <button type="button" data-m="set" aria-pressed="${mode==="set"}" style="align-self:flex-start;min-height:36px;font-size:14px;border:0;background:none;color:var(--accent);padding:0">Bearbeiten</button>`;
-  const k=$("bKg")||$("pKg")||$("sNm");if(k&&mode!=="set")k.focus({preventScroll:true});
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px"><h2 style="font-size:15px">${soFld(s)?"Als Nächstes":"Vorgeplante Chargen"}</h2><button type="button" data-m="plan" aria-pressed="${mode==="plan"}" style="min-height:36px;font-size:14px">+ Vorplanen</button></div>
+    <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t">${p.sorte?`<span class="sn">${esc(p.sorte)}</span><small>${f1(p.kg)} kg · ${esc(dFmt(p.d))}${p.note?" · "+esc(p.note):""}</small>`:`<b>${f1(p.kg)} kg</b> · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}`}</span><button type="button" data-in="${p.id}">${soFld(s)?"Jetzt rein":"Eingelagert"}</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>`;
+  if($("chB")){const i=$("bKg")||$("pKg");if(i)i.value=kgT(chKg())}
+  const k=$("swN")||$("bKg")||$("pKg")||$("sNm");if(k&&mode!=="set"&&mode!=="plan"&&mode!=="rein")k.focus({preventScroll:true});
 }
 function weekKey(s){const k=kwOf(s);return k.y*100+k.w}
 function renderE(){
@@ -488,32 +555,51 @@ const say=t=>{$("msg").textContent=t;clearTimeout(say.t);if(t)say.t=setTimeout((
 
 $("sg").addEventListener("click",e=>{const b=e.target.closest(".silo");if(!b)return;
   if(b.dataset.add){let id;commit(s=>{id="s"+uid();s.list.push({id,name:"Neue Kiste",sorte:"",cap:10})});open=id;mode="set";render();$("det").scrollIntoView({block:"nearest"});return}
-  open=open===b.dataset.id?null:b.dataset.id;mode=null;render();if(open)$("det").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+  open=open===b.dataset.id?null:b.dataset.id;mode=open&&!calc(open).n?"stand":null;autoM=!!mode;render();if(open)$("det").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 $("det").addEventListener("click",e=>{
   if(e.target.closest("#dX")){open=null;mode=null;render();return}
-  const m=e.target.closest("[data-m]");if(m){mode=mode===m.dataset.m?null:m.dataset.m;renderDet();return}
+  if(e.target.closest("[data-chadv]")&&CH){CH.adv=!CH.adv;chUpd();return}
+  const cn=e.target.closest("[data-chn]");if(cn&&CH){CH.n=Math.max(1,Math.min(20,CH.n+ +cn.dataset.chn));chUpd();return}
+  const cs=e.target.closest("[data-chs]");if(cs&&CH){CH.size=+cs.dataset.chs;chUpd();return}
+  const cl=e.target.closest("[data-chl]");if(cl&&CH){const n=chName();if(!n)return;AN();A.loss[n]=Math.min(30,Math.max(5,chLoss(n)+ +cl.dataset.chl));aSave();chUpd();return}
+  const cu=e.target.closest("[data-curok]");if(cu){const n=(($("curST")||{}).value||"").trim();if(!n){$("curST").focus();return}commit(s=>{s.list.find(y=>y.id===open).sorte=n});say(silo(open).name+": jetzt "+n+".");mode=null;render();return}
+  const m=e.target.closest("[data-m]");if(m){mode=mode===m.dataset.m&&!autoM?null:m.dataset.m;autoM=false;renderDet();return}
   if(e.target.closest("#bNo")){mode=null;renderDet();return}
+  const sb=e.target.closest("[data-so]");if(sb){const i=$(sb.dataset.for);if(i)i.value=sb.dataset.so;return}
   const q=e.target.closest("[data-q]");if(q){const i=$("bKg")||$("pKg");i.value=String(q.dataset.q).replace(".",",");return}
   const pi=e.target.closest("[data-in]");if(pi){const p=S().plan.find(x=>x.id===pi.dataset.in);if(!p)return;
-    commit(s=>{s.plan=s.plan.filter(x=>x.id!==p.id);s.buch.push({id:uid(),n:Date.now(),silo:p.silo,d:today(),t:"rein",kg:p.kg,note:p.note||"vorgeplant"})});say(f1(p.kg)+" kg eingelagert.");render();return}
+    if(p.sorte){const a=avail(p.sorte);if(a+.001<p.kg){say(a>0?`Nur ${kgT(a)} kg ${p.sorte} im Lager. Erst rösten und den Rösttag bestätigen.`:`${p.sorte} ist noch nicht im Lager. Erst rösten und in der Woche den Rösttag bestätigen.`);return}}
+    commit(s=>{s.plan=s.plan.filter(x=>x.id!==p.id);const b={id:uid(),n:Date.now(),silo:p.silo,d:today(),t:"rein",kg:p.kg,note:p.note||"vorgeplant"};if(p.sorte){b.sorte=p.sorte;const z=s.list.find(y=>y.id===p.silo);if(z&&soFld(z))z.sorte=p.sorte}if(p.sorte){const k0=wKey(p.sorte);if(k0&&A.wait[k0].d)b.rd=A.wait[k0].d}s.buch.push(b);if(p.sorte)takeStock(p.sorte,p.kg,b.id,(s.list.find(y=>y.id===p.silo)||{}).name||"")});say(f1(p.kg)+" kg eingelagert.");render();return}
   const pd=e.target.closest("[data-pdel]");if(pd){commit(s=>{s.plan=s.plan.filter(x=>x.id!==pd.dataset.pdel)});render();return}
   const tl=e.target.closest("[data-tleer]");if(tl){const s0=silo(open),t=(s0.ton||[]).find(x=>x.id===tl.dataset.tleer);if(!t)return;
     commit(s=>{const z=s.list.find(y=>y.id===open);z.ton=z.ton.filter(x=>x.id!==t.id);s.buch.push({id:uid(),n:Date.now(),silo:open,d:today(),t:"eigen",kg:t.kg,note:"Tonne leer (geröstet "+dFmt(t.d)+")"})});say("Tonne leer, "+f1(t.kg)+" kg als Eigenbedarf gebucht.");render();return}
   if(e.target.closest("#sDel")){commit(s=>{s.list=s.list.filter(x=>x.id!==open)});open=null;mode=null;render()}
 });
+$("det").addEventListener("change",e=>{
+  if(e.target.id==="curS"){const v=e.target.value;if(v==="__x"){mode="sw";const t=$("curST");t.hidden=false;t.focus();
+      if(!$("det").querySelector("[data-curok]"))t.insertAdjacentHTML("afterend",`<div class="btns"><button type="button" id="bNo">Abbrechen</button><button type="button" class="primary" data-curok="1">Ist jetzt drin</button></div>`);return}
+    if(v){commit(s=>{s.list.find(y=>y.id===open).sorte=v});say(silo(open).name+": jetzt "+v+".");mode=null;render()}return}
+  if(e.target.classList&&e.target.classList.contains("sosel")&&e.target.id!=="curS"){const t=$(e.target.id+"T");if(t){t.hidden=e.target.value!=="__x";if(!t.hidden)t.focus()}}if(e.target.id==="chS"&&CH){CH.so=e.target.value;const t=$("chT");if(t){t.hidden=CH.so!=="__x";if(!t.hidden)t.focus()}chUpd()}});
+$("det").addEventListener("input",e=>{if(e.target.id==="chT"&&CH)chUpd()});
 $("det").addEventListener("submit",e=>{e.preventDefault();const f=e.target;
   if(f.id==="bf"){const kg=pk($("bKg").value),d=$("bD").value||today();if(kg==null||kg<0||(mode!=="stand"&&kg===0)){$("bSay").textContent="Bitte eine Menge in kg eingeben.";return}
     if(kg>500){$("bSay").textContent="Das sind mehr als 500 kg, bitte prüfen.";return}
-    const ok=commit(s=>s.buch.push({id:uid(),n:Date.now(),silo:open,d,t:mode,kg:Math.round(kg*1000)/1000,note:$("bN").value.trim()}));
+    if(mode==="rein"){const n=CH?chName():"",a=avail(n);if(!n){$("bSay").textContent="Bitte eine Sorte wählen.";return}
+      if(a+.001<kg){$("bSay").textContent=a>0?`Nur ${kgT(a)} kg ${n} im Lager.`:`${n} ist nicht im Lager. Erst in der Woche den Rösttag bestätigen.`;$("bSay").className="say w";return}}
+    const z0=silo(open),so=mode==="rein"&&CH?chName():soVal(z0,"bSo"),setSo=so&&soFld(z0)&&norm(so)!==norm(z0.name),rd=$("bRd")?$("bRd").value:"";
+    const ok=commit(s=>{const b={id:uid(),n:Date.now(),silo:open,d,t:mode,kg:Math.round(kg*1000)/1000,note:$("bN").value.trim()};if(rd)b.rd=rd;if(so&&norm(so)!==norm(z0.name))b.sorte=so;if(setSo)s.list.find(y=>y.id===open).sorte=so;if(mode==="rein"){const k0=wKey(so);if(k0&&A.wait[k0].d)b.rd=A.wait[k0].d}s.buch.push(b);if(mode==="rein")takeStock(so,b.kg,b.id,z0.name)});CH=null;
     if(!ok){$("bSay").textContent="Speichern hat nicht geklappt, der Speicher ist voll.";return}
     const c=calc(open),last=S().buch[S().buch.length-1];
-    say(mode==="stand"&&last._diff>0.05?`Gespeichert. Seit dem letzten Stand ${f1(last._diff)} kg verbraucht.`:"Gespeichert.");mode=null;render()}
+    say(mode==="stand"&&last._diff>0.05?`Gespeichert. Seit dem letzten Stand ${f1(last._diff)} kg verbraucht.`:mode==="stand"&&last._diff<-0.05?`Gespeichert. ${f1(-last._diff)} kg mehr im Regal übernommen.`:"Gespeichert.");mode=null;render()}
+  else if(f.id==="swf"){const n=$("swN").value.trim();if(!n){$("swN").focus();return}commit(s=>{s.list.find(y=>y.id===open).sorte=n});say(silo(open).name+": jetzt "+n+".");mode=null;render()}
   else if(f.id==="pf"){const kg=pk($("pKg").value);if(!kg||kg<=0){$("pKg").focus();return}
-    commit(s=>s.plan.push({id:uid(),silo:open,kg:Math.round(kg*1000)/1000,d:$("pD").value||today(),note:$("pN").value.trim()}));say("Vorgeplant.");mode=null;render()}
+    if(CH&&CH.need){const n=chName(),a=avail(n);if(a+.001<kg){$("pSay").textContent=!n?"Bitte eine Sorte wählen.":a>0?`Nur ${kgT(a)} kg ${n} im Lager.`:`${n} ist nicht im Lager. Erst in der Woche den Rösttag bestätigen.`;return}}
+    const so=CH?chName():"";CH=null;
+    commit(s=>s.plan.push({id:uid(),silo:open,kg:Math.round(kg*1000)/1000,d:$("pD").value||today(),note:$("pN").value.trim(),sorte:so||""}));say("Vorgeplant.");mode=null;render()}
   else if(f.id==="tf"){const kg=pk($("tKg").value),d=$("tD").value||today();if(!kg||kg<=0||kg>50){$("tKg").focus();return}const bid=uid();
     commit(s=>{s.buch.push({id:bid,n:Date.now(),silo:open,d,t:"rein",kg,note:"Tonne"});const z=s.list.find(y=>y.id===open);z.ton=z.ton||[];z.ton.push({id:uid(),kg,d,b:bid})});say("Tonne eingetragen.");mode=null;render()}
   else if(f.id==="sf"){const nm=$("sNm").value.trim()||"Silo",cap=pk($("sCap").value);
-    commit(s=>{const x=s.list.find(y=>y.id===open);x.name=nm;x.sorte=$("sSo").value.trim();x.cap=cap&&cap>0?cap:10});mode=null;render()}
+    commit(s=>{const x=s.list.find(y=>y.id===open);x.name=nm;x.sorte=(selVal("sSo")||"").trim();x.cap=cap&&cap>0?cap:10});mode=null;render()}
 });
 $("vk").addEventListener("click",e=>{
   const d=e.target.closest("[data-del]");if(d){askDel=askDel===d.dataset.del?null:d.dataset.del;renderV();return}
