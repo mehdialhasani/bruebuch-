@@ -13,18 +13,18 @@
 <meta name="theme-color" content="#F3EEE7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
 <style>
-/* Startseite: Bildkacheln Brühbuch, Tagesabschluss, Röstplan, Abpackhilfe, Verkauf im Farbschema Crema, ganz in Helvetica Neue */
+/* Startseite: Bildkacheln Rezepte, Kasse, Röstwoche, Lager, Zahlen, Röstlabor (bald) im Farbschema Crema, ganz in Helvetica Neue */
 :root{
   --bg:#F3EEE7; --paper:#FBF8F3; --ink:#2B211B; --muted:#7A6A5D; --line:#E3D9CC;
   --accent:#8A5A3B; --shadow:rgba(60,40,25,.13);
-  --c1a:#EBD6BC; --c1b:#D7AE84; --c2a:#6A4630; --c2b:#2F1F16; --c3a:#E3E8D9; --c3b:#BCC8AC; --c4a:#EFD3C0; --c4b:#C98E6B; --c5a:#ECE1CC; --c5b:#CDB38C;
+  --c1a:#EBD6BC; --c1b:#D7AE84; --c2a:#6A4630; --c2b:#2F1F16; --c3a:#E3E8D9; --c3b:#BCC8AC; --c4a:#EFD3C0; --c4b:#C98E6B; --c5a:#ECE1CC; --c5b:#CDB38C; --c6a:#DFE4E2; --c6b:#AEBCB8;
   --f:"Helvetica Neue",Helvetica,Arial,sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme:dark){:root{
   --bg:#17120F; --paper:#211A16; --ink:#EFE7DF; --muted:#AD9E91; --line:#3A2F28;
   --accent:#D3A27C; --shadow:rgba(0,0,0,.5);
-  --c1a:#5A412E; --c1b:#3B2A1E; --c2a:#3E2A1D; --c2b:#1B120D; --c3a:#39402F; --c3b:#1F241A; --c4a:#5B3A2A; --c4b:#2A1A12; --c5a:#4C4030; --c5b:#251D15;
+  --c1a:#5A412E; --c1b:#3B2A1E; --c2a:#3E2A1D; --c2b:#1B120D; --c3a:#39402F; --c3b:#1F241A; --c4a:#5B3A2A; --c4b:#2A1A12; --c5a:#4C4030; --c5b:#251D15; --c6a:#33403D; --c6b:#171E1C;
   color-scheme:dark}
   .sheen{opacity:.35}}
 *{box-sizing:border-box}
@@ -34,7 +34,7 @@ body{color:var(--ink);font:16px/1.45 var(--f);-webkit-font-smoothing:antialiased
 .date{margin:0;color:var(--muted);font-size:13px;font-weight:600;letter-spacing:.06em;text-transform:uppercase}
 h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spacing:-.025em}
 .tiles{display:grid;gap:16px}
-@media (min-width:900px){.wrap{max-width:1040px}.tiles{grid-template-columns:repeat(5,1fr)}.tile.soon{grid-column:1/-1}}
+@media (min-width:900px){.wrap{max-width:1040px}.tiles{grid-template-columns:repeat(3,1fr)}.tile.soon{grid-column:1/-1}}
 .tile{display:block;text-decoration:none;color:inherit;background:var(--paper);border:1px solid var(--line);border-radius:26px;overflow:hidden;
   box-shadow:0 1px 1px rgba(0,0,0,.03),0 12px 30px var(--shadow);-webkit-tap-highlight-color:transparent;
   transition:transform .18s cubic-bezier(.3,.7,.4,1),box-shadow .18s}
@@ -131,6 +131,16 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   .foot{margin-top:10px}
   .bkmsg{margin-top:2px;min-height:0}
 }
+/* laden-v31: Kachel 6 Röstlabor (kommt bald): Kurve zeichnet sich, 1. Crack blinkt, Dampf über der Cupping-Schale */
+.tile.lab{cursor:default}
+.tile.lab:active{transform:none}
+.tile .soonb{background:color-mix(in srgb,var(--paper) 70%,transparent);color:var(--ink);opacity:.8}
+@media (prefers-reduced-motion:no-preference){
+  .tile:nth-child(6){animation-delay:.45s}
+  .bt{animation:draw 7s ease-in-out .4s infinite both}
+  .ror{animation:draw 7s ease-in-out .7s infinite both}
+  .fc{animation:blink 2.4s ease-in-out infinite}
+}
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
 :root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
@@ -197,7 +207,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
           <circle cx="263" cy="116" r="4" fill="#4D6FA8"/><rect x="273" y="112" width="8" height="8" rx="1.5" fill="#D9822B"/><path d="M291 111l5 5-5 5-5-5z" fill="#8A63B0"/>
         </g>
       </svg>
-      <div class="meta"><div><h2 id="t3">Brühbuch</h2><p id="s3">Rezepte · Brühhilfe · Tagebuch</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t3">Rezepte</h2><p id="s3">Brühhilfe · Rezeptkarten · Tagebuch</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <a class="tile" href="tagesabschluss.html" aria-labelledby="t1">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -237,7 +247,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
         </g>
         <path d="M206 48l2.2 5 5 2.2-5 2.2-2.2 5-2.2-5-5-2.2 5-2.2z" fill="#fff" opacity=".85"/>
       </svg>
-      <div class="meta"><div><h2 id="t1">Tagesabschluss</h2><p id="s1">Kasse zählen · Trinkgeld verteilen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t1">Kasse</h2><p id="s1">Tagesabschluss · Trinkgeld verteilen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <a class="tile" href="roestplan.html" aria-labelledby="t2">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -280,7 +290,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
           <circle cx="269" cy="72" r="3.4" fill="#B2C27A"/><rect x="276" y="70" width="26" height="4" rx="2" fill="#DCCDBB"/>
         </g>
       </svg>
-      <div class="meta"><div><h2 id="t2">Röstplan</h2><p id="s2">Verkauf rein · Chargen planen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t2">Röstwoche</h2><p id="s2">Verkauf rein · Chargen planen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <a class="tile" href="abpackhilfe.html" aria-labelledby="t5">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -328,7 +338,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
         <!-- Haken: abgepackt -->
         <g class="tick"><circle cx="300" cy="44" r="15" fill="#FBF6EE"/><path d="M293 44l5 5 9-10" fill="none" stroke="#5B7A3E" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></g>
       </svg>
-      <div class="meta"><div><h2 id="t5">Abpackhilfe</h2><p id="s5">Abpacken · Lager</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t5">Lager</h2><p id="s5">Silos · Regal · Abpacken</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <a class="tile" href="verkauf.html" aria-labelledby="t4">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -362,8 +372,42 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
           <rect x="282" y="106" width="36" height="4" rx="2" fill="#DCCDBB"/>
         </g>
       </svg>
-      <div class="meta"><div><h2 id="t4">Verkauf</h2><p id="s4">Verlauf · Vergleich · Prognose</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t4">Zahlen</h2><p id="s4">Verkauf · Vergleich · Prognose</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
+    <div class="tile lab" role="group" aria-labelledby="t6">
+      <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <linearGradient id="g6" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c6a)"/><stop offset="1" stop-color="var(--c6b)"/></linearGradient>
+          <linearGradient id="bowl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FBF6EE"/><stop offset="1" stop-color="#E3D8C8"/></linearGradient>
+        </defs>
+        <rect width="340" height="170" fill="url(#g6)"/>
+        <g class="sheen"><circle cx="30" cy="-10" r="80" fill="#fff" opacity=".14"/><circle cx="320" cy="170" r="56" fill="#fff" opacity=".08"/></g>
+        <!-- Kurvenblatt -->
+        <g transform="rotate(-3 120 92)">
+          <rect x="26" y="30" width="190" height="122" rx="8" fill="#FBF6EE"/>
+          <g stroke="#E6DCCD" stroke-width="1"><path d="M40 60h162M40 84h162M40 108h162M40 132h162"/><path d="M80 44v96M120 44v96M160 44v96"/></g>
+          <!-- Bohnentemperatur -->
+          <path class="bt" d="M42 70C50 112 60 122 72 118C96 110 120 92 146 76C166 64 184 56 200 51" fill="none" stroke="#B5622E" stroke-width="3.2" stroke-linecap="round" pathLength="100" stroke-dasharray="100"/>
+          <!-- Anstieg (RoR) -->
+          <path class="ror" d="M72 66C96 74 130 90 160 104C176 112 190 117 200 120" fill="none" stroke="#5E7F8C" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="100" pathLength="100"/>
+          <!-- 1. Crack -->
+          <path d="M160 46v92" stroke="#B5622E" stroke-width="1.4" stroke-dasharray="3 3" opacity=".6"/>
+          <circle class="fc" cx="160" cy="68" r="5" fill="#B5622E"/>
+          <text x="166" y="148" font-family="Helvetica Neue,Helvetica,Arial" font-weight="700" font-size="11" fill="#9C8B7A">1. Crack</text>
+        </g>
+        <!-- Cupping-Schale mit Löffel -->
+        <g class="steam" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".8">
+          <path d="M262 74c-6-8 6-12 0-22"/><path d="M280 72c-6-8 6-12 0-22"/><path d="M298 74c-6-8 6-12 0-22"/>
+        </g>
+        <path d="M244 92h72c0 26-14 44-36 44s-36-18-36-44z" fill="url(#bowl)"/>
+        <ellipse cx="280" cy="92" rx="36" ry="8" fill="#6A4029"/>
+        <ellipse cx="280" cy="90" rx="30" ry="4.5" fill="#8A5A3B" opacity=".55"/>
+        <rect x="264" y="136" width="32" height="6" rx="3" fill="#E3D8C8"/>
+        <path d="M300 82l26-26" stroke="#B9AFA3" stroke-width="4" stroke-linecap="round"/>
+        <ellipse cx="296" cy="86" rx="8" ry="5" transform="rotate(-45 296 86)" fill="#CFC6BB"/>
+      </svg>
+      <div class="meta"><div><h2 id="t6">Röstlabor</h2><p id="s6">Kurven · Tasse · Wissen</p></div><span class="soonb">Kommt bald</span></div>
+    </div>
   </div>
 
   <p class="foot">Alle Daten bleiben auf diesem Handy. <span class="bk"><button type="button" id="bkSave">Sichern</button>·<label>Laden<input type="file" id="bkIn" accept=".json,application/json"></label></span></p>
