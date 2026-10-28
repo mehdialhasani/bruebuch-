@@ -335,6 +335,7 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
     <p class="hint" style="margin-top:-8px">Geröstet und bestätigt, noch nicht abgepackt. Daraus kommen Tüten und Kisten.</p>
     <div class="legend"><span><i class="i-p"></i>abgepackt</span><span><i class="i-w"></i>geröstet, wartet</span><span><i class="i-m"></i>fehlt noch</span></div>
     <div class="sl" id="sl"></div>
+    <div id="caW"></div>
   </div>
   <p class="msg" id="wmsg" role="status"></p>
 </div>
@@ -794,7 +795,7 @@ function renderW(){
   const wk=R.reduce((x,r)=>x+r.w,0),ms=R.filter(r=>r.needKg>0&&!isDone(r)),bags=ms.reduce((x,r)=>x+(r.g?r.m1+r.m2:0),0),mkg=ms.reduce((x,r)=>x+r.missKg,0),ready=ms.filter(r=>r.w>0);
   $("missC").innerHTML=`<h2>Jetzt abpackbar</h2>${wk>0?`<div class="miss"><div class="big"><b>${f1(wk)}</b><span>kg geröstet</span></div><div><b>${nS(wk)}</b><span>× 250 g möglich</span></div><div><b>${nB(wk)}</b><span>× 1 kg möglich</span></div></div>`:`<p class="hint">Nichts geröstet, das wartet. Erst den Rösttag bestätigen.</p>`}
    ${R.length?`<h2 style="font-size:15px;margin-top:4px">Fehlt diese Woche noch</h2>${ms.length?`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""} · ${f1(mkg)} kg</b>${ready.length?` · davon jetzt abpackbar: ${ready.length}`:""}</p>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`}`:`<p class="hint">Im Röstplan einen Wochenbericht laden, dann steht hier der Bedarf.</p>`}`;
-  renderRoast();renderSorts(R);kurz();
+  renderRoast();renderSorts(R);renderCA();kurz();
 }
 function renderRoast(){
   const c=$("roastC"),e=WD.e;
@@ -855,6 +856,25 @@ $("roastC").addEventListener("click",e=>{
     const dnm=[0,1,2].includes(rcDay)?((WD.e.dn||[])[rcDay]||"Tag "+(rcDay+1)):"ohne Tag";
     A.conf[key]=d;A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key,add,txt:"Rösttag "+dnm+" bestätigt",sub:rows.map(r=>r.n.split(" ")[0]+" "+r.c+"×").join(" · ")});
     if(!aSave()){say2("Speichern hat nicht geklappt.");return}delete RC[key];rcDay=null;say2(rows.reduce((a,r)=>a+r.c,0)+" Chargen übernommen.");renderW()}});
+/* Charge von Hand ins freie Kontingent nachtragen (laden-v30), ohne Röstplan-Bericht */
+let CA=null;
+function renderCA(){const w=$("caW");if(!CA){w.innerHTML=`<div class="more" style="margin-top:10px"><button type="button" data-caopen="1">+ Charge nachtragen</button></div>`;return}
+  const L=chNames({id:"",sorte:""});if(!CA.so||!L.includes(CA.so))CA.so=L[0]||"";const sz=sizeOf(CA.so),l=chLoss(CA.so||"?"),g=Math.round(CA.n*sz*(1-l/100)*100)/100;
+  w.innerHTML=`<form class="form" id="caF" style="margin-top:12px"><h2 style="font-size:15px;margin:0">Charge nachtragen</h2>
+   <label class="f">Kaffee<select id="caS" class="sosel">${L.map(n=>`<option value="${esc(n)}"${n===CA.so?" selected":""}>${esc(n)}</option>`).join("")}</select></label>
+   <div class="pr"><span class="t">Chargen<small>à ${sz} kg roh · ${l} % Röstverlust · aus dem Sortiment</small></span><span class="step"><button type="button" data-can="-1" aria-label="Eine Charge weniger">−</button><output>${CA.n}</output><button type="button" data-can="1" aria-label="Eine Charge mehr">+</button></span></div>
+   <p class="hint"><b style="color:var(--ink)">${f1(g)} kg geröstet</b> · ${kgT(CA.n*sz)} kg roh</p>
+   <label class="f">Geröstet am<input id="caD" type="date" value="${CA.d}" max="${today()}"></label>
+   <div class="btns"><button type="button" data-cax="1">Abbrechen</button><button class="primary" type="submit"${CA.so?"":" disabled"}>Nachtragen</button></div></form>`}
+$("caW").addEventListener("click",e=>{
+  if(e.target.closest("[data-caopen]")){CA={so:"",n:1,d:today()};renderCA();return}
+  if(e.target.closest("[data-cax]")){CA=null;renderCA();return}
+  const b=e.target.closest("[data-can]");if(b&&CA){CA.n=Math.max(1,CA.n+ +b.dataset.can);renderCA()}});
+$("caW").addEventListener("change",e=>{if(!CA)return;if(e.target.id==="caS"){CA.so=e.target.value;renderCA()}else if(e.target.id==="caD")CA.d=e.target.value||today()});
+$("caW").addEventListener("submit",e=>{e.preventDefault();if(!CA||!CA.so)return;AN();const n=CA.so,kg=CA.n*sizeOf(n),d=CA.d||today();
+  const w=A.wait[n]||(A.wait[n]={roh:0});w.roh=Math.round((w.roh+kg)*1000)/1000;if(!w.d||d>w.d)w.d=d;
+  A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key:"",add:{[n]:kg},txt:n+": "+CA.n+(CA.n===1?" Charge":" Chargen")+" nachgetragen",sub:kgT(kg)+" kg roh"});
+  if(!aSave()){say2("Speichern hat nicht geklappt.");return}const c=CA.n;CA=null;say2(n+": "+c+(c===1?" Charge":" Chargen")+" im freien Kontingent.");renderW()});
 $("sl").addEventListener("click",e=>{
   const h=e.target.closest("[data-s]");if(h){openS=openS===h.dataset.s?null:h.dataset.s;delete PS[openS];lossOpen=null;renderW();return}
   const R=rowsW(),r=R.find(x=>x.n===openS);if(!r)return;const x=PS[r.n];
@@ -949,7 +969,7 @@ $("pgR").addEventListener("click",e=>{AN();
 
 // Eintrag aus dem Verlauf zurücknehmen
 function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
-  if(l.t==="roast"){Object.entries(l.add||{}).forEach(([n,kg])=>{const w=A.wait[n];if(w){w.roh=Math.round((w.roh-kg)*1000)/1000;if(w.roh<.01)delete A.wait[n]}});delete A.conf[l.key]}
+  if(l.t==="roast"){Object.entries(l.add||{}).forEach(([n,kg])=>{const w=A.wait[n];if(w){w.roh=Math.round((w.roh-kg)*1000)/1000;if(w.roh<.01)delete A.wait[n]}});if(l.key)delete A.conf[l.key]}
   if(l.t==="pack"&&(l.s1||l.s2)&&A.reg[l.n]){A.reg[l.n].p1=Math.max(0,A.reg[l.n].p1-(l.s1|0));A.reg[l.n].p2=Math.max(0,A.reg[l.n].p2-(l.s2|0))}
   if(l.t==="reg"){if(l.prev)A.reg[l.n]={p1:l.prev.p1,p2:l.prev.p2};else delete A.reg[l.n]}
   if(l.t==="pack"){const w=A.wait[l.n]||(A.wait[l.n]={roh:0});w.roh=Math.round((w.roh+l.roh)*1000)/1000;if(l.wk===A.pw.key&&A.pw.p[l.n]){A.pw.p[l.n].p1=Math.max(0,A.pw.p[l.n].p1-l.s1);A.pw.p[l.n].p2=Math.max(0,A.pw.p[l.n].p2-l.s2)}
