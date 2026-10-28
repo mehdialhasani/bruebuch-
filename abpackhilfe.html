@@ -134,25 +134,6 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .ask .btns{display:flex;gap:8px;justify-content:flex-end}
 .msg{min-height:1.2em;color:var(--accent);font-size:14px;margin:0}
 .empty{color:var(--muted);font-size:14px;text-align:center;padding:18px 8px}
-/* ---------- Eigenbedarf schnell eintragen (laden-v23) ---------- */
-.eq{gap:14px}
-.eq .lb{font-size:12px;font-weight:600;color:var(--muted);letter-spacing:.04em;text-transform:uppercase;margin:0 0 -6px}
-.eq .chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.eq .chips button small{opacity:.75;font-size:12px;margin-left:5px}
-.eq .amt{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.eq .amt .step button{min-width:56px;min-height:56px;font-size:26px}
-.eq .amt output{flex:1;text-align:center;font:700 34px/1 var(--f);letter-spacing:-.02em;font-variant-numeric:tabular-nums}
-.eq .amt output small{font-size:16px;font-weight:600;color:var(--muted);margin-left:4px}
-.eq .amt .pm{min-width:56px;min-height:56px;border-radius:16px;font-size:26px;font-weight:500;padding:0}
-.eq .more{display:flex;flex-direction:column;gap:8px;padding:10px;border-radius:12px;background:var(--bg)}
-.eq .more .chips{max-height:150px;overflow-y:auto}
-.eq .more input{font:16px var(--f);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%}
-.eq .qq{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}.eq .qq button{padding:4px 0}
-.eq .go{min-height:54px;border-radius:14px;font-size:17px;font-weight:600;background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.eq .go:disabled{opacity:.45}
-.eq .rec{display:flex;flex-direction:column;gap:6px}
-.eq .rec .pi .t b{font-weight:600}
-.eq .ok{font-size:14px;color:var(--good);font-weight:600;margin:-4px 0 0;min-height:1.2em}
 /* ---------- Abpackhilfe Entwurf 7: Woche · Lager · Verlauf ---------- */
 .top{display:flex;justify-content:space-between;align-items:flex-end;gap:12px}
 .miss{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
@@ -187,16 +168,6 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .so .r3{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
 .pk{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
 .pr{display:flex;align-items:center;gap:10px}
-/* Regal-Bestand nachtragen (laden-v24) */
-.inv{display:flex;flex-direction:column;gap:12px;border:1px solid var(--line);border-radius:14px;padding:12px;background:var(--paper)}
-.inv .pr .t{flex:1;font-weight:600;font-size:15px}.inv .pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
-.inv .step output{min-width:76px}
-.inv label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
-.inv .btns{display:flex;gap:8px;justify-content:flex-end}
-.inv h3{margin:0;font-size:15px}
-.invl{color:var(--accent)!important;font-weight:600!important;font-size:14px!important;min-height:40px!important}
-#invX{margin-top:10px;display:flex;flex-direction:column;gap:10px}
-#invX .chips{max-height:150px;overflow-y:auto}
 .pr .t{flex:1;min-width:0;font-size:15px;font-weight:600}.pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
 .pk .sum{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .pk .sum div{background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
@@ -325,7 +296,6 @@ details.set .pr{margin-top:8px}
     <div class="hrow"><h2>Sorten</h2><span class="hint" id="sCnt"></span></div>
     <div class="legend"><span><i class="i-p"></i>abgepackt</span><span><i class="i-w"></i>geröstet, wartet</span><span><i class="i-m"></i>fehlt noch</span></div>
     <div class="sl" id="sl"></div>
-    <div id="invX"></div>
   </div>
   <p class="msg" id="wmsg" role="status"></p>
 </div>
@@ -333,7 +303,6 @@ details.set .pr{margin-top:8px}
 <div class="wrap" id="pgS" hidden>
   <div><h1>Lager</h1><p class="sub">Eigenbedarf im Regal · Ist genug da?</p></div>
   <div id="lst"></div>
-  <div class="card eq" id="eq"></div>
   <div class="card">
     <div class="hrow"><h2>Kisten und Tonnen</h2></div>
     <p class="hint" style="margin-top:-6px">Kreis = Tage seit dem Rösten, grün ab 2 Wochen. Balken = wie lange es reicht.</p>
@@ -344,7 +313,6 @@ details.set .pr{margin-top:8px}
   <p class="msg" id="msg" role="status"></p>
   <div class="card">
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Eigenbedarf</h2><span class="hint" id="eCap"></span></div>
-    <div class="seg" id="eBy" role="group" aria-label="Aufteilen nach"><button type="button" data-by="s" aria-pressed="true">nach Kiste</button><button type="button" data-by="k" aria-pressed="false">nach Kaffee</button></div>
     <div class="chart" id="eChart"></div>
     <div id="eTab"></div>
     <p class="hint">Eigenbedarf entsteht aus dem Stand: Was seit dem letzten Stand weniger geworden ist und nicht in Tüten abgefüllt wurde, ist verbraucht. Leere Tonnen und direkt gebuchter Eigenbedarf zählen dazu.</p>
@@ -423,7 +391,7 @@ const T={rein:"Charge eingelagert",abf:"In Tüten abgefüllt",eigen:"Eigenbedarf
 function calc(id){
   const B=S().buch.filter(b=>b.silo===id).sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:a.n-b.n);
   let st=0;const ev=[];
-  B.forEach(b=>{if(b.t==="rein")st+=b.kg;else if(b.t==="abf")st-=b.kg;else if(b.t==="eigen"){st-=b.kg;ev.push({d:b.d,kg:b.kg,so:b.sorte||""})}
+  B.forEach(b=>{if(b.t==="rein")st+=b.kg;else if(b.t==="abf")st-=b.kg;else if(b.t==="eigen"){st-=b.kg;ev.push({d:b.d,kg:b.kg})}
     else if(b.t==="stand"){const diff=st-b.kg;b._diff=diff;if(diff>0)ev.push({d:b.d,kg:diff});st=b.kg}b._st=st});
   const first=B.length?B[0].d:null,span=first?Math.min(28,ddays(first,today())):0;
   const last28=ev.filter(e=>ddays(e.d,today())<28).reduce((a,e)=>a+e.kg,0);
@@ -449,7 +417,7 @@ function render(){
       ${nt?`<span class="ln">${nt} ${nt===1?"Tonne":"Tonnen"}${ripe<nt?` · ${nt-ripe} jünger als 2 Wochen`:""}</span>`:""}
       ${c.plan.length?`<span class="ln">${c.plan.length} ${c.plan.length===1?"Charge":"Chargen"} geplant · ${f1(c.planKg)} kg</span>`:""}
     </button>`}).join("")+`<button class="silo add" data-add="1"><span class="nm">+ Kiste</span><span class="ln">z. B. für eine Gastsorte</span></button>`;
-  renderEq();renderDet();renderE();
+  renderDet();renderE();
 }
 function renderDet(){
   const d=$("det"),s=open&&silo(open);if(!s){d.hidden=true;return}
@@ -466,9 +434,6 @@ function renderDet(){
   }else if(mode==="plan"){
     f=`<form class="form" id="pf"><div class="row2"><label class="f">Menge (kg)<input id="pKg" inputmode="decimal" autocomplete="off"></label><label class="f">Geplant für<input id="pD" type="date" value="${today()}"></label></div>
       <div class="chips q">${[2.5,4.2,5,10].map(v=>`<button type="button" data-q="${v}">${String(v).replace(".",",")} kg</button>`).join("")}</div>
-      <label class="f">Kaffee (welche Sorte kommt rein)<input id="pSo" maxlength="40" autocomplete="off" list="pSoL" value="${esc(s.sorte||"")}" placeholder="${esc(s.name)}"></label>
-      <datalist id="pSoL">${eqAll().map(n=>`<option value="${esc(n)}">`).join("")}</datalist>
-      <div class="chips one">${[...new Set(eqSugg(s).concat(eqAll()))].filter(n=>norm(n)!==norm(s.name)).slice(0,10).map(n=>`<button type="button" data-pso="${esc(n)}">${esc(n)}</button>`).join("")}</div>
       <label class="f">Notiz (optional)<input id="pN" maxlength="60" autocomplete="off" placeholder="z. B. aus Röstung Dienstag weglegen"></label>
       <div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Vorplanen</button></div></form>`;
   }else if(mode==="set"){
@@ -486,7 +451,7 @@ function renderDet(){
     ${mode==="ton"?`<form class="form" id="tf"><div class="row2"><label class="f">Menge (kg)<input id="tKg" inputmode="decimal" autocomplete="off" value="10"></label><label class="f">Geröstet am<input id="tD" type="date" value="${today()}" max="${today()}"></label></div><div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Tonne dazu</button></div></form>`:""}
     <div class="pl">${(s.ton||[]).length?s.ton.slice().sort((a,b)=>a.d<b.d?-1:1).map(t=>`<div class="pi">${ring(t.d,1)}<span class="t"><b>${kgT(t.kg)} kg</b><small>geröstet ${esc(dFmt(t.d))}</small></span><button type="button" data-tleer="${t.id}">Leer</button></div>`).join(""):`<p class="hint">Noch keine Tonnen mit Röstdatum. Mit „+ Tonne“ eintragen oder beim Abpacken Tonnen wählen.</p>`}</div>`:""}
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px"><h2 style="font-size:15px">Vorgeplante Chargen</h2><button type="button" data-m="plan" aria-pressed="${mode==="plan"}" style="min-height:36px;font-size:14px">+ Vorplanen</button></div>
-    <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t"><b>${f1(p.kg)} kg</b>${p.sorte?" "+esc(p.sorte):""} · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}</span><button type="button" data-in="${p.id}">Eingelagert</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>
+    <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t"><b>${f1(p.kg)} kg</b> · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}</span><button type="button" data-in="${p.id}">Eingelagert</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>
     <button type="button" data-m="set" aria-pressed="${mode==="set"}" style="align-self:flex-start;min-height:36px;font-size:14px;border:0;background:none;color:var(--accent);padding:0">Bearbeiten</button>`;
   const k=$("bKg")||$("pKg")||$("sNm");if(k&&mode!=="set")k.focus({preventScroll:true});
 }
@@ -501,10 +466,6 @@ function renderE(){
   const W=340,H=120,mx=Math.max(1,...wk.map(w=>w.kg)),bw=W/8;
   $("eChart").innerHTML=`<svg viewBox="0 0 ${W} ${H+18}" role="img" aria-label="Eigenbedarf pro Woche">${wk.map((w,i)=>{const h=w.kg/mx*(H-16);return `<rect x="${i*bw+6}" y="${H-h}" width="${bw-12}" height="${Math.max(h,w.kg?2:0)}" rx="4" fill="var(--accent)" opacity="${i===7?1:.75}"/>${w.kg?`<text x="${i*bw+bw/2}" y="${H-h-4}" text-anchor="middle" style="fill:var(--ink2)">${f1(w.kg)}</text>`:""}<text x="${i*bw+bw/2}" y="${H+14}" text-anchor="middle">KW ${w.w}</text>`}).join("")}</svg>`;
   const tot=C.reduce((a,x)=>a+(x.c.perWeek||0),0),t4=x=>x.c.ev.filter(e=>ddays(e.d,today())<28).reduce((a,e)=>a+e.kg,0),all=x=>x.c.ev.reduce((a,e)=>a+e.kg,0);
-  if(eBy==="k"){const M={},s4=Date.now();C.forEach(x=>x.c.ev.forEach(e=>{const n=e.so||x.s.sorte||x.s.name,k=norm(n);M[k]=M[k]||{n,w4:0,all:0};M[k].all+=e.kg;if(ddays(e.d,today())<28)M[k].w4+=e.kg}));
-    const R=Object.values(M).sort((a,b)=>b.w4-a.w4||b.all-a.all);
-    $("eTab").innerHTML=`<table class="tb"><thead><tr><th>Kaffee</th><th>Ø/Woche</th><th>4 Wochen</th><th>gesamt</th></tr></thead><tbody>${R.map(r=>`<tr><td>${esc(r.n)}</td><td>${f1(r.w4/4)}</td><td>${f1(r.w4)}</td><td>${f1(r.all)}</td></tr>`).join("")}
-    <tr class="sum"><td>Zusammen</td><td>${f1(R.reduce((a,r)=>a+r.w4,0)/4)}</td><td>${f1(R.reduce((a,r)=>a+r.w4,0))}</td><td>${f1(R.reduce((a,r)=>a+r.all,0))}</td></tr></tbody></table><p class="hint" style="margin-top:6px">Ohne gewählten Kaffee zählt, was gerade in der Kiste ist.</p>`;return}
   $("eTab").innerHTML=`<table class="tb"><thead><tr><th>Silo</th><th>Ø/Woche</th><th>4 Wochen</th><th>gesamt</th></tr></thead><tbody>${C.map(x=>`<tr><td>${esc(x.s.name)}</td><td>${x.c.perWeek==null?"–":f1(x.c.perWeek)}</td><td>${f1(t4(x))}</td><td>${f1(all(x))}</td></tr>`).join("")}
     <tr class="sum"><td>Zusammen</td><td>${f1(tot)}</td><td>${f1(C.reduce((a,x)=>a+t4(x),0))}</td><td>${f1(C.reduce((a,x)=>a+all(x),0))}</td></tr></tbody></table>`;
 }
@@ -515,69 +476,14 @@ function renderV(){AN();
   let h="",cur=null;
   B.forEach(x=>{const k=kwOf(x.d),key=k.y+"-"+k.w;if(key!==cur){cur=key;h+=`<h3>KW ${k.w}${k.y!==new Date().getFullYear()?" / "+k.y:""}</h3>`}
     if(x.l){const l=x.l,kg=l.t==="roast"?Object.values(l.add||{}).reduce((a,v)=>a+v,0):l.roh;
-      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span>${l.t==="inv"?`<span class="v m">= ${f1(l.kg)} kg</span>`:`<span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span>`}<button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
+      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span><span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span><button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
       if(askL===l.id)h+=`<div class="ask"><span>Zurücknehmen? Die Mengen werden zurückgerechnet${l.bid?", die Buchung im Lager auch":""}.</span><div class="btns"><button type="button" data-ldelno="1">Abbrechen</button><button type="button" class="primary" data-ldelyes="${l.id}">Zurücknehmen</button></div></div>`;return}
     const b=x.b,s=silo(b.silo),v=b.t==="rein"?`<span class="v p">+${f1(b.kg)} kg</span>`:b.t==="stand"?`<span class="v m">= ${f1(b.kg)} kg</span>`:`<span class="v">−${f1(b.kg)} kg</span>`;
     const ex=b.t==="stand"&&b._diff!=null&&Math.abs(b._diff)>=.05?(b._diff>0?` · ${f1(b._diff)} kg verbraucht`:` · ${f1(-b._diff)} kg mehr als erwartet`):"";
-    h+=`<div class="ve"><span class="t">${esc(T[b.t])} · ${esc(s?s.name:"?")}<small>${esc(dFmt(b.d))}${b.sorte?" · "+esc(b.sorte):""}${ex}${b.note?" · "+esc(b.note):""}</small></span>${v}<button type="button" data-del="${b.id}" aria-label="Löschen">×</button></div>`;
+    h+=`<div class="ve"><span class="t">${esc(T[b.t])} · ${esc(s?s.name:"?")}<small>${esc(dFmt(b.d))}${ex}${b.note?" · "+esc(b.note):""}</small></span>${v}<button type="button" data-del="${b.id}" aria-label="Löschen">×</button></div>`;
     if(askDel===b.id)h+=`<div class="ask"><span>Diese Buchung löschen? Stand und Eigenbedarf werden neu gerechnet.</span><div class="btns"><button type="button" data-delno="1">Abbrechen</button><button type="button" class="primary" data-delyes="${b.id}">Löschen</button></div></div>`});
   $("vk").innerHTML=h;
 }
-/* ---------- Eigenbedarf schnell eintragen: Kiste, Kaffee, Menge, ein Knopf (laden-v23) ---------- */
-let eBy="s",EQ=null,eqMore=false,eqAsk=null,eqOk="";
-function eqState(){if(EQ)return EQ;let a={};try{a=(JSON.parse(localStorage.getItem("abpack.v1"))||{}).eq||{}}catch(e){}
-  const L=S().list;EQ={silo:L.some(s=>s.id===a.silo)?a.silo:(L.find(s=>s.id==="m2")||L[0]||{}).id,kg:a.kg>0?a.kg:.5,so:null,d:0};return EQ}
-function eqKeep(){try{const a=JSON.parse(localStorage.getItem("abpack.v1"))||{v:1};a.eq={silo:EQ.silo,kg:EQ.kg};localStorage.setItem("abpack.v1",JSON.stringify(a));if(typeof A==="object"&&A)A.eq=a.eq}catch(e){}}
-// Alle bekannten Kaffees: Röstplan, Verkauf, schon gebuchte
-function eqAll(){const out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!seen.has(k)){seen.add(k);out.push(n)}};
-  let R={},K={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}try{K=JSON.parse(localStorage.getItem("verkauf.v1"))||{}}catch(e){}
-  (Array.isArray(R.sorts)?R.sorts:[]).forEach(s=>add(s.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(s=>add(s.name));
-  S().buch.forEach(b=>add(b.sorte));S().list.forEach(s=>add(s.sorte));return out.sort((a,b)=>a.localeCompare(b,"de"))}
-// Vorschläge für eine Kiste: was drin ist, dann zuletzt gebuchte
-function eqSugg(s){const out=[],seen=new Set(),add=n=>{const k=norm(n);if(k&&!seen.has(k)&&out.length<5){seen.add(k);out.push(n)}};
-  add(s.sorte||s.name);S().buch.filter(b=>b.silo===s.id&&b.sorte).sort((a,b)=>b.n-a.n).forEach(b=>add(b.sorte));return out}
-const eqDay=i=>{const d=new Date();d.setDate(d.getDate()-i);return iso(d)};
-function renderEq(){const c=$("eq"),L=S().list;if(!L.length){c.hidden=true;return}c.hidden=false;
-  const q=eqState();let s=L.find(x=>x.id===q.silo);if(!s){s=L[0];q.silo=s.id}
-  const sg=eqSugg(s);if(q.so==null)q.so=sg[0];
-  const pick=n=>norm(n)===norm(q.so);
-  const rec=S().buch.filter(b=>b.t==="eigen").sort((a,b)=>b.n-a.n).slice(0,3);
-  c.innerHTML=`<div class="hrow"><h2>Eigenbedarf eintragen</h2></div>
-    <p class="lb">Aus welcher Kiste</p>
-    <div class="chips" id="eqS">${L.map(x=>`<button type="button" data-eqs="${esc(x.id)}" aria-pressed="${x.id===s.id}">${esc(x.name)}</button>`).join("")}</div>
-    <p class="lb">Welcher Kaffee</p>
-    <div class="chips" id="eqK">${sg.map((n,i)=>`<button type="button" data-eqk="${esc(n)}" aria-pressed="${pick(n)}">${esc(n)}${i===0&&s.sorte?"<small>drin</small>":""}</button>`).join("")}${q.so&&!sg.some(pick)?`<button type="button" data-eqk="${esc(q.so)}" aria-pressed="true">${esc(q.so)}</button>`:""}<button type="button" data-eqm="1" aria-pressed="${eqMore}">Andere …</button></div>
-    ${eqMore?`<div class="more"><div class="chips">${eqAll().map(n=>`<button type="button" data-eqk="${esc(n)}" aria-pressed="${pick(n)}">${esc(n)}</button>`).join("")||`<span class="hint">Noch keine Sorten im Röstplan.</span>`}</div>
-      <input id="eqNew" maxlength="40" autocomplete="off" enterkeyhint="done" placeholder="Oder neuen Namen eingeben"></div>`:""}
-    <p class="lb">Wie viel</p>
-    <div class="amt"><button type="button" class="pm" data-eqd="-1" aria-label="weniger">−</button><output id="eqKg">${kgT(q.kg)}<small>kg</small></output><button type="button" class="pm" data-eqd="1" aria-label="mehr">+</button></div>
-    <div class="chips qq">${[.25,.5,1,2,5].map(v=>`<button type="button" data-eqq="${v}" aria-pressed="${Math.abs(q.kg-v)<.001}">${kgT(v)}</button>`).join("")}</div>
-    <div class="chips">${["Heute","Gestern","Vorgestern"].map((t,i)=>`<button type="button" data-eqt="${i}" aria-pressed="${q.d===i}">${t}</button>`).join("")}</div>
-    <button type="button" class="go" id="eqGo"${q.so?"":" disabled"}>${q.so?`${kgT(q.kg)} kg ${esc(q.so)} eintragen`:"Erst Kaffee wählen"}</button>
-    <p class="ok" role="status">${esc(eqOk)}</p>
-    ${rec.length?`<p class="lb">Zuletzt</p><div class="rec">${rec.map(b=>{const z=silo(b.silo);return `<div class="pi"><span class="t"><b>${kgT(b.kg)} kg</b> ${esc(b.sorte||(z?z.sorte||z.name:""))}<small>${esc(dFmt(b.d))} · ${esc(z?z.name:"?")}${b.note?" · "+esc(b.note):""}</small></span>${eqAsk===b.id?`<button type="button" data-eqno="1">Behalten</button><button type="button" class="primary" data-eqdel="${b.id}">Löschen</button>`:`<button type="button" data-eqx="${b.id}" aria-label="Löschen">×</button>`}</div>`}).join("")}</div>`:""}`;
-}
-$("eq").addEventListener("click",e=>{const q=eqState(),t=e.target.closest("button");if(!t)return;
-  if(t.dataset.eqs){if(q.silo!==t.dataset.eqs){q.silo=t.dataset.eqs;q.so=null;eqMore=false}eqKeep()}
-  else if(t.dataset.eqk!=null){q.so=t.dataset.eqk;eqMore=false}
-  else if(t.dataset.eqm){eqMore=!eqMore}
-  else if(t.dataset.eqd){q.kg=Math.max(.25,Math.min(50,Math.round((q.kg+(+t.dataset.eqd)*.25)*100)/100));eqKeep()}
-  else if(t.dataset.eqq){q.kg=+t.dataset.eqq;eqKeep()}
-  else if(t.dataset.eqt!=null){q.d=+t.dataset.eqt}
-  else if(t.dataset.eqx){eqAsk=t.dataset.eqx}
-  else if(t.dataset.eqno){eqAsk=null}
-  else if(t.dataset.eqdel){const id=t.dataset.eqdel;commit(s=>{s.buch=s.buch.filter(b=>b.id!==id)});eqAsk=null;eqOk="Gelöscht.";render();return}
-  else if(t.id==="eqGo"){if(!q.so)return;const so=q.so,kg=q.kg,id=q.silo,d=eqDay(q.d);
-    const ok=commit(s=>{s.buch.push({id:uid(),n:Date.now(),silo:id,d,t:"eigen",kg,sorte:so,note:""});const z=s.list.find(y=>y.id===id);
-      // Wechselt der Kaffee in der Kiste (z. B. Mühle 2), merkt sich die Kiste die neue Sorte
-      if(z&&norm(so)!==norm(z.name))z.sorte=so;else if(z&&norm(so)===norm(z.name))z.sorte=""});
-    eqOk=ok?`Eingetragen: ${kgT(kg)} kg ${so}${q.d?" ("+dFmt(d)+")":""}.`:"Speichern hat nicht geklappt, der Speicher ist voll.";q.d=0;eqAsk=null;clearTimeout(renderEq.t);renderEq.t=setTimeout(()=>{eqOk="";renderEq()},4000);render();return}
-  else return;
-  renderEq()});
-$("eq").addEventListener("change",e=>{if(e.target.id==="eqNew"){const v=e.target.value.trim();if(v){eqState().so=v;eqMore=false;renderEq()}}});
-$("eq").addEventListener("keydown",e=>{if(e.target.id==="eqNew"&&e.key==="Enter"){e.preventDefault();e.target.blur()}});
-$("eBy").addEventListener("click",e=>{const b=e.target.closest("[data-by]");if(!b)return;eBy=b.dataset.by;[...$("eBy").children].forEach(x=>x.setAttribute("aria-pressed",x===b));renderE()});
-
 const say=t=>{$("msg").textContent=t;clearTimeout(say.t);if(t)say.t=setTimeout(()=>$("msg").textContent="",4000)};
 
 $("sg").addEventListener("click",e=>{const b=e.target.closest(".silo");if(!b)return;
@@ -587,10 +493,9 @@ $("det").addEventListener("click",e=>{
   if(e.target.closest("#dX")){open=null;mode=null;render();return}
   const m=e.target.closest("[data-m]");if(m){mode=mode===m.dataset.m?null:m.dataset.m;renderDet();return}
   if(e.target.closest("#bNo")){mode=null;renderDet();return}
-  const ps=e.target.closest("[data-pso]");if(ps){$("pSo").value=ps.dataset.pso;return}
   const q=e.target.closest("[data-q]");if(q){const i=$("bKg")||$("pKg");i.value=String(q.dataset.q).replace(".",",");return}
   const pi=e.target.closest("[data-in]");if(pi){const p=S().plan.find(x=>x.id===pi.dataset.in);if(!p)return;
-    commit(s=>{s.plan=s.plan.filter(x=>x.id!==p.id);const b={id:uid(),n:Date.now(),silo:p.silo,d:today(),t:"rein",kg:p.kg,note:p.note||"vorgeplant"};if(p.sorte){b.sorte=p.sorte;const z=s.list.find(y=>y.id===p.silo);if(z)z.sorte=p.sorte}s.buch.push(b)});say(f1(p.kg)+" kg eingelagert.");render();return}
+    commit(s=>{s.plan=s.plan.filter(x=>x.id!==p.id);s.buch.push({id:uid(),n:Date.now(),silo:p.silo,d:today(),t:"rein",kg:p.kg,note:p.note||"vorgeplant"})});say(f1(p.kg)+" kg eingelagert.");render();return}
   const pd=e.target.closest("[data-pdel]");if(pd){commit(s=>{s.plan=s.plan.filter(x=>x.id!==pd.dataset.pdel)});render();return}
   const tl=e.target.closest("[data-tleer]");if(tl){const s0=silo(open),t=(s0.ton||[]).find(x=>x.id===tl.dataset.tleer);if(!t)return;
     commit(s=>{const z=s.list.find(y=>y.id===open);z.ton=z.ton.filter(x=>x.id!==t.id);s.buch.push({id:uid(),n:Date.now(),silo:open,d:today(),t:"eigen",kg:t.kg,note:"Tonne leer (geröstet "+dFmt(t.d)+")"})});say("Tonne leer, "+f1(t.kg)+" kg als Eigenbedarf gebucht.");render();return}
@@ -604,8 +509,7 @@ $("det").addEventListener("submit",e=>{e.preventDefault();const f=e.target;
     const c=calc(open),last=S().buch[S().buch.length-1];
     say(mode==="stand"&&last._diff>0.05?`Gespeichert. Seit dem letzten Stand ${f1(last._diff)} kg verbraucht.`:"Gespeichert.");mode=null;render()}
   else if(f.id==="pf"){const kg=pk($("pKg").value);if(!kg||kg<=0){$("pKg").focus();return}
-    const so=$("pSo").value.trim(),z0=silo(open);
-    commit(s=>s.plan.push({id:uid(),silo:open,kg:Math.round(kg*1000)/1000,d:$("pD").value||today(),note:$("pN").value.trim(),sorte:so&&norm(so)!==norm(z0.name)?so:""}));say("Vorgeplant.");mode=null;render()}
+    commit(s=>s.plan.push({id:uid(),silo:open,kg:Math.round(kg*1000)/1000,d:$("pD").value||today(),note:$("pN").value.trim()}));say("Vorgeplant.");mode=null;render()}
   else if(f.id==="tf"){const kg=pk($("tKg").value),d=$("tD").value||today();if(!kg||kg<=0||kg>50){$("tKg").focus();return}const bid=uid();
     commit(s=>{s.buch.push({id:bid,n:Date.now(),silo:open,d,t:"rein",kg,note:"Tonne"});const z=s.list.find(y=>y.id===open);z.ton=z.ton||[];z.ton.push({id:uid(),kg,d,b:bid})});say("Tonne eingetragen.");mode=null;render()}
   else if(f.id==="sf"){const nm=$("sNm").value.trim()||"Silo",cap=pk($("sCap").value);
@@ -667,7 +571,7 @@ function renderW(){
   const wk=R.reduce((x,r)=>x+r.w,0),ms=R.filter(r=>r.needKg>0&&!isDone(r)),bags=ms.reduce((x,r)=>x+(r.g?r.m1+r.m2:0),0),mkg=ms.reduce((x,r)=>x+r.missKg,0),ready=ms.filter(r=>r.w>0);
   $("missC").innerHTML=`<h2>Jetzt abpackbar</h2>${wk>0?`<div class="miss"><div class="big"><b>${f1(wk)}</b><span>kg geröstet</span></div><div><b>${nS(wk)}</b><span>× 250 g möglich</span></div><div><b>${nB(wk)}</b><span>× 1 kg möglich</span></div></div>`:`<p class="hint">Nichts geröstet, das wartet. Erst den Rösttag bestätigen.</p>`}
    ${R.length?`<h2 style="font-size:15px;margin-top:4px">Fehlt diese Woche noch</h2>${ms.length?`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""} · ${f1(mkg)} kg</b>${ready.length?` · davon jetzt abpackbar: ${ready.length}`:""}</p>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`}`:`<p class="hint">Im Röstplan einen Wochenbericht laden, dann steht hier der Bedarf.</p>`}`;
-  renderRoast();renderSorts(R);renderInvX(R);kurz();
+  renderRoast();renderSorts(R);kurz();
 }
 function renderRoast(){
   const c=$("roastC"),e=WD.e;
@@ -702,9 +606,7 @@ function renderSorts(R){
       ${o?pack(r):""}</div>`}).join("");
 }
 function pack(r){
-  const iv=INV&&!INV.x&&INV.n===r.n;
-  if(!(r.w>0))return `<div class="pk">${iv?invBox(r):`<p class="say">Davon ist nichts geröstet, das wartet. Sobald der Rösttag bestätigt ist, kannst du hier abpacken.</p><button class="link invl" data-inv="1">Im Regal stehen noch Kisten? Nachtragen</button>`}</div>`;
-  if(iv)return `<div class="pk">${invBox(r)}</div>`;
+  if(!(r.w>0))return `<div class="pk"><p class="say">Davon ist nichts geröstet, das wartet. Sobald der Rösttag bestätigt ist, kannst du hier abpacken.</p></div>`;
   if(!PS[r.n])suggest(r);const x=PS[r.n],u=x.e+x.s1+x.s2*.25,rest=Math.round((r.w-u)*100)/100,fr=r.w-x.e,m1=nB(fr-x.s2*.25),m2=nS(fr-x.s1),ton=r.silo&&r.silo.id==="panea";
   const row=(k,lab,v,sub)=>`<div class="pr"><span class="t">${lab}<small>${sub}</small></span><span class="step"><button data-st="${k}" data-v="-1" aria-label="${lab} weniger">−</button><output>${v}</output><button data-st="${k}" data-v="1" aria-label="${lab} mehr">+</button></span></div>`;
   const nd=(need,v)=>need==null?"Bedarf unbekannt":need>0?(v>=need?`<span class="okk">Bedarf ${need} ✓</span>`:`Bedarf ${need}`):"kein Bedarf";
@@ -719,7 +621,7 @@ function pack(r){
    <div class="restl ${rest<-0.001?"w":""}"><span>${rest<-0.001?`${f1(-rest)} kg zu viel`:`Rest <b>${f1(rest)} kg</b>`}</span>${rest>=.25?`<button data-fill="1">+ ${nS(rest)} × 250 g</button>`:""}</div>
    ${rest>0.001&&rest<.25||rest>=.25?`<p class="hint" style="margin-top:-8px">Der Rest bleibt unverpackt im Regal und steht beim nächsten Mal wieder hier.</p>`:""}
    <button class="primary big" data-ok="1"${rest<-0.001||u<=0?" disabled":""}>Fertig abgepackt</button>
-   <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1">Zurück zum Vorschlag</button><button class="link" data-inv="1">Regal-Stand ändern</button><button class="link" data-drop="1">Nichts mehr da</button></div></div>`;
+   <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1">Zurück zum Vorschlag</button><button class="link" data-drop="1">Nichts mehr da</button></div></div>`;
 }
 const say2=t=>{$("wmsg").textContent=t;clearTimeout(say2.t);say2.t=setTimeout(()=>$("wmsg").textContent="",4000)};
 $("roastC").addEventListener("click",e=>{
@@ -731,10 +633,8 @@ $("roastC").addEventListener("click",e=>{
     A.conf[key]=d;A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key,add,txt:"Rösttag "+dnm+" bestätigt",sub:rows.map(r=>r.n.split(" ")[0]+" "+r.c+"×").join(" · ")});
     if(!aSave()){say2("Speichern hat nicht geklappt.");return}delete RC[key];rcDay=null;say2(rows.reduce((a,r)=>a+r.c,0)+" Chargen übernommen.");renderW()}});
 $("sl").addEventListener("click",e=>{
-  const h=e.target.closest("[data-s]");if(h){openS=openS===h.dataset.s?null:h.dataset.s;delete PS[openS];lossOpen=null;INV=null;renderW();return}
+  const h=e.target.closest("[data-s]");if(h){openS=openS===h.dataset.s?null:h.dataset.s;delete PS[openS];lossOpen=null;renderW();return}
   const R=rowsW(),r=R.find(x=>x.n===openS);if(!r)return;const x=PS[r.n];
-  if(e.target.closest("[data-inv]")){INV={n:r.n,kg:r.w>0?Math.round(r.w*4)/4:0,d:r.d||"",w:r.w};renderSorts(R);renderInvX(R);return}
-  if(invClick(e,r.n,r.loss)){if(!INV){delete PS[r.n];renderW()}else renderSorts(R);return}
   if(e.target.closest("[data-lossopen]")){lossOpen=lossOpen===r.n?null:r.n;renderSorts(R);return}
   const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,r.loss+ +lo.dataset.v));aSave();renderW();return}
   const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,x.s1+v);else if(k==="2")x.s2=Math.max(0,x.s2+v);else x.e=Math.max(0,Math.round((x.e+(r.silo.id==="panea"?10:.5)*v)*10)/10);renderSorts(R);return}
@@ -749,50 +649,12 @@ $("sl").addEventListener("click",e=>{
     en.txt=r.n+" abgepackt";en.sub=[x.s1?x.s1+" × 1 kg":"",x.s2?x.s2+" × 250 g":"",x.e?(r.silo.id==="panea"?x.e/10+" × Tonne":kgT(x.e)+" kg Eigenbedarf"):""].filter(Boolean).join(" · ");
     A.log.unshift(en);aSave();delete PS[r.n];openS=null;say2(r.n+" abgepackt.");renderW()}
 });
-/* ---------- Regal-Bestand nachtragen/ändern: unverpackte, geröstete Kisten je Sorte (laden-v24) ---------- */
-let INV=null; // {n,kg,d,w,x}  x = andere Sorte
-function invBox(r){const k=INV,has=k.w>0;
-  return `<div class="inv">
-   <p class="say">${has?`Laut App stehen <b>${f1(k.w)} kg</b> geröstet und unverpackt im Regal. Was ist wirklich da?`:`Geröstet und unverpackt in Kisten, z. B. noch von vor der App. Wie viel ist da?`}</p>
-   <div class="pr"><span class="t">Im Regal<small>alle Kisten zusammen, geröstet</small></span><span class="step"><button data-iv="-1" aria-label="Viertel Kilo weniger">−</button><output id="iKg">${kgT(k.kg)} kg</output><button data-iv="1" aria-label="Viertel Kilo mehr">+</button></span></div>
-   <div class="chips q">${[1,2,5,10].map(v=>`<button type="button" data-iq="${v}">+ ${v} kg</button>`).join("")}<button type="button" data-iq="0">auf 0</button></div>
-   <label class="f">Geröstet am (ungefähr, kann leer bleiben)<input id="iD" type="date" value="${esc(k.d||"")}" max="${today()}"></label>
-   <div class="btns"><button type="button" data-ino="1">Abbrechen</button><button type="button" class="primary" data-iok="1"${(!k.n||(!has&&k.kg<=0))?" disabled":""}>${has?"Stand speichern":"Nachtragen"}</button></div></div>`}
-function invSave(n,kg,d,loss){AN();const f=1-loss/100,prev=A.wait[n]?{roh:A.wait[n].roh,d:A.wait[n].d}:null,pw=prev?Math.round(prev.roh*f*100)/100:0;
-  kg=Math.round(kg*100)/100;if(kg<=.001)delete A.wait[n];else A.wait[n]={roh:Math.round(kg/f*1000)/1000,d:d||(prev&&prev.d)||""};
-  const dd=d||(prev&&prev.d);
-  A.log.unshift({id:uid(),n:Date.now(),d:today(),t:"inv",so:n,prev,kg,roh:A.wait[n]?A.wait[n].roh:0,txt:n+": Regal "+(prev?"geändert":"nachgetragen"),sub:(prev?f1(pw)+" → ":"")+f1(kg)+" kg geröstet"+(dd?" · geröstet "+dFmt(dd):"")});
-  return aSave()}
-// gemeinsame Knöpfe im Nachtragen-Kasten; true = Klick verarbeitet
-function invClick(e,n,loss){if(!INV)return false;
-  const b=e.target.closest("[data-iv]");if(b){INV.kg=Math.max(0,Math.round((INV.kg+.25*b.dataset.iv)*100)/100);return true}
-  const q=e.target.closest("[data-iq]");if(q){INV.kg=+q.dataset.iq?Math.round((INV.kg+ +q.dataset.iq)*100)/100:0;return true}
-  if(e.target.closest("[data-ino]")){INV=null;return true}
-  if(e.target.closest("[data-iok]")){if(!n)return true;const kg=INV.kg,old=INV.w;if(!invSave(n,kg,INV.d,loss)){say2("Speichern hat nicht geklappt.");return true}INV=null;
-    say2(old>0?n+": Regal jetzt "+f1(kg)+" kg.":n+": "+f1(kg)+" kg nachgetragen.");return true}
-  return false}
-document.addEventListener("input",e=>{if(e.target.id==="iD"&&INV)INV.d=e.target.value;if(e.target.id==="iNm"&&INV){INV.n=e.target.value.trim();const ok=document.querySelector("#invX [data-iok]");if(ok)ok.disabled=!INV.n||INV.kg<=0}});
-// Sorte, die diese Woche nicht in der Liste steht
-function renderInvX(R){const c=$("invX");
-  if(!(INV&&INV.x)){c.innerHTML=`<button class="link invl" data-invx="1">+ Kisten einer anderen Sorte nachtragen</button>`;return}
-  const have=new Set(R.map(r=>norm(r.n))),L=eqAll().filter(n=>!have.has(norm(n)));
-  c.innerHTML=`<div class="inv"><h3>Andere Sorte nachtragen</h3>
-   ${L.length?`<div class="chips">${L.map(n=>`<button type="button" data-ixn="${esc(n)}" aria-pressed="${INV.n===n}">${esc(n)}</button>`).join("")}</div>`:""}
-   <label class="f">${L.length?"Oder Name eingeben":"Name der Sorte"}<input id="iNm" maxlength="40" autocomplete="off" value="${L.includes(INV.n)?"":esc(INV.n)}"></label></div>${invBox(null)}`}
-$("invX").addEventListener("click",e=>{
-  if(e.target.closest("[data-invx]")){INV={n:"",kg:0,d:"",w:0,x:1};openS=null;renderW();return}
-  if(!INV||!INV.x)return;
-  const c=e.target.closest("[data-ixn]");if(c){INV.n=c.dataset.ixn;renderInvX(rowsW());return}
-  const n=INV.n,loss=A.loss[n]!=null?A.loss[n]:WD.loss;
-  if(invClick(e,n,loss)){if(!INV)renderW();else renderInvX(rowsW())}});
-
 // Eintrag aus dem Verlauf zurücknehmen
 function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
   if(l.t==="roast"){Object.entries(l.add||{}).forEach(([n,kg])=>{const w=A.wait[n];if(w){w.roh=Math.round((w.roh-kg)*1000)/1000;if(w.roh<.01)delete A.wait[n]}});delete A.conf[l.key]}
   if(l.t==="pack"){const w=A.wait[l.n]||(A.wait[l.n]={roh:0});w.roh=Math.round((w.roh+l.roh)*1000)/1000;if(l.wk===A.pw.key&&A.pw.p[l.n]){A.pw.p[l.n].p1=Math.max(0,A.pw.p[l.n].p1-l.s1);A.pw.p[l.n].p2=Math.max(0,A.pw.p[l.n].p2-l.s2)}
     if(l.bid)commit(s=>{s.buch=s.buch.filter(b=>b.id!==l.bid);s.list.forEach(z=>{if(z.ton)z.ton=z.ton.filter(t=>t.b!==l.bid)})})}
   if(l.t==="drop"){A.wait[l.n]={roh:l.roh,d:l.wd}}
-  if(l.t==="inv"){if(l.prev)A.wait[l.so]={roh:l.prev.roh,d:l.prev.d};else delete A.wait[l.so]}
   A.log=A.log.filter(x=>x!==l);aSave()}
 
 if(!G.silos){commit(()=>{})}
