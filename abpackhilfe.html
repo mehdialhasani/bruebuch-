@@ -281,7 +281,28 @@ details.set .pr{margin-top:8px}
 .drin .lb{font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.04em}
 .drin .now{font-size:20px;font-weight:600;color:var(--ink)}
 .drin .chips button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.pi .t .sn{font-weight:600;font-size:15px}
+.pi .t .sn,.qi .t .sn{font-weight:600;font-size:15px}
+.ql{display:flex;flex-direction:column;gap:6px}
+.kl,.rl{display:flex;flex-direction:column;gap:8px}
+.krow{display:flex;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);min-height:56px;color:var(--ink)}
+.krow .t{flex:1;min-width:0}.krow b{display:block;font-size:16px}.krow small{display:block;color:var(--muted);font-size:13px;font-weight:400;margin-top:2px}.krow .ch{color:var(--muted);font-size:20px}
+.kf{border:1px solid var(--accent);border-radius:14px;padding:12px;background:var(--paper)}
+.kf textarea{font:16px var(--f);color:var(--ink);background:var(--paper);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;resize:vertical}
+.kf .pr .t{flex:1;font-weight:600;font-size:15px}.kf .pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.tg{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink2);min-height:44px}.tg input{width:22px;height:22px;accent-color:var(--accent)}
+.rr2.o .krow{border-color:var(--accent);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.ri{border:1px solid var(--accent);border-top:0;border-radius:0 0 12px 12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
+.ri .pr .t{flex:1;font-weight:600;font-size:15px}
+.lh{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:0;text-align:left;min-height:44px;color:var(--ink)}
+.lh b{display:block;font-size:17px}.lh small{display:block;color:var(--muted);font-size:13px;font-weight:400}.lh .ch{color:var(--muted);font-size:18px}
+.ll{display:flex;flex-direction:column;gap:8px}.ll .pr .t{flex:1;font-weight:600;font-size:15px}.ll .pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
+.qi{display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--line);border-radius:12px;background:var(--paper);touch-action:pan-y}
+.qi .t{flex:1;min-width:0}.qi .t small{display:block;color:var(--muted);font-size:12px}
+.qi .hd{font-size:22px;color:var(--muted);padding:6px 10px;margin:-6px 0 -6px -6px;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+.qi button{min-height:36px;padding:4px 12px}
+.qi.drag{position:relative;z-index:5;box-shadow:0 8px 24px rgba(0,0,0,.18);border-color:var(--accent)}
+.qa{display:flex;gap:8px}.qa select{flex:1;min-width:0}.qa button{white-space:nowrap;padding:0 16px}
+.drin .big{min-height:52px;font-size:17px}
 .drin label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
 .drin input{font:16px var(--f);min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);padding:10px 12px;width:100%}
 .drin .btns{display:flex;gap:8px;justify-content:flex-end}
@@ -310,11 +331,19 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
   <div class="card" id="missC"></div>
   <div class="card roast" id="roastC" hidden></div>
   <div class="card">
-    <div class="hrow"><h2>Sorten</h2><span class="hint" id="sCnt"></span></div>
+    <div class="hrow"><h2>Freies Kontingent</h2><span class="hint" id="sCnt"></span></div>
+    <p class="hint" style="margin-top:-8px">Geröstet und bestätigt, noch nicht abgepackt. Daraus kommen Tüten und Kisten.</p>
     <div class="legend"><span><i class="i-p"></i>abgepackt</span><span><i class="i-w"></i>geröstet, wartet</span><span><i class="i-m"></i>fehlt noch</span></div>
     <div class="sl" id="sl"></div>
   </div>
   <p class="msg" id="wmsg" role="status"></p>
+</div>
+
+<div class="wrap" id="pgR" hidden>
+  <div><h1>Regal</h1><p class="sub">Abgepackte Tüten · was fertig zum Verkauf steht</p></div>
+  <div class="card" id="rSum"></div>
+  <div class="card"><div class="hrow"><h2>Je Sorte</h2><span class="hint">antippen zum Zählen</span></div><div class="rl" id="rl"></div></div>
+  <p class="msg" id="rmsg" role="status"></p>
 </div>
 
 <div class="wrap" id="pgS" hidden>
@@ -336,6 +365,17 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
   </div>
 </div>
 
+<div class="wrap" id="pgK" hidden>
+  <div><h1>Sortiment</h1><p class="sub">Ein Profil pro Kaffee · daraus kennt die App alle Sorten</p></div>
+  <div id="kSug"></div>
+  <div class="card">
+    <div class="hrow"><h2>Kaffees</h2><div class="chips" id="kF"></div></div>
+    <div class="kl" id="kl"></div>
+    <button type="button" class="primary" data-knew="1">+ Neuer Kaffee</button>
+  </div>
+  <p class="msg" id="kmsg" role="status"></p>
+</div>
+
 <div class="wrap" id="pgV" hidden>
   <div><h1>Verlauf</h1><p class="sub">Rösttage, Abpacken und Lager, neueste oben. × nimmt einen Eintrag zurück.</p></div>
   <div class="vk" id="vk"></div>
@@ -344,7 +384,9 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
 <nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
   <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
   <button role="tab" data-pg="W" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Woche</button>
+  <button role="tab" data-pg="R" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M3 12h18M4 4v16M20 4v16"/><path d="M7 12V8h3v4M13 12V7h3v5M7 20v-4h4v4"/></svg>Regal</button>
   <button role="tab" data-pg="S" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M3 12h18M3 19h18"/><path d="M6 5v14M18 5v14"/><path d="M9 9h4v3H9zM12 16h4v3h-4z"/></svg>Lager</button>
+  <button role="tab" data-pg="K" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="12" rx="6" ry="8.5" transform="rotate(30 12 12)"/><path d="M9 5.5c3 3 3 9.5 6 13"/></svg>Sortiment</button>
   <button role="tab" data-pg="V" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>Verlauf</button>
 </div></nav>
 <script>
@@ -439,7 +481,7 @@ const rpLoss=()=>{try{return +(JSON.parse(localStorage.getItem("roestplan.v4"))|
 function chNames(s){const out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!seen.has(k)){seen.add(k);out.push(n)}};
   let R={},K={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}try{K=JSON.parse(localStorage.getItem("verkauf.v1"))||{}}catch(e){}
   if(s.sorte)add(s.sorte);S().buch.filter(b=>b.silo===s.id&&b.sorte).sort((a,b)=>b.n-a.n).forEach(b=>add(b.sorte));
-  const rest=[];(Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>rest.push(x.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(x=>rest.push(x.name));
+  const rest=[];AN();if(A.sort.length)A.sort.filter(x=>!x.aus).forEach(x=>rest.push(x.name));else{(Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>rest.push(x.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(x=>rest.push(x.name))}
   rest.sort((a,b)=>String(a).localeCompare(String(b),"de")).forEach(add);return out}
 // Sorte, die zur Kiste passt (Mogiana -> „Brasil Mogiana“), sonst der Kistenname
 function chDef(s,L){if(soFld(s))return s.sorte||L.find(n=>norm(n)!==norm(s.name))||"";const a=norm(s.name);return L.find(n=>norm(n)===a)||L.find(n=>norm(n).includes(a))||s.name}
@@ -451,6 +493,80 @@ function chBody(){const n=chName(),l=chLoss(n||"?"),kg=Math.round(CH.n*CH.size*(
     <div class="pr"><span class="t">Röstverlust<small>${n?esc(n):"Sorte wählen"} · gilt auch in der Woche</small></span><span class="step sm"><button type="button" data-chl="-1" aria-label="Röstverlust weniger">−</button><output>${l} %</output><button type="button" data-chl="1" aria-label="Röstverlust mehr">+</button></span></div>`:""}
     <p class="res"><b>${kgT(kg)} kg</b> geröstet</p>
     ${CH.need&&n?(()=>{const a=avail(n);return a>0?`<p class="say${a+.001<kg?" w":""}">Im Lager: ${kgT(a)} kg${a+.001<kg?" · zu wenig":""}</p>`:`<p class="say w">${esc(n)} ist nicht im Lager. Erst in der Woche den Rösttag bestätigen.</p>`})():""}`}
+/* ---------- Mühle 2: nur Chargen. In der Mühle, Als Nächstes (Reihenfolge ziehen), Leer -> nächste rein (laden-v27) ---------- */
+let MQ=null; // Auswahl beim Hinzufügen {so,size,adv}
+const dTxt=n=>n+" "+(n===1?"Tag":"Tage"),dTxtD=n=>n+" "+(n===1?"Tag":"Tagen");let MLAST="";
+function chargeKg(so,size){return Math.round(size*(1-chLoss(so)/100)*100)/100}
+function millCur(s,c){if(s.cur&&S().buch.some(b=>b.id===s.cur.bid))return s.cur;if(c.st>.05&&s.sorte)return{sorte:s.sorte,kg:c.st,d:null,old:1};return null}
+function millQueue(id){return S().plan.filter(p=>p.silo===id).sort((a,b)=>(a.o??1e9)-(b.o??1e9)||(a.d<b.d?-1:1))}
+function renderMill(s,c){const d=$("det"),cur=millCur(s,c),Q=millQueue(s.id),L=soList(s);
+  if(!MQ||MQ.k!==s.id){MQ={k:s.id,so:(Q.length?Q[Q.length-1].sorte:s.sorte)||L[0]||"",size:5,adv:false}}
+  const hist=S().buch.filter(b=>b.silo===s.id&&b.t==="eigen"&&b.dur!=null).sort((a,b)=>b.n-a.n).slice(0,3);
+  const nx=Q[0],nxOk=nx&&nx.sorte&&avail(nx.sorte)+.001>=nx.kg;
+  const days=cur&&cur.d?Math.max(0,ddays(cur.d,today())):null;
+  d.hidden=false;
+  d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2>${esc(s.name)}</h2><button type="button" id="dX" aria-label="Schließen" style="min-height:36px;padding:2px 12px">×</button></div>
+   <div class="drin"><span class="lb">In der Mühle</span>
+    ${cur?`<span class="now">${esc(cur.sorte)}</span><span class="hint" style="margin:0">${cur.old?`${f1(cur.kg)} kg`:`1 Charge · ${kgT(cur.kg)} kg geröstet`}${days!=null?` · seit ${esc(dFmt(cur.d))} (${dTxt(days)})`:""}</span>
+      ${mode==="mchg"?`<label class="f" style="margin:0">Andere Sorte${soSel("mcS",cur.sorte,soList(s),"")}</label><div class="btns"><button type="button" data-mm="x">Abbrechen</button><button type="button" class="primary" data-mm="swap">Tauschen</button></div>`:
+      `<button type="button" class="primary big" data-mm="empty">Leer${nx&&nx.sorte?` · ${esc(nx.sorte)} rein`:""}</button>
+      <div class="more" style="justify-content:flex-start">${cur.old?"":`<button type="button" data-mm="chg">Sorte ändern</button><button type="button" data-mm="out">Rausnehmen</button>`}</div>`}`
+    :`<span class="now">Leer</span>${nx?`<button type="button" class="primary big" data-mm="in"${nxOk?"":" disabled"}>${esc(nx.sorte||"Nächste Charge")} rein</button>`:`<span class="hint" style="margin:0">Unten eine Charge planen, dann hier „rein“.</span>`}`}
+    ${nx&&!nxOk?`<p class="say w" style="margin:0">${nx.sorte?esc(nx.sorte)+" ist noch nicht geröstet im Lager.":"Der nächsten Charge fehlt die Sorte (alter Eintrag). Unten mit × löschen und neu planen."}</p>`:""}
+   </div>
+   <p class="say" id="mSay" role="status"></p>
+   <h2 style="font-size:15px;margin-top:4px">Als Nächstes</h2>
+   <div class="ql" id="ql">${Q.length?Q.map((p,i)=>{const ok=p.sorte&&avail(p.sorte)+.001>=p.kg;return `<div class="qi" data-qid="${p.id}"><span class="hd" aria-label="Ziehen zum Sortieren">≡</span><span class="t"><span class="sn">${i+1}. ${esc(p.sorte||"ohne Sorte")}</span><small>1 Charge · ${kgT(p.kg)} kg · ${ok?"geröstet da":"noch rösten"}</small></span><button type="button" data-qdel="${p.id}" aria-label="Aus der Liste nehmen">×</button></div>`}).join(""):`<p class="hint">Noch nichts geplant.</p>`}</div>
+   <div class="qa"><select id="mqS" class="sosel">${L.map(n=>`<option value="${esc(n)}"${n===MQ.so?" selected":""}>${esc(n)}</option>`).join("")}</select><button type="button" class="primary" data-mm="add">+ Charge</button></div>
+   <p class="hint" style="margin:-4px 0 0">1 Charge = ${MQ.size} kg roh − ${chLoss(MQ.so||"?")} % = ${kgT(chargeKg(MQ.so||"?",MQ.size))} kg <button type="button" class="lk" data-mm="adv">${MQ.adv?"fertig":"ändern"}</button></p>
+   ${MQ.adv?`<div class="chb"><div class="chips q">${[3,5].map(v=>`<button type="button" data-mqs="${v}" aria-pressed="${MQ.size===v}">${v} kg roh</button>`).join("")}</div>
+     <div class="pr"><span class="t">Röstverlust<small>${esc(MQ.so)} · gilt auch in der Woche</small></span><span class="step sm"><button type="button" data-mql="-1" aria-label="Röstverlust weniger">−</button><output>${chLoss(MQ.so||"?")} %</output><button type="button" data-mql="1" aria-label="Röstverlust mehr">+</button></span></div></div>`:""}
+   ${hist.length?`<h2 style="font-size:15px;margin-top:4px">Zuletzt leer</h2><div class="pl">${hist.map(b=>`<div class="pi"><span class="t"><span class="sn">${esc(b.sorte||"?")}</span><small>${kgT(b.kg)} kg in ${dTxtD(b.dur)}${b.dur>0?` · Ø ${kgT(Math.round(b.kg/b.dur*100)/100)} kg/Tag`:""} · leer am ${esc(dFmt(b.d))}</small></span></div>`).join("")}</div>`:""}
+   <div class="more">${[["stand","Stand eingeben"],["set","Bearbeiten"]].map(([m,t])=>`<button type="button" data-m="${m}">${t}</button>`).join("")}</div>`;
+}
+const mSay=t=>{MLAST=t;const e=$("mSay");if(e){e.textContent=t;e.className="say"+(/nicht|zu wenig/.test(t)?" w":"")}};
+// Charge aus dem Lager in die Mühle
+function millIn(s,p){if(!p.sorte){mSay("Bitte zuerst eine Sorte wählen.");return false}const a=avail(p.sorte);
+  if(a+.001<p.kg){mSay(`${p.sorte} ist nicht geröstet im Lager${a>0?` (nur ${kgT(a)} kg)`:""}. Erst rösten und in der Woche den Rösttag bestätigen.`);return false}
+  const bid=uid(),k0=wKey(p.sorte),rd=k0&&A.wait[k0].d;
+  commit(x=>{x.plan=x.plan.filter(q=>q.id!==p.id);const b={id:bid,n:Date.now(),silo:s.id,d:today(),t:"rein",kg:p.kg,sorte:p.sorte,note:"Charge"};if(rd)b.rd=rd;x.buch.push(b);
+    const z=x.list.find(y=>y.id===s.id);z.sorte=p.sorte;z.cur={bid,sorte:p.sorte,kg:p.kg,d:today()}});
+  takeStock(p.sorte,p.kg,bid,s.name);return true}
+// Charge zurück ins Lager
+function millOut(s){const cur=s.cur;if(!cur)return;AN();const l=A.log.find(x=>x.bid===cur.bid);if(l)undoLog(l.id);else commit(x=>{x.buch=x.buch.filter(b=>b.id!==cur.bid)});
+  commit(x=>{const z=x.list.find(y=>y.id===s.id);z.cur=null})}
+function millClick(e){const s=silo(open);if(!s)return false;
+  const b=e.target.closest("[data-mm]");const qd=e.target.closest("[data-qdel]");const ms=e.target.closest("[data-mqs]");const ml=e.target.closest("[data-mql]");
+  if(qd){commit(x=>{x.plan=x.plan.filter(q=>q.id!==qd.dataset.qdel)});render();return true}
+  if(ms){MQ.size=+ms.dataset.mqs;renderDet();return true}
+  if(ml){const n=MQ.so;if(n){AN();A.loss[n]=Math.min(30,Math.max(5,chLoss(n)+ +ml.dataset.mql));aSave()}renderDet();return true}
+  if(!b)return false;const a=b.dataset.mm,c=calc(s.id),cur=millCur(s,c),Q=millQueue(s.id);
+  if(a==="adv"){MQ.adv=!MQ.adv;renderDet();return true}
+  if(a==="add"){const so=$("mqS").value;MQ.so=so;if(!so)return true;const mx=Q.reduce((m,q)=>Math.max(m,q.o??0),0);
+    commit(x=>x.plan.push({id:uid(),silo:s.id,kg:chargeKg(so,MQ.size),roh:MQ.size,sorte:so,o:mx+1,d:today(),note:""}));render();mSay(so+" als Nächstes geplant.");return true}
+  if(a==="in"){if(Q[0]&&millIn(s,Q[0])){render();say(Q[0].sorte+" ist jetzt in der Mühle.")}return true}
+  if(a==="empty"){const n=cur&&cur.d?Math.max(0,ddays(cur.d,today())):null;
+    commit(x=>{x.buch.push({id:uid(),n:Date.now(),silo:s.id,d:today(),t:"eigen",kg:Math.round((cur.old?c.st:cur.kg)*1000)/1000,sorte:cur.sorte,dur:n,note:n!=null?"leer nach "+dTxtD(n):"leer"});const z=x.list.find(y=>y.id===s.id);z.cur=null});
+    let t=`${cur.sorte} leer${n!=null?` nach ${dTxtD(n)}`:""}.`;
+    if(Q[0]){const s2=silo(open);if(millIn(s2,Q[0]))t+=` ${Q[0].sorte} ist jetzt drin.`;else{render();say(t);return true}}
+    render();say(t);return true}
+  if(a==="out"){millOut(s);render();say("Charge zurück ins Lager.");return true}
+  if(a==="chg"){mode="mchg";renderDet();return true}
+  if(a==="x"){mode=null;renderDet();return true}
+  if(a==="swap"){const so=selVal("mcS");if(!so||norm(so)===norm(cur.sorte)){mode=null;renderDet();return true}
+    const kg=chargeKg(so,5);if(avail(so)+.001<kg){mSay(`${so} ist nicht geröstet im Lager. Erst rösten und in der Woche den Rösttag bestätigen.`);return true}
+    millOut(s);millIn(silo(open),{id:"",sorte:so,kg});mode=null;render();say(so+" ist jetzt in der Mühle.");return true}
+  return false}
+// Reihenfolge „Als Nächstes“ mit dem Griff ≡ ziehen
+(function(){let st=null;
+  const end=()=>{if(!st)return;const box=st.box,ids=[...box.querySelectorAll(".qi")].map(x=>x.dataset.qid);st.row.classList.remove("drag");st.row.style.transform="";st=null;
+    commit(x=>{ids.forEach((id,i)=>{const p=x.plan.find(q=>q.id===id);if(p)p.o=i+1})});render()};
+  document.addEventListener("pointerdown",e=>{const hd=e.target.closest("#ql .hd");if(!hd||st)return;e.preventDefault();const row=hd.closest(".qi");st={row,box:row.parentNode,y0:e.clientY};row.classList.add("drag");row.setPointerCapture&&row.setPointerCapture(e.pointerId)});
+  document.addEventListener("pointermove",e=>{if(!st)return;e.preventDefault();const{row,box}=st,dy=e.clientY-st.y0;row.style.transform=`translateY(${dy}px)`;
+    const rows=[...box.querySelectorAll(".qi")].filter(x=>x!==row),y=e.clientY;const before=rows.find(x=>{const r=x.getBoundingClientRect();return y<r.top+r.height/2});
+    const r0=row.getBoundingClientRect();if(before){if(before.previousElementSibling!==row){box.insertBefore(row,before)}}else if(row!==box.lastElementChild)box.appendChild(row);
+    const r1=row.getBoundingClientRect();st.y0+=r1.top-r0.top;row.style.transform=`translateY(${e.clientY-st.y0}px)`},{passive:false});
+  document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end)})();
 // Geröstet und unverpackt da (Woche „wartet“): nur das darf in eine Kiste, außer Vorplanen bei Mühle 2 (laden-v26)
 function wKey(n){AN();const k=norm(n);return Object.keys(A.wait).find(x=>norm(x)===k)||null}
 function avail(n){const k=n&&wKey(n);if(!k)return 0;return Math.round(A.wait[k].roh*(1-chLoss(k)/100)*100)/100}
@@ -484,10 +600,11 @@ function render(){
 function renderDet(){
   const d=$("det"),s=open&&silo(open);if(!s){d.hidden=true;return}
   const c=calc(s.id),r=reach(c.st,c.perDay),r2=reach(c.st+c.planKg,c.perDay);
+  if(soFld(s)&&mode!=="stand"&&mode!=="set"&&mode!=="abf"&&mode!=="eigen"){renderMill(s,c);return}
   let f="";
   if(mode==="stand"||mode==="rein"||mode==="abf"||mode==="eigen"){
     const q=mode==="rein"?[]:mode==="stand"?[1,2,5,10]:[0.25,0.5,1,2],dt=mode==="abf"||mode==="eigen";
-    f=`<form class="form" id="bf">${mode==="rein"?chHtml(s)+`<input type="hidden" id="bKg">`:`<div class="row2"><label class="f">${mode==="stand"?"Stand jetzt (kg)":"Menge (kg)"}<input id="bKg" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${mode==="stand"&&c.n?f1(c.st):""}"></label>
+    f=`<form class="form" id="bf">${mode==="rein"?chHtml(s)+`<input type="hidden" id="bKg">`:`<div class="row2"><label class="f">${mode==="stand"?"Stand jetzt, geröstet (kg)":"Menge geröstet (kg)"}<input id="bKg" inputmode="decimal" enterkeyhint="done" autocomplete="off" value="${mode==="stand"&&c.n?f1(c.st):""}"></label>
       ${dt?`<label class="f">Datum<input id="bD" type="date" value="${today()}" max="${today()}"></label>`:""}</div>`}
       ${dt?"":`<input type="hidden" id="bD" value="${today()}">`}<input type="hidden" id="bN" value="">
       ${q.length?`<div class="chips q">${q.map(v=>`<button type="button" data-q="${v}">${String(v).replace(".",",")} kg</button>`).join("")}</div>`:""}
@@ -543,7 +660,7 @@ function renderV(){AN();
   let h="",cur=null;
   B.forEach(x=>{const k=kwOf(x.d),key=k.y+"-"+k.w;if(key!==cur){cur=key;h+=`<h3>KW ${k.w}${k.y!==new Date().getFullYear()?" / "+k.y:""}</h3>`}
     if(x.l){const l=x.l,kg=l.t==="roast"?Object.values(l.add||{}).reduce((a,v)=>a+v,0):l.roh;
-      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span><span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span><button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
+      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span>${l.t==="reg"?`<span class="v m">Inventur</span>`:`<span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span>`}<button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
       if(askL===l.id)h+=`<div class="ask"><span>Zurücknehmen? Die Mengen werden zurückgerechnet${l.bid?", die Buchung im Lager auch":""}.</span><div class="btns"><button type="button" data-ldelno="1">Abbrechen</button><button type="button" class="primary" data-ldelyes="${l.id}">Zurücknehmen</button></div></div>`;return}
     const b=x.b,s=silo(b.silo),v=b.t==="rein"?`<span class="v p">+${f1(b.kg)} kg</span>`:b.t==="stand"?`<span class="v m">= ${f1(b.kg)} kg</span>`:`<span class="v">−${f1(b.kg)} kg</span>`;
     const ex=b.t==="stand"&&b._diff!=null&&Math.abs(b._diff)>=.05?(b._diff>0?` · ${f1(b._diff)} kg verbraucht`:` · ${f1(-b._diff)} kg mehr als erwartet`):"";
@@ -555,9 +672,10 @@ const say=t=>{$("msg").textContent=t;clearTimeout(say.t);if(t)say.t=setTimeout((
 
 $("sg").addEventListener("click",e=>{const b=e.target.closest(".silo");if(!b)return;
   if(b.dataset.add){let id;commit(s=>{id="s"+uid();s.list.push({id,name:"Neue Kiste",sorte:"",cap:10})});open=id;mode="set";render();$("det").scrollIntoView({block:"nearest"});return}
-  open=open===b.dataset.id?null:b.dataset.id;mode=open&&!calc(open).n?"stand":null;autoM=!!mode;render();if(open)$("det").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
+  open=open===b.dataset.id?null:b.dataset.id;mode=open&&!calc(open).n&&!soFld(silo(open))?"stand":null;autoM=!!mode;render();if(open)$("det").scrollIntoView({block:"nearest",behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth"})});
 $("det").addEventListener("click",e=>{
   if(e.target.closest("#dX")){open=null;mode=null;render();return}
+  if(millClick(e))return;
   if(e.target.closest("[data-chadv]")&&CH){CH.adv=!CH.adv;chUpd();return}
   const cn=e.target.closest("[data-chn]");if(cn&&CH){CH.n=Math.max(1,Math.min(20,CH.n+ +cn.dataset.chn));chUpd();return}
   const cs=e.target.closest("[data-chs]");if(cs&&CH){CH.size=+cs.dataset.chs;chUpd();return}
@@ -576,6 +694,7 @@ $("det").addEventListener("click",e=>{
   if(e.target.closest("#sDel")){commit(s=>{s.list=s.list.filter(x=>x.id!==open)});open=null;mode=null;render()}
 });
 $("det").addEventListener("change",e=>{
+  if(e.target.id==="mqS"&&MQ){MQ.so=e.target.value;renderDet();return}
   if(e.target.id==="curS"){const v=e.target.value;if(v==="__x"){mode="sw";const t=$("curST");t.hidden=false;t.focus();
       if(!$("det").querySelector("[data-curok]"))t.insertAdjacentHTML("afterend",`<div class="btns"><button type="button" id="bNo">Abbrechen</button><button type="button" class="primary" data-curok="1">Ist jetzt drin</button></div>`);return}
     if(v){commit(s=>{s.list.find(y=>y.id===open).sorte=v});say(silo(open).name+": jetzt "+v+".");mode=null;render()}return}
@@ -610,7 +729,7 @@ $("vk").addEventListener("click",e=>{
   const ly=e.target.closest("[data-ldelyes]");if(ly){undoLog(ly.dataset.ldelyes);askL=null;renderV();render()}
 });
 document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(!b)return;page=b.dataset.pg;
-  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));["W","S","V"].forEach(p=>$("pg"+p).hidden=page!==p);scrollTo(0,0);if(page==="V")renderV();else if(page==="W")renderW();else render()});
+  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));["W","R","S","K","V"].forEach(p=>$("pg"+p).hidden=page!==p);scrollTo(0,0);if(page==="V")renderV();else if(page==="W")renderW();else if(page==="R")renderR();else if(page==="K")renderK();else render()});
 // Kachel auf der Übersicht: kurzer Stand
 function kurz(){try{const L=S().list.map(s=>({s,c:calc(s.id)})),st=L.reduce((a,x)=>a+x.c.st,0),pw=L.reduce((a,x)=>a+(x.c.perWeek||0),0),n=L.reduce((a,x)=>a+x.c.n,0);
   AN();const lossD=WD?WD.loss:16,wk=Object.entries(A.wait).reduce((a,[k,w])=>a+(w.roh||0)*(1-(A.loss[k]!=null?A.loss[k]:lossD)/100),0);
@@ -620,7 +739,7 @@ const _r=render;render=function(){_r();kurz()};
 const AK="abpack.v1";
 const rLoad=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 let A=rLoad(AK);if(!A||typeof A!=="object")A={v:1};
-const AN=()=>{A.wait=A.wait||{};A.conf=A.conf||{};A.loss=A.loss||{};A.log=A.log||[];A.pw=A.pw||{key:"",p:{}};return A};
+const AN=()=>{A.sort=A.sort||[];A.reg=A.reg||{};A.wait=A.wait||{};A.conf=A.conf||{};A.loss=A.loss||{};A.log=A.log||[];A.pw=A.pw||{key:"",p:{}};return A};
 const aSave=()=>{try{localStorage.setItem(AK,JSON.stringify(A));return true}catch(e){return false}};
 const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 const kgT=v=>(Math.round(v*100)/100).toLocaleString("de-DE",{maximumFractionDigits:2});
@@ -732,12 +851,75 @@ $("sl").addEventListener("click",e=>{
       commit(s=>{s.buch.push({id:bid,n:Date.now(),silo:r.silo.id,d:rd,t:"rein",kg:x.e,note:"aus Abpacken"});if(r.silo.id==="panea"){const z=s.list.find(y=>y.id==="panea");z.ton=z.ton||[];for(let i=0;i<Math.round(x.e/10);i++){const tid=uid()+i;en.tids.push(tid);z.ton.push({id:tid,kg:10,d:rd,b:bid})}}})}
     const w=A.wait[r.n];w.roh=Math.round((w.roh-used)*1000)/1000;if(w.roh<.01)delete A.wait[r.n];
     const p=A.pw.p[r.n]||(A.pw.p[r.n]={p1:0,p2:0});p.p1+=x.s1;p.p2+=x.s2;
+    const rg=A.reg[r.n]||(A.reg[r.n]={p1:0,p2:0});rg.p1+=x.s1;rg.p2+=x.s2;
     en.txt=r.n+" abgepackt";en.sub=[x.s1?x.s1+" × 1 kg":"",x.s2?x.s2+" × 250 g":"",x.e?(r.silo.id==="panea"?x.e/10+" × Tonne":kgT(x.e)+" kg Eigenbedarf"):""].filter(Boolean).join(" · ");
     A.log.unshift(en);aSave();delete PS[r.n];openS=null;say2(r.n+" abgepackt.");renderW()}
 });
+/* ---------- Sortiment: ein Profil pro Kaffee, Röstverlust je Sorte (laden-v27) ---------- */
+let kOpen=null,kFil="a",KD=null;
+const PROZ=["Washed","Natural","Honey","Anaerob","Andere"],TYP=["Espresso","Filter","Beides","Decaf"];
+function kSugg(){AN();let R={},K={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}try{K=JSON.parse(localStorage.getItem("verkauf.v1"))||{}}catch(e){}
+  const have=new Set(A.sort.map(x=>norm(x.name))),out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!have.has(k)&&!seen.has(k)){seen.add(k);out.push(n)}};
+  (Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>add(x.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(x=>add(x.name));Object.keys(A.wait).forEach(add);return out.sort((a,b)=>a.localeCompare(b,"de"))}
+function kAdd(n){AN();A.sort.push({id:uid(),name:n,land:"",farm:"",vari:"",proz:"",typ:"",notiz:"",aus:false})}
+function kRename(o,n){if(norm(o)===norm(n)&&o===n)return;AN();[A.loss,A.wait,A.reg].forEach(m=>{if(m[o]!=null&&m[n]==null){m[n]=m[o];delete m[o]}});
+  commit(x=>{x.buch.forEach(b=>{if(b.sorte===o)b.sorte=n});x.plan.forEach(q=>{if(q.sorte===o)q.sorte=n});x.list.forEach(z=>{if(z.sorte===o)z.sorte=n;if(z.cur&&z.cur.sorte===o)z.cur.sorte=n})})}
+function renderK(){AN();WD=WD||wData();const sg=kSugg(),L=A.sort.filter(x=>kFil==="a"?!x.aus:x.aus).sort((a,b)=>a.name.localeCompare(b.name,"de"));
+  $("kSug").innerHTML=sg.length?`<div class="card"><h2 style="font-size:15px">${A.sort.length?"Neu im Röstplan oder Verkauf":"Sorten übernehmen"}</h2><p class="hint" style="margin:0">${sg.length} ${sg.length===1?"Sorte":"Sorten"} gefunden, die noch kein Profil haben. Antippen übernimmt eine.</p><div class="chips">${sg.map(n=>`<button type="button" data-kadd="${esc(n)}">+ ${esc(n)}</button>`).join("")}</div>${sg.length>1?`<button type="button" class="primary" data-kall="1">Alle ${sg.length} übernehmen</button>`:""}</div>`:"";
+  const na=A.sort.filter(x=>!x.aus).length,nx=A.sort.length-na;
+  $("kF").innerHTML=`<button type="button" data-kf="a" aria-pressed="${kFil==="a"}">Aktiv ${na}</button><button type="button" data-kf="x" aria-pressed="${kFil==="x"}">Ausgelaufen ${nx}</button>`;
+  $("kl").innerHTML=(kOpen==="new"?kForm(null):"")+(L.length?L.map(x=>{const l=A.loss[x.name]!=null?A.loss[x.name]:WD.loss,sub=[x.land,x.proz,x.typ].filter(Boolean).join(" · ");
+    return kOpen===x.id?kForm(x):`<button type="button" class="krow" data-kid="${x.id}"><span class="t"><b>${esc(x.name)}</b><small>${sub?esc(sub)+" · ":""}${l} % Röstverlust${A.loss[x.name]==null?" (Standard)":""}</small></span><span class="ch">›</span></button>`}).join(""):kOpen==="new"?"":`<p class="hint">${kFil==="a"?"Noch keine Kaffees. Oben übernehmen oder neu anlegen.":"Keine ausgelaufenen Kaffees."}</p>`);
+}
+function kForm(x){if(!KD||KD.id!==(x?x.id:"new"))KD={id:x?x.id:"new",loss:x&&A.loss[x.name]!=null?A.loss[x.name]:WD.loss,aus:x?!!x.aus:false};
+  const v=k=>esc(x?x[k]||"":""),sel=(id,L,cur)=>`<select id="${id}" class="sosel"><option value="">–</option>${L.map(o=>`<option${o===cur?" selected":""}>${o}</option>`).join("")}</select>`;
+  return `<form class="form kf" id="kfm"><label class="f">Name<input id="kN" maxlength="40" autocomplete="off" value="${v("name")}" placeholder="z. B. Äthiopien Guji"></label>
+   <div class="row2"><label class="f">Herkunft<input id="kL" maxlength="40" autocomplete="off" value="${v("land")}" placeholder="Land, Region"></label><label class="f">Produzent / Farm<input id="kFa" maxlength="40" autocomplete="off" value="${v("farm")}"></label></div>
+   <div class="row2"><label class="f">Varietät<input id="kV" maxlength="40" autocomplete="off" value="${v("vari")}"></label><label class="f">Aufbereitung${sel("kP",PROZ,x?x.proz:"")}</label></div>
+   <label class="f">Für${sel("kT",TYP,x?x.typ:"")}</label>
+   <div class="pr"><span class="t">Röstverlust<small>rechnet roh → geröstet, überall in der App</small></span><span class="step sm"><button type="button" data-kl="-1" aria-label="Röstverlust weniger">−</button><output id="kLo">${KD.loss} %</output><button type="button" data-kl="1" aria-label="Röstverlust mehr">+</button></span></div>
+   <label class="f">Notizen<textarea id="kNo" rows="3" maxlength="400" placeholder="Geschmack, Röstprofil, Lieferant …">${v("notiz")}</textarea></label>
+   ${x?`<label class="tg"><input type="checkbox" id="kAus"${KD.aus?" checked":""}> Ausgelaufen (nicht mehr in den Auswahllisten)</label>`:""}
+   <p class="say w" id="kSay"></p>
+   <div class="btns">${x?`<button type="button" class="link" data-kdel="1" style="margin-right:auto">Entfernen</button>`:""}<button type="button" data-kx="1">Abbrechen</button><button class="primary" type="submit">Speichern</button></div></form>`}
+$("pgK").addEventListener("click",e=>{AN();
+  const f=e.target.closest("[data-kf]");if(f){kFil=f.dataset.kf;kOpen=null;renderK();return}
+  const a=e.target.closest("[data-kadd]");if(a){kAdd(a.dataset.kadd);aSave();renderK();$("kmsg").textContent=a.dataset.kadd+" übernommen.";return}
+  if(e.target.closest("[data-kall]")){kSugg().forEach(kAdd);aSave();renderK();$("kmsg").textContent="Alle übernommen. Antippen zum Ergänzen.";return}
+  if(e.target.closest("[data-knew]")){kOpen="new";KD=null;renderK();$("kN")&&$("kN").focus();return}
+  const r=e.target.closest("[data-kid]");if(r){kOpen=r.dataset.kid;KD=null;renderK();return}
+  if(e.target.closest("[data-kx]")){kOpen=null;KD=null;renderK();return}
+  const kl=e.target.closest("[data-kl]");if(kl&&KD){KD.loss=Math.min(30,Math.max(5,KD.loss+ +kl.dataset.kl));$("kLo").textContent=KD.loss+" %";return}
+  if(e.target.closest("[data-kdel]")){const x=A.sort.find(y=>y.id===kOpen);if(!x)return;if(!confirm(x.name+" aus dem Sortiment entfernen? Lager und Verlauf bleiben."))return;A.sort=A.sort.filter(y=>y!==x);aSave();kOpen=null;renderK();return}});
+$("pgK").addEventListener("change",e=>{if(e.target.id==="kAus"&&KD)KD.aus=e.target.checked});
+$("pgK").addEventListener("submit",e=>{e.preventDefault();AN();const n=$("kN").value.trim();if(!n){$("kSay").textContent="Bitte einen Namen eingeben.";return}
+  const x=kOpen==="new"?null:A.sort.find(y=>y.id===kOpen);if(A.sort.some(y=>y!==x&&norm(y.name)===norm(n))){$("kSay").textContent="Diesen Kaffee gibt es schon.";return}
+  const d={name:n,land:$("kL").value.trim(),farm:$("kFa").value.trim(),vari:$("kV").value.trim(),proz:$("kP").value,typ:$("kT").value,notiz:$("kNo").value.trim(),aus:x?KD.aus:false};
+  if(x){if(x.name!==n)kRename(x.name,n);Object.assign(x,d)}else A.sort.push({id:uid(),...d});
+  A.loss[n]=KD.loss;aSave();kOpen=null;KD=null;renderK();$("kmsg").textContent=n+" gespeichert."});
+/* ---------- Regal: abgepackte Tüten je Sorte, Inventur (laden-v27) ---------- */
+let rOpen=null,RI=null;
+function renderR(){AN();const act=new Set(A.sort.filter(x=>!x.aus).map(x=>x.name));const names=[...new Set(Object.keys(A.reg).filter(n=>(A.reg[n].p1|0)+(A.reg[n].p2|0)>0).concat([...act]))].sort((a,b)=>a.localeCompare(b,"de"));
+  const t1=names.reduce((a,n)=>a+((A.reg[n]||{}).p1|0),0),t2=names.reduce((a,n)=>a+((A.reg[n]||{}).p2|0),0);
+  $("rSum").innerHTML=`<div class="miss"><div class="big"><b>${f1(t1+t2*.25)}</b><span>kg abgepackt</span></div><div><b>${t2}</b><span>× 250 g</span></div><div><b>${t1}</b><span>× 1 kg</span></div></div>`;
+  $("rl").innerHTML=names.length?names.map(n=>{const g=A.reg[n]||{p1:0,p2:0},o=rOpen===n;
+    return `<div class="rr2${o?" o":""}"><button type="button" class="krow" data-rn="${esc(n)}" aria-expanded="${o}"><span class="t"><b>${esc(n)}</b><small>${(g.p1|0)+(g.p2|0)?[g.p2?g.p2+" × 250 g":"",g.p1?g.p1+" × 1 kg":""].filter(Boolean).join(" · "):"leer"}</small></span><span class="ch">${o?"▴":"›"}</span></button>
+     ${o?`<div class="ri"><p class="hint" style="margin:0">Gezählt im Regal:</p>
+       <div class="pr"><span class="t">250-g-Tüten</span><span class="step"><button type="button" data-ri="p2" data-v="-1" aria-label="250 g weniger">−</button><output>${RI.p2}</output><button type="button" data-ri="p2" data-v="1" aria-label="250 g mehr">+</button></span></div>
+       <div class="pr"><span class="t">1-kg-Tüten</span><span class="step"><button type="button" data-ri="p1" data-v="-1" aria-label="1 kg weniger">−</button><output>${RI.p1}</output><button type="button" data-ri="p1" data-v="1" aria-label="1 kg mehr">+</button></span></div>
+       <div class="btns"><button type="button" data-rx="1">Abbrechen</button><button type="button" class="primary" data-rok="1">Stand speichern</button></div></div>`:""}</div>`}).join(""):`<p class="hint">Noch nichts abgepackt. Beim Abpacken in der Woche zählt das Regal automatisch mit.</p>`}
+$("pgR").addEventListener("click",e=>{AN();
+  const r=e.target.closest("[data-rn]");if(r){const n=r.dataset.rn;rOpen=rOpen===n?null:n;const g=A.reg[n]||{p1:0,p2:0};RI={p1:g.p1|0,p2:g.p2|0};renderR();return}
+  const b=e.target.closest("[data-ri]");if(b&&RI){RI[b.dataset.ri]=Math.max(0,RI[b.dataset.ri]+ +b.dataset.v);renderR();return}
+  if(e.target.closest("[data-rx]")){rOpen=null;renderR();return}
+  if(e.target.closest("[data-rok]")&&rOpen){const n=rOpen,g=A.reg[n],prev=g?{p1:g.p1|0,p2:g.p2|0}:null;if(prev&&prev.p1===RI.p1&&prev.p2===RI.p2){rOpen=null;renderR();return}
+    A.reg[n]={p1:RI.p1,p2:RI.p2};A.log.unshift({id:uid(),n,d:today(),t:"reg",prev,txt:n+": Regal gezählt",sub:`${RI.p2} × 250 g · ${RI.p1} × 1 kg`+(prev?` (vorher ${prev.p2} · ${prev.p1})`:"")});aSave();rOpen=null;renderR();$("rmsg").textContent=n+": Regal-Stand gespeichert."}});
+
 // Eintrag aus dem Verlauf zurücknehmen
 function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
   if(l.t==="roast"){Object.entries(l.add||{}).forEach(([n,kg])=>{const w=A.wait[n];if(w){w.roh=Math.round((w.roh-kg)*1000)/1000;if(w.roh<.01)delete A.wait[n]}});delete A.conf[l.key]}
+  if(l.t==="pack"&&(l.s1||l.s2)&&A.reg[l.n]){A.reg[l.n].p1=Math.max(0,A.reg[l.n].p1-(l.s1|0));A.reg[l.n].p2=Math.max(0,A.reg[l.n].p2-(l.s2|0))}
+  if(l.t==="reg"){if(l.prev)A.reg[l.n]={p1:l.prev.p1,p2:l.prev.p2};else delete A.reg[l.n]}
   if(l.t==="pack"){const w=A.wait[l.n]||(A.wait[l.n]={roh:0});w.roh=Math.round((w.roh+l.roh)*1000)/1000;if(l.wk===A.pw.key&&A.pw.p[l.n]){A.pw.p[l.n].p1=Math.max(0,A.pw.p[l.n].p1-l.s1);A.pw.p[l.n].p2=Math.max(0,A.pw.p[l.n].p2-l.s2)}
     if(l.bid)commit(s=>{s.buch=s.buch.filter(b=>b.id!==l.bid);s.list.forEach(z=>{if(z.ton)z.ton=z.ton.filter(t=>t.b!==l.bid)})})}
   if(l.t==="drop"){A.wait[l.n]={roh:l.roh,d:l.wd}}
