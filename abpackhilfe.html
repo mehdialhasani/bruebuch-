@@ -925,7 +925,7 @@ const ETI2=[{k:"panea espresso",name:"Panea Espresso",land:"Brasilien, Indien",v
  {k:"kinazi",name:"KINAZI Filter",land:"Ruanda",vari:"Red Bourbon",proz:"Natural",typ:"Filter",notiz:"Single Origin. Unser Cold Brew des Jahres. Wir schmecken: Blaubeere, Schwarze Johannisbeere"},
  {k:"tolima",name:"TOLIMA Espresso",land:"Kolumbien, Tolima",vari:"",proz:"Washed",typ:"Espresso",notiz:"Organic, 100 % Arabica, Single Origin. Wir schmecken: Karamell, Schokolade, Apfel"},
  {k:"igarape",name:"Igarapé Decaf Omniroast",land:"Brasilien",vari:"Mundo Novo, Catuaí",proz:"Natural",typ:"Decaf",notiz:"Omniroast. Sugarcane Decaf, Koffeingehalt unter 0,1 %. Single Origin. Wir schmecken: Rohrzucker, Karamell, Dunkle Schokolade"},
- {k:"planadas",name:"PLANADAS Decaf Omniroast",land:"Kolumbien",vari:"",proz:"Washed",typ:"Decaf",notiz:"Omniroast. Carbonic Natural Decaf, Koffeingehalt unter 0,1 %. Single Origin. Wir schmecken: Bergamotte, Apfel, Mandel"},
+ {k:"planadas",name:"PLANADAS Decaf Omniroast",land:"Kolumbien",vari:"Typica, Caturra",proz:"Washed",typ:"Decaf",notiz:"Omniroast. Carbonic Natural Decaf, Koffeingehalt unter 0,1 %. Single Origin. Wir schmecken: Bergamotte, Apfel, Mandel"},
  {k:"huila",name:"HUILA Espresso",land:"Kolumbien",vari:"Caturra",proz:"Washed",typ:"Espresso",notiz:"Single Origin. Wir schmecken: Milchschokolade, Nougat, Rote Früchte"},
  {k:"mesgo",name:"MESGO Filter",land:"Kenia",vari:"SL 28, SL 34",proz:"Washed",typ:"Filter",notiz:"Single Estate. Wir schmecken: Rote Früchte, Schwarztee, Vanille"},
  {k:"siguatepeque",name:"SIGUATEPEQUE Espresso",land:"Honduras",vari:"Catuaí, Parainema, IHCAFE-90",proz:"Washed",typ:"Espresso",notiz:"Single Origin. Wir schmecken: Gelbe Steinfrüchte, Zartbitterschokolade"},
@@ -1027,6 +1027,8 @@ $("undo").querySelector("button").addEventListener("click",uDo);
 if(!G.silos){commit(()=>{})}
 try{tonMig()}catch(e){}
 try{etiMig()}catch(e){}try{etiMig2()}catch(e){}
+// einmalig (laden-v35): Planadas-Varietät von Mehdi nachgereicht, nur wenn das Feld leer ist
+try{AN();if(!A.etiMig3){A.etiMig3=1;A.sort.forEach(x=>{if(norm(x.name).includes("planadas")&&!x.vari)x.vari="Typica, Caturra"});aSave()}}catch(e){}
 render();renderW();
 })();
 </script>
