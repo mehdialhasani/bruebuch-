@@ -296,6 +296,12 @@ details.set .pr{margin-top:8px}
 .kf .pr .t{flex:1;font-weight:600;font-size:15px}.kf .pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12px}
 .tg{display:flex;align-items:center;gap:10px;font-size:15px;color:var(--ink2);min-height:44px}.tg input{width:22px;height:22px;accent-color:var(--accent)}
 .rr2.o .krow{border-color:var(--accent);border-bottom-left-radius:0;border-bottom-right-radius:0}
+.rr2 .krow{gap:8px}
+.tc{display:flex;flex-direction:column;align-items:center;min-width:52px;padding:4px 6px;border-radius:10px;background:var(--accent-soft);line-height:1}
+.tc b{font:700 26px/1 var(--f);letter-spacing:-.02em;font-variant-numeric:tabular-nums;color:var(--ink)}
+.tc span{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:3px}
+.tc.z{background:transparent;border:1px dashed var(--line)}.tc.z b{color:var(--muted);font-weight:500;opacity:.6}
+.rr2.e .krow b{color:var(--muted)}
 .ri{border:1px solid var(--accent);border-top:0;border-radius:0 0 12px 12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
 .ri .pr .t{flex:1;font-weight:600;font-size:15px}
 .lh{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:0;text-align:left;min-height:44px;color:var(--ink)}
@@ -985,7 +991,7 @@ function renderR(){AN();const act=new Set(A.sort.filter(x=>!x.aus).map(x=>x.name
   const t1=names.reduce((a,n)=>a+((A.reg[n]||{}).p1|0),0),t2=names.reduce((a,n)=>a+((A.reg[n]||{}).p2|0),0);
   $("rSum").innerHTML=`<div class="miss"><div class="big"><b>${f1(t1+t2*.25)}</b><span>kg abgepackt</span></div><div><b>${t2}</b><span>× 250 g</span></div><div><b>${t1}</b><span>× 1 kg</span></div></div>`;
   $("rl").innerHTML=names.length?names.map(n=>{const g=A.reg[n]||{p1:0,p2:0},o=rOpen===n;
-    return `<div class="rr2${o?" o":""}"><button type="button" class="krow" data-rn="${esc(n)}" aria-expanded="${o}"><span class="t"><b>${esc(n)}</b><small>${(g.p1|0)+(g.p2|0)?[g.p2?g.p2+" × 250 g":"",g.p1?g.p1+" × 1 kg":""].filter(Boolean).join(" · "):"leer"}</small></span><span class="ch">${o?"▴":"›"}</span></button>
+    return `<div class="rr2${o?" o":""}${(g.p1|0)+(g.p2|0)?"":" e"}"><button type="button" class="krow" data-rn="${esc(n)}" aria-expanded="${o}"><span class="t"><b>${esc(n)}</b><small>${(g.p1|0)+(g.p2|0)?f1((g.p1|0)+(g.p2|0)*.25)+" kg abgepackt":"leer"}</small></span><span class="tc${g.p2|0?"":" z"}" aria-label="${g.p2|0} Tüten 250 g"><b>${g.p2|0}</b><span>250 g</span></span><span class="tc${g.p1|0?"":" z"}" aria-label="${g.p1|0} Tüten 1 kg"><b>${g.p1|0}</b><span>1 kg</span></span><span class="ch">${o?"▴":"›"}</span></button>
      ${o?`<div class="ri"><p class="hint" style="margin:0">Gezählt im Regal:</p>
        <div class="pr"><span class="t">250-g-Tüten</span><span class="step"><button type="button" data-ri="p2" data-v="-1" aria-label="250 g weniger">−</button><output>${RI.p2}</output><button type="button" data-ri="p2" data-v="1" aria-label="250 g mehr">+</button></span></div>
        <div class="pr"><span class="t">1-kg-Tüten</span><span class="step"><button type="button" data-ri="p1" data-v="-1" aria-label="1 kg weniger">−</button><output>${RI.p1}</output><button type="button" data-ri="p1" data-v="1" aria-label="1 kg mehr">+</button></span></div>
