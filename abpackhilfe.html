@@ -204,6 +204,11 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .ve .dot{flex:none;width:10px;height:10px;border-radius:99px;margin-top:6px}
 .ve .t{flex:1;min-width:0;font-size:14px}.ve .t small{display:block;color:var(--muted);font-size:12.5px}
 .msg{min-height:1.2em;color:var(--accent);font-size:14px;margin:0}
+/* Rückgängig-Hinweis über der Leiste (laden-v33) */
+.undo{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(max(14px,env(safe-area-inset-bottom)) + 66px);z-index:45;width:calc(100% - 32px);max-width:380px;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 8px 8px 16px;border-radius:16px;background:var(--ink);color:var(--paper);font-size:14px;box-shadow:0 6px 24px rgba(0,0,0,.25)}
+.undo[hidden]{display:none}
+.undo button{min-height:40px;padding:4px 14px;border-radius:12px;border:0;background:var(--accent);color:#fff;font:inherit;font-weight:600}
+.undo button[hidden]{display:none}
 /* Entwurf 7b: Tüten-Rechner schlicht + Lager visuell */
 .rows{display:flex;flex-direction:column;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:4px 12px}
 .rows .pr{padding:8px 0;border-bottom:1px solid var(--grid)}.rows .pr:last-child{border-bottom:0}
@@ -382,6 +387,7 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
   <div class="vk" id="vk"></div>
 </div>
 
+<div id="undo" class="undo" role="status" hidden><span></span><button type="button">Rückgängig</button></div>
 <nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
   <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
   <button role="tab" data-pg="W" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Woche</button>
@@ -660,8 +666,10 @@ function renderE(){
   $("eTab").innerHTML=`<table class="tb"><thead><tr><th>Silo</th><th>Ø/Woche</th><th>4 Wochen</th><th>gesamt</th></tr></thead><tbody>${C.map(x=>`<tr><td>${esc(x.s.name)}</td><td>${x.c.perWeek==null?"–":f1(x.c.perWeek)}</td><td>${f1(t4(x))}</td><td>${f1(all(x))}</td></tr>`).join("")}
     <tr class="sum"><td>Zusammen</td><td>${f1(tot)}</td><td>${f1(C.reduce((a,x)=>a+t4(x),0))}</td><td>${f1(C.reduce((a,x)=>a+all(x),0))}</td></tr></tbody></table>`;
 }
+// Zeitpunkt eines Eintrags: n, sonst aus der id (uid beginnt mit Date.now() in Basis 36)
+const tOf=x=>typeof x.n==="number"?x.n:(parseInt(String(x.id||"").slice(0,-4),36)||0);
 function renderV(){AN();
-  const B=S().buch.map(b=>({b,d:b.d,n:b.n||0})).concat(A.log.map(l=>({l,d:l.d,n:l.n||0}))).sort((a,b)=>a.d>b.d?-1:a.d<b.d?1:b.n-a.n);
+  const B=S().buch.map(b=>({b,d:b.d,n:tOf(b)})).concat(A.log.map(l=>({l,d:l.d,n:tOf(l)}))).sort((a,b)=>a.d>b.d?-1:a.d<b.d?1:b.n-a.n);
   if(!B.length){$("vk").innerHTML=`<p class="empty">Noch keine Einträge.</p>`;return}
   S().list.forEach(s=>calc(s.id));
   let h="",cur=null;
@@ -850,7 +858,7 @@ function pack(r){
 const say2=t=>{$("wmsg").textContent=t;clearTimeout(say2.t);say2.t=setTimeout(()=>$("wmsg").textContent="",4000)};
 $("roastC").addEventListener("click",e=>{
   const dy=e.target.closest("[data-rday]");if(dy){rcDay=+dy.dataset.rday;renderRoast();return}
-  const b=e.target.closest("[data-rc]");if(b){const r=RC[WD.e.id+"#"+rcDay][+b.dataset.rc];r.c=Math.max(0,r.c+ +b.dataset.v);renderRoast();return}
+  const b=e.target.closest("[data-rc]");if(b){const r=RC[WD.e.id+"#"+rcDay][+b.dataset.rc];r.c=Math.max(0,Math.min(30,r.c+ +b.dataset.v));renderRoast();return}
   if(e.target.closest("#rOk")){const key=WD.e.id+"#"+rcDay,rows=RC[key].filter(r=>r.c>0),d=$("rDate").value||today();AN();const add={};
     rows.forEach(r=>{const w=A.wait[r.n]||(A.wait[r.n]={roh:0});w.roh=Math.round((w.roh+r.c*r.size)*1000)/1000;w.d=d;add[r.n]=r.c*r.size});
     const dnm=[0,1,2].includes(rcDay)?((WD.e.dn||[])[rcDay]||"Tag "+(rcDay+1)):"ohne Tag";
@@ -869,7 +877,7 @@ function renderCA(){const w=$("caW");if(!CA){w.innerHTML=`<div class="more" styl
 $("caW").addEventListener("click",e=>{
   if(e.target.closest("[data-caopen]")){CA={so:"",n:1,d:today()};renderCA();return}
   if(e.target.closest("[data-cax]")){CA=null;renderCA();return}
-  const b=e.target.closest("[data-can]");if(b&&CA){CA.n=Math.max(1,CA.n+ +b.dataset.can);renderCA()}});
+  const b=e.target.closest("[data-can]");if(b&&CA){CA.n=Math.max(1,Math.min(20,CA.n+ +b.dataset.can));renderCA()}});
 $("caW").addEventListener("change",e=>{if(!CA)return;if(e.target.id==="caS"){CA.so=e.target.value;renderCA()}else if(e.target.id==="caD")CA.d=e.target.value||today()});
 $("caW").addEventListener("submit",e=>{e.preventDefault();if(!CA||!CA.so)return;AN();const n=CA.so,kg=CA.n*sizeOf(n),d=CA.d||today();
   const w=A.wait[n]||(A.wait[n]={roh:0});w.roh=Math.round((w.roh+kg)*1000)/1000;if(!w.d||d>w.d)w.d=d;
@@ -879,8 +887,8 @@ $("sl").addEventListener("click",e=>{
   const h=e.target.closest("[data-s]");if(h){openS=openS===h.dataset.s?null:h.dataset.s;delete PS[openS];lossOpen=null;renderW();return}
   const R=rowsW(),r=R.find(x=>x.n===openS);if(!r)return;const x=PS[r.n];
   if(e.target.closest("[data-lossopen]")){lossOpen=lossOpen===r.n?null:r.n;renderSorts(R);return}
-  const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,r.loss+ +lo.dataset.v));aSave();renderW();return}
-  const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,x.s1+v);else if(k==="2")x.s2=Math.max(0,x.s2+v);else x.e=r.silo.id==="panea"?Math.max(0,Math.round((Math.round(x.e/tonKg(r.loss))+v)*tonKg(r.loss)*100)/100):Math.max(0,Math.round((x.e+.5*v)*10)/10);renderSorts(R);return}
+  const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,r.loss+ +lo.dataset.loss));aSave();renderW();return}
+  const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,Math.min(200,x.s1+v));else if(k==="2")x.s2=Math.max(0,Math.min(400,x.s2+v));else x.e=r.silo.id==="panea"?Math.max(0,Math.round((Math.round(x.e/tonKg(r.loss))+v)*tonKg(r.loss)*100)/100):Math.max(0,Math.round((x.e+.5*v)*10)/10);renderSorts(R);return}
   if(e.target.closest("[data-fill]")){x.s2+=nS(r.w-x.e-x.s1-x.s2*.25);renderSorts(R);return}
   if(e.target.closest("[data-sg]")){suggest(r);renderSorts(R);return}
   if(e.target.closest("[data-drop]")){const w=A.wait[r.n];A.log.unshift({id:uid(),n:Date.now(),d:today(),t:"drop",n:r.n,roh:w.roh,wd:w.d,txt:r.n+": Rest ausgebucht",sub:f1(r.w)+" kg geröstet nicht mehr da"});delete A.wait[r.n];aSave();openS=null;renderW();return}
@@ -911,6 +919,28 @@ function etiMig(){AN();if(A.etiMig)return;A.etiMig=1;const sug=kSugg();
   ETI.forEach(e=>{let x=A.sort.find(y=>norm(y.name).includes(e.k));
     if(!x){const n=sug.find(m=>norm(m).includes(e.k))||e.name;kAdd(n);x=A.sort[A.sort.length-1]}
     ["land","vari","proz","typ","notiz"].forEach(f=>{if(!x[f])x[f]=e[f]})});aSave()}
+// einmalig (laden-v33): alle Etiketten aus dem Laden (Fotos 2026-10-30); nur leere Felder werden gefüllt, Kerinci-Hinweis aus v29 wird ersetzt
+const ETI2=[{k:"panea espresso",name:"Panea Espresso",land:"Brasilien, Indien",vari:"Mundo Novo, Catuaí, Robusta",proz:"Andere",typ:"Espresso",notiz:"Blend: 80 % Arabica (Mundo Novo, Catuaí), 20 % Canephora (Robusta). Aufbereitung Natural | Washed. Wir schmecken: Geröstete Haselnüsse, Schokolade"},
+ {k:"mariscal",name:"MARISCAL Espresso",land:"Mexiko",vari:"Bourbon, Caturra, Marsellesa, Oro Azteca",proz:"Washed",typ:"Espresso",notiz:"Single Origin. Wir schmecken: Milchschokolade, Toffee, Aprikose"},
+ {k:"kinazi",name:"KINAZI Filter",land:"Ruanda",vari:"Red Bourbon",proz:"Natural",typ:"Filter",notiz:"Single Origin. Unser Cold Brew des Jahres. Wir schmecken: Blaubeere, Schwarze Johannisbeere"},
+ {k:"tolima",name:"TOLIMA Espresso",land:"Kolumbien, Tolima",vari:"",proz:"Washed",typ:"Espresso",notiz:"Organic, 100 % Arabica, Single Origin. Wir schmecken: Karamell, Schokolade, Apfel"},
+ {k:"igarape",name:"Igarapé Decaf Omniroast",land:"Brasilien",vari:"Mundo Novo, Catuaí",proz:"Natural",typ:"Decaf",notiz:"Omniroast. Sugarcane Decaf, Koffeingehalt unter 0,1 %. Single Origin. Wir schmecken: Rohrzucker, Karamell, Dunkle Schokolade"},
+ {k:"planadas",name:"PLANADAS Decaf Omniroast",land:"Kolumbien",vari:"",proz:"Washed",typ:"Decaf",notiz:"Omniroast. Carbonic Natural Decaf, Koffeingehalt unter 0,1 %. Single Origin. Wir schmecken: Bergamotte, Apfel, Mandel"},
+ {k:"huila",name:"HUILA Espresso",land:"Kolumbien",vari:"Caturra",proz:"Washed",typ:"Espresso",notiz:"Single Origin. Wir schmecken: Milchschokolade, Nougat, Rote Früchte"},
+ {k:"mesgo",name:"MESGO Filter",land:"Kenia",vari:"SL 28, SL 34",proz:"Washed",typ:"Filter",notiz:"Single Estate. Wir schmecken: Rote Früchte, Schwarztee, Vanille"},
+ {k:"siguatepeque",name:"SIGUATEPEQUE Espresso",land:"Honduras",vari:"Catuaí, Parainema, IHCAFE-90",proz:"Washed",typ:"Espresso",notiz:"Single Origin. Wir schmecken: Gelbe Steinfrüchte, Zartbitterschokolade"},
+ {k:"muteteli",name:"MUTETELI Espresso",land:"Ruanda",vari:"Bourbon",proz:"Washed",typ:"Espresso",notiz:"Single Origin. Wir schmecken: Pflaume, Vanille, Schokolade"},
+ {k:"jaguar",name:"JAGUAR PROJECT Filter",land:"Costa Rica",vari:"Catuaí, Caturra",proz:"Honey",typ:"Filter",notiz:"Single Origin. Wir schmecken: Gelbe Steinfrüchte, Honig"},
+ {k:"gamboa",name:"Gamboa Filter",land:"Costa Rica",vari:"Caturra, Catuaí",proz:"Natural",typ:"Filter",notiz:"100 % Arabica, Microlot. Wir schmecken: Pfirsich, Nektarine, Zimt"},
+ {k:"kerinci",name:"Kerinci Filter",land:"Indonesien",vari:"S-Lini, Caturra",proz:"Natural",typ:"Filter",notiz:"Single Origin. Wir schmecken: Ananas, Honig, Orange"},
+ {k:"san cristobal",name:"San Cristóbal Filter",land:"Costa Rica",vari:"Caturra, Catuaí, Obatã, Marsellesa",proz:"Natural",typ:"Filter",notiz:"Single Origin. Wir schmecken: Erdbeere, Mango, Milchschokolade"},
+ {k:"mogiana",name:"Mogiana Filter",land:"Brasilien",vari:"Catuaí, Mundo Novo",proz:"Natural",typ:"Filter",notiz:"Single Origin. Wir schmecken: Schokolade, Haselnuss"},
+ {k:"chinennahally",name:"CHINENNAHALLY Espresso",land:"Indien",vari:"S795",proz:"Washed",typ:"Espresso",notiz:"Single Estate. Wir schmecken: Haselnussnougat, Toffee, Schokolade"}];
+function etiMig2(){AN();if(A.etiMig2)return;A.etiMig2=1;const sug=kSugg(),nk=s=>norm(s).replace(/ /g,""),oldK=ETI[4].notiz;
+  if(!A.sort.length)sug.forEach(kAdd);
+  ETI2.forEach(e=>{const k=nk(e.k);let L=A.sort.filter(y=>nk(y.name).includes(k));
+    if(!L.length){kAdd(sug.find(m=>nk(m).includes(k))||e.name);L=[A.sort[A.sort.length-1]]}
+    L.forEach(x=>{if(e.k==="kerinci"&&x.notiz===oldK)x.notiz="";["land","vari","proz","typ","notiz"].forEach(f=>{if(!x[f]&&e[f])x[f]=e[f]})})});aSave()}
 function kAdd(n){AN();A.sort.push({id:uid(),name:n,land:"",farm:"",vari:"",proz:"",typ:"",notiz:"",aus:false,size:rpSize(n)||5})}
 function kRename(o,n){if(norm(o)===norm(n)&&o===n)return;AN();[A.loss,A.wait,A.reg].forEach(m=>{if(m[o]!=null&&m[n]==null){m[n]=m[o];delete m[o]}});
   commit(x=>{x.buch.forEach(b=>{if(b.sorte===o)b.sorte=n});x.plan.forEach(q=>{if(q.sorte===o)q.sorte=n});x.list.forEach(z=>{if(z.sorte===o)z.sorte=n;if(z.cur&&z.cur.sorte===o)z.cur.sorte=n})})}
@@ -962,7 +992,7 @@ function renderR(){AN();const act=new Set(A.sort.filter(x=>!x.aus).map(x=>x.name
        <div class="btns"><button type="button" data-rx="1">Abbrechen</button><button type="button" class="primary" data-rok="1">Stand speichern</button></div></div>`:""}</div>`}).join(""):`<p class="hint">Noch nichts abgepackt. Beim Abpacken in der Woche zählt das Regal automatisch mit.</p>`}
 $("pgR").addEventListener("click",e=>{AN();
   const r=e.target.closest("[data-rn]");if(r){const n=r.dataset.rn;rOpen=rOpen===n?null:n;const g=A.reg[n]||{p1:0,p2:0};RI={p1:g.p1|0,p2:g.p2|0};renderR();return}
-  const b=e.target.closest("[data-ri]");if(b&&RI){RI[b.dataset.ri]=Math.max(0,RI[b.dataset.ri]+ +b.dataset.v);renderR();return}
+  const b=e.target.closest("[data-ri]");if(b&&RI){RI[b.dataset.ri]=Math.max(0,Math.min(500,RI[b.dataset.ri]+ +b.dataset.v));renderR();return}
   if(e.target.closest("[data-rx]")){rOpen=null;renderR();return}
   if(e.target.closest("[data-rok]")&&rOpen){const n=rOpen,g=A.reg[n],prev=g?{p1:g.p1|0,p2:g.p2|0}:null;if(prev&&prev.p1===RI.p1&&prev.p2===RI.p2){rOpen=null;renderR();return}
     A.reg[n]={p1:RI.p1,p2:RI.p2};A.log.unshift({id:uid(),n,d:today(),t:"reg",prev,txt:n+": Regal gezählt",sub:`${RI.p2} × 250 g · ${RI.p1} × 1 kg`+(prev?` (vorher ${prev.p2} · ${prev.p1})`:"")});aSave();rOpen=null;renderR();$("rmsg").textContent=n+": Regal-Stand gespeichert."}});
@@ -977,9 +1007,26 @@ function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
   if(l.t==="drop"){A.wait[l.n]={roh:l.roh,d:l.wd}}
   A.log=A.log.filter(x=>x!==l);aSave()}
 
+
+/* ---------- Rückgängig (laden-v33): vor jedem Antippen/Speichern wird der Stand gemerkt. Hat sich danach etwas geändert, zeigt ein Hinweis „Rückgängig“.
+   Bis zu 20 Schritte zurück, so lange die Seite offen ist. Zähler (+/−) selbst speichern nichts, nur der Knopf danach. ---------- */
+const UND=[];let uPre=null,uT=null;
+const uNow=()=>({a:localStorage.getItem(AK),g:JSON.stringify((gLoad().silos)||null)});
+function uBefore(e){const b=e.target.closest&&e.target.closest("button");if(b&&(b.classList.contains("pm-hold")||b.closest("#undo")))return;uPre=uNow();setTimeout(uAfter,0)}
+function uAfter(){if(!uPre)return;const pre=uPre;uPre=null;const now=uNow();if(now.a===pre.a&&now.g===pre.g)return;UND.push(pre);if(UND.length>20)UND.shift();uShow("Gespeichert.")}
+function uShow(t){const u=$("undo");u.querySelector("span").textContent=t;u.querySelector("button").hidden=!UND.length;u.hidden=false;clearTimeout(uT);uT=setTimeout(()=>{u.hidden=true},8000)}
+function uDo(){const pre=UND.pop();if(!pre)return;
+  if(pre.a==null)localStorage.removeItem(AK);else localStorage.setItem(AK,pre.a);
+  const g=gLoad();g.silos=JSON.parse(pre.g)||undefined;if(!g.silos)delete g.silos;gSave(g);
+  A=rLoad(AK);if(!A||typeof A!=="object")A={v:1};G=gLoad();
+  CA=null;RI=null;rOpen=null;askL=null;askDel=null;PS={};RC={};CH=null;mode=null;KD=null;kOpen=null;
+  render();if(page==="W")renderW();else if(page==="R")renderR();else if(page==="K")renderK();else if(page==="V")renderV();
+  uShow(UND.length?"Zurückgenommen. Noch einen Schritt?":"Zurückgenommen.")}
+document.addEventListener("click",uBefore,true);document.addEventListener("submit",uBefore,true);document.addEventListener("change",uBefore,true);
+$("undo").querySelector("button").addEventListener("click",uDo);
 if(!G.silos){commit(()=>{})}
 try{tonMig()}catch(e){}
-try{etiMig()}catch(e){}
+try{etiMig()}catch(e){}try{etiMig2()}catch(e){}
 render();renderW();
 })();
 </script>
@@ -1006,27 +1053,40 @@ render();renderW();
 </script>
 <style>
 html{touch-action:manipulation}
+/* Leiste unten flacher (laden-v32): alle Apps gleich, Knöpfe 46 statt 52 px hoch, Röstwoche mit Zusatzzeile 50 px */
+.lgx,nav.tabs{padding:3px}
+.lgx button,nav.tabs button{min-height:46px;height:46px;gap:1px;padding:0}
+.lgx button svg,nav.tabs svg{width:21px;height:21px}
+.lgx button:has(> small){min-height:50px;height:50px;gap:0}
+.lgx button:has(> small) svg{width:20px;height:20px}
 .pm-hold{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 </style>
 <script>
 (function(){
- var HOLD=400,FIRST=170,MIN=35,F=.86;
+ var HOLD=400,FIRST=170,MIN=60,F=.88,MAXT=6000;
  function isPM(b){if(!b||b.tagName!=="BUTTON"||b.disabled)return false;var t=(b.textContent||"").trim();return t==="+"||t==="−"||t==="-"||t==="–"}
- function key(b){return (b.getAttribute("aria-label")||"")+"|"+b.textContent.trim()}
+ // Schlüssel aus allen Merkmalen (data-…, aria-label, Text): nach dem Neuzeichnen zählt nur GENAU dieser Knopf weiter, nie der einer anderen Zeile (laden-v33)
+ function key(b){var a=[];for(var i=0;i<b.attributes.length;i++){var x=b.attributes[i];if(x.name!=="class"&&x.name!=="style")a.push(x.name+"="+x.value)}return a.sort().join("&")+"|"+b.textContent.trim()}
  [].forEach.call(document.querySelectorAll("button"),function(b){if(isPM(b))b.classList.add("pm-hold")});
  new MutationObserver(function(){[].forEach.call(document.querySelectorAll("button:not(.pm-hold)"),function(b){if(isPM(b))b.classList.add("pm-hold")})}).observe(document.body,{childList:true,subtree:true});
- var pid=null,x=0,y=0,x0=0,y0=0,k="",t=null,iv=FIRST,fired=0,eat=false;
- function stop(){clearTimeout(t);t=null;pid=null}
- function tick(){var el=document.elementFromPoint(x,y),b=el&&el.closest("button");
-  if(!isPM(b)||key(b)!==k){stop();return}
+ var pid=null,x=0,y=0,x0=0,y0=0,k="",t=null,iv=FIRST,fired=0,eat=false,t0=0,tg=null;
+ var ENDS=["pointerup","pointercancel","touchend","touchcancel"];
+ function stop(){clearTimeout(t);t=null;pid=null;if(tg){ENDS.forEach(function(n){tg.removeEventListener(n,stop)});tg=null}}
+ function tick(){if(pid==null)return;var el=document.elementFromPoint(x,y),b=el&&el.closest("button");
+  if(!isPM(b)||key(b)!==k||Date.now()-t0>MAXT){stop();return}
   b.click();fired++;iv=Math.max(MIN,iv*F);t=setTimeout(tick,iv)}
  document.addEventListener("pointerdown",function(e){var b=e.target.closest&&e.target.closest("button");stop();eat=false;
   if(!isPM(b)||(e.pointerType==="mouse"&&e.button!==0))return;
-  pid=e.pointerId;x=x0=e.clientX;y=y0=e.clientY;k=key(b);iv=FIRST;fired=0;
+  pid=e.pointerId;x=x0=e.clientX;y=y0=e.clientY;k=key(b);iv=FIRST;fired=0;t0=Date.now();
+  // iPhone: Loslassen geht an den ursprünglich berührten Knopf. Wird er beim Weiterzählen neu gezeichnet, hängt er nicht mehr im Dokument
+  // und das Loslassen kommt oben nie an. Darum direkt am Knopf lauschen, sonst zählte es nach dem Loslassen endlos weiter.
+  tg=e.target;ENDS.forEach(function(n){tg.addEventListener(n,stop)});
   t=setTimeout(function(){eat=true;tick()},HOLD)},true);
  document.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;x=e.clientX;y=e.clientY;if(Math.abs(x-x0)>14||Math.abs(y-y0)>14)stop()},true);
  function up(e){if(e.pointerId===pid)stop()}
  document.addEventListener("pointerup",up,true);document.addEventListener("pointercancel",function(e){up(e);eat=false},true);
+ document.addEventListener("touchend",function(e){if(!e.touches||!e.touches.length)stop()},true);document.addEventListener("touchcancel",stop,true);
+ document.addEventListener("visibilitychange",stop);addEventListener("blur",stop);addEventListener("pagehide",stop);addEventListener("scroll",function(){if(pid!=null&&!fired)stop()},{passive:true});
  // Nach dem Halten nicht noch einen Extra-Schritt durch den normalen Klick beim Loslassen
  document.addEventListener("click",function(e){if(eat&&e.isTrusted){eat=false;e.preventDefault();e.stopPropagation()}},true);
  document.addEventListener("contextmenu",function(e){var b=e.target.closest&&e.target.closest("button");if(isPM(b))e.preventDefault()},true);

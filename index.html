@@ -524,33 +524,48 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
  function up(e){if(e.pointerId!==pid)return;pid=null;drag=false;L.forEach(function(l){l.classList.remove("lgx-near")});if(moved){var lb=nearest(e.clientX);lb.click()}setT(target())}
  bar.addEventListener("pointerup",up);bar.addEventListener("pointercancel",function(e){if(e.pointerId!==pid)return;pid=null;drag=false;moved=false;setT(target())});
  new MutationObserver(function(){setT(target())}).observe(bar,{subtree:true,attributes:true,attributeFilter:["aria-selected"]});
- if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0)s0=t;var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
+ // Schimmer nur in Ruhe: beim Scrollen oder Tippen wartet er, damit nichts ruckelt
+ var act=0,mark=function(){act=Date.now()};addEventListener("scroll",mark,{passive:true});addEventListener("pointerdown",mark,{passive:true,capture:true});
+ if(!reduce){var s0=0,sh=function(t){if(document.hidden){s0=0;document.addEventListener("visibilitychange",function(){requestAnimationFrame(sh)},{once:true});return}if(!s0){if(Date.now()-act<1500){setTimeout(function(){requestAnimationFrame(sh)},1500);return}s0=t}var p=(t-s0)/1400;bar.style.setProperty("--sx",(150-p*200)+"%");if(p<1)requestAnimationFrame(sh);else{bar.style.setProperty("--sx","150%");s0=0;setTimeout(function(){requestAnimationFrame(sh)},5200)}};setTimeout(function(){requestAnimationFrame(sh)},1200)}
  requestAnimationFrame(function(){setT(target())});
 })();
 </script>
 <style>
 html{touch-action:manipulation}
+/* Leiste unten flacher (laden-v32): alle Apps gleich, Knöpfe 46 statt 52 px hoch, Röstwoche mit Zusatzzeile 50 px */
+.lgx,nav.tabs{padding:3px}
+.lgx button,nav.tabs button{min-height:46px;height:46px;gap:1px;padding:0}
+.lgx button svg,nav.tabs svg{width:21px;height:21px}
+.lgx button:has(> small){min-height:50px;height:50px;gap:0}
+.lgx button:has(> small) svg{width:20px;height:20px}
 .pm-hold{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
 </style>
 <script>
 (function(){
- var HOLD=400,FIRST=170,MIN=35,F=.86;
+ var HOLD=400,FIRST=170,MIN=60,F=.88,MAXT=6000;
  function isPM(b){if(!b||b.tagName!=="BUTTON"||b.disabled)return false;var t=(b.textContent||"").trim();return t==="+"||t==="−"||t==="-"||t==="–"}
- function key(b){return (b.getAttribute("aria-label")||"")+"|"+b.textContent.trim()}
+ // Schlüssel aus allen Merkmalen (data-…, aria-label, Text): nach dem Neuzeichnen zählt nur GENAU dieser Knopf weiter, nie der einer anderen Zeile (laden-v33)
+ function key(b){var a=[];for(var i=0;i<b.attributes.length;i++){var x=b.attributes[i];if(x.name!=="class"&&x.name!=="style")a.push(x.name+"="+x.value)}return a.sort().join("&")+"|"+b.textContent.trim()}
  [].forEach.call(document.querySelectorAll("button"),function(b){if(isPM(b))b.classList.add("pm-hold")});
  new MutationObserver(function(){[].forEach.call(document.querySelectorAll("button:not(.pm-hold)"),function(b){if(isPM(b))b.classList.add("pm-hold")})}).observe(document.body,{childList:true,subtree:true});
- var pid=null,x=0,y=0,x0=0,y0=0,k="",t=null,iv=FIRST,fired=0,eat=false;
- function stop(){clearTimeout(t);t=null;pid=null}
- function tick(){var el=document.elementFromPoint(x,y),b=el&&el.closest("button");
-  if(!isPM(b)||key(b)!==k){stop();return}
+ var pid=null,x=0,y=0,x0=0,y0=0,k="",t=null,iv=FIRST,fired=0,eat=false,t0=0,tg=null;
+ var ENDS=["pointerup","pointercancel","touchend","touchcancel"];
+ function stop(){clearTimeout(t);t=null;pid=null;if(tg){ENDS.forEach(function(n){tg.removeEventListener(n,stop)});tg=null}}
+ function tick(){if(pid==null)return;var el=document.elementFromPoint(x,y),b=el&&el.closest("button");
+  if(!isPM(b)||key(b)!==k||Date.now()-t0>MAXT){stop();return}
   b.click();fired++;iv=Math.max(MIN,iv*F);t=setTimeout(tick,iv)}
  document.addEventListener("pointerdown",function(e){var b=e.target.closest&&e.target.closest("button");stop();eat=false;
   if(!isPM(b)||(e.pointerType==="mouse"&&e.button!==0))return;
-  pid=e.pointerId;x=x0=e.clientX;y=y0=e.clientY;k=key(b);iv=FIRST;fired=0;
+  pid=e.pointerId;x=x0=e.clientX;y=y0=e.clientY;k=key(b);iv=FIRST;fired=0;t0=Date.now();
+  // iPhone: Loslassen geht an den ursprünglich berührten Knopf. Wird er beim Weiterzählen neu gezeichnet, hängt er nicht mehr im Dokument
+  // und das Loslassen kommt oben nie an. Darum direkt am Knopf lauschen, sonst zählte es nach dem Loslassen endlos weiter.
+  tg=e.target;ENDS.forEach(function(n){tg.addEventListener(n,stop)});
   t=setTimeout(function(){eat=true;tick()},HOLD)},true);
  document.addEventListener("pointermove",function(e){if(e.pointerId!==pid)return;x=e.clientX;y=e.clientY;if(Math.abs(x-x0)>14||Math.abs(y-y0)>14)stop()},true);
  function up(e){if(e.pointerId===pid)stop()}
  document.addEventListener("pointerup",up,true);document.addEventListener("pointercancel",function(e){up(e);eat=false},true);
+ document.addEventListener("touchend",function(e){if(!e.touches||!e.touches.length)stop()},true);document.addEventListener("touchcancel",stop,true);
+ document.addEventListener("visibilitychange",stop);addEventListener("blur",stop);addEventListener("pagehide",stop);addEventListener("scroll",function(){if(pid!=null&&!fired)stop()},{passive:true});
  // Nach dem Halten nicht noch einen Extra-Schritt durch den normalen Klick beim Loslassen
  document.addEventListener("click",function(e){if(eat&&e.isTrusted){eat=false;e.preventDefault();e.stopPropagation()}},true);
  document.addEventListener("contextmenu",function(e){var b=e.target.closest&&e.target.closest("button");if(isPM(b))e.preventDefault()},true);
