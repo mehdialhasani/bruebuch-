@@ -215,6 +215,14 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .rows .pr output{min-width:52px}
 .restl{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:15px;min-height:44px}
 .restl.w{color:var(--warn);font-weight:600}
+/* Bestand korrigieren (laden-v37) */
+.korr{border:1px solid var(--line);border-radius:14px;background:var(--paper);padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+.korr h3{margin:0;font-size:15px}
+.korr .kin{display:flex;align-items:center;gap:10px}
+.korr .kin input{flex:1;min-width:0;font:600 22px var(--f);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:8px 10px;min-height:48px;text-align:center;font-variant-numeric:tabular-nums}
+.korr .kin>button{min-width:48px;min-height:48px;border-radius:12px;font-size:22px;padding:0}
+.korr .kin span{font-size:15px;color:var(--ink2)}
+.korr .df{font-size:13.5px;color:var(--ink2);margin:0;font-variant-numeric:tabular-nums}
 .restl button{min-height:40px;font-size:14px;color:var(--accent)}
 .kgh{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .kgh b{font:700 26px/1 var(--f);letter-spacing:-.02em}.kgh div{font-size:14px;color:var(--muted)}
@@ -681,7 +689,7 @@ function renderV(){AN();
   let h="",cur=null;
   B.forEach(x=>{const k=kwOf(x.d),key=k.y+"-"+k.w;if(key!==cur){cur=key;h+=`<h3>KW ${k.w}${k.y!==new Date().getFullYear()?" / "+k.y:""}</h3>`}
     if(x.l){const l=x.l,kg=l.t==="roast"?Object.values(l.add||{}).reduce((a,v)=>a+v,0):l.roh;
-      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span>${l.t==="reg"?`<span class="v m">Inventur</span>`:`<span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span>`}<button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
+      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span>${l.t==="reg"?`<span class="v m">Inventur</span>`:l.t==="korr"?`<span class="v m">= ${f1(l.kg)} kg</span>`:`<span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span>`}<button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
       if(askL===l.id)h+=`<div class="ask"><span>Zurücknehmen? Die Mengen werden zurückgerechnet${l.bid?", die Buchung im Lager auch":""}.</span><div class="btns"><button type="button" data-ldelno="1">Abbrechen</button><button type="button" class="primary" data-ldelyes="${l.id}">Zurücknehmen</button></div></div>`;return}
     const b=x.b,s=silo(b.silo),v=b.t==="rein"?`<span class="v p">+${f1(b.kg)} kg</span>`:b.t==="stand"?`<span class="v m">= ${f1(b.kg)} kg</span>`:`<span class="v">−${f1(b.kg)} kg</span>`;
     const ex=b.t==="stand"&&b._diff!=null&&Math.abs(b._diff)>=.05?(b._diff>0?` · ${f1(b._diff)} kg verbraucht`:` · ${f1(-b._diff)} kg mehr als erwartet`):"";
@@ -792,6 +800,7 @@ function wData(){
   return{wk,kw,loss,vkW,sorts,geb,e};
 }
 function siloFor(n){const m=norm(n);return S().list.find(x=>{const b=norm(x.sorte),a=norm(x.name);return (b&&m.includes(b))||(a&&a!=="muhle 2"&&(m.includes(a)||m.split(" ")[0]===a.split(" ")[0]))})||null}
+let KO=null;
 let WD=null,openS=null,lossOpen=null,PS={},rcDay=null,RC={},askL=null;
 function rowsW(){
   AN();if(A.pw.key!==WD.wk){A.pw={key:WD.wk,p:{}};aSave()}
@@ -843,8 +852,18 @@ function renderSorts(R){
       <span class="r3">${done?`${r.p1} × 1 kg · ${r.p2} × 250 g abgepackt`:`Fehlt: ${miss}${r.p1+r.p2?` · schon ${r.p1+r.p2} Tüten`:""}`}</span></button>
       ${o?pack(r):""}</div>`}).join("");
 }
+// Bestand von Hand korrigieren: geröstetes Gewicht, das noch wartet (laden-v37)
+function korr(r){
+  if(!KO||KO.n!==r.n)return `<button class="link" data-ko="1">Korrektur</button>`;
+  const v=parseKg(KO.v),d=v==null?null:Math.round((v-r.w)*100)/100;
+  return `<div class="korr" id="korr"><h3>Bestand korrigieren</h3><p class="hint" style="margin:-4px 0 0">Wie viel ${esc(r.n)} ist geröstet und unverpackt da? Abgewogen eintragen.</p>
+   <div class="kin"><button type="button" data-kos="-1" aria-label="0,1 kg weniger">−</button><input id="koIn" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="Bestand in kg geröstet" value="${esc(KO.v)}"><span>kg</span><button type="button" data-kos="1" aria-label="0,1 kg mehr">+</button></div>
+   <p class="df" id="koDf">${korrDf(r,v,d)}</p>
+   <div class="btns"><button type="button" data-kox="1">Abbrechen</button><button type="button" class="primary" data-kook="1"${v==null||Math.abs(d)<.005?" disabled":""}>Bestand speichern</button></div></div>`}
+const parseKg=t=>{t=String(t||"").replace(/\s/g,"").replace(",",".");if(!/^\d*\.?\d+$|^\d+\.$/.test(t))return null;const v=+t;return v>=0&&v<=500?Math.round(v*100)/100:null};
+const korrDf=(r,v,d)=>v==null?`<span style="color:var(--warn)">Bitte eine Zahl eingeben, z. B. 3,4</span>`:`Bisher ${kgT(r.w)} kg${Math.abs(d)<.005?" · unverändert":` · ${d>0?"+":"−"}${kgT(Math.abs(d))} kg`}`;
 function pack(r){
-  if(!(r.w>0))return `<div class="pk"><p class="say">Davon ist nichts geröstet, das wartet. Sobald der Rösttag bestätigt ist, kannst du hier abpacken.</p></div>`;
+  if(!(r.w>0))return `<div class="pk"><p class="say">Davon ist nichts geröstet, das wartet. Sobald der Rösttag bestätigt ist, kannst du hier abpacken.</p>${KO&&KO.n===r.n?korr(r):`<div class="btns" style="justify-content:flex-end">${korr(r)}</div>`}</div>`;
   if(!PS[r.n])suggest(r);const x=PS[r.n],u=x.e+x.s1+x.s2*.25,rest=Math.round((r.w-u)*100)/100,fr=r.w-x.e,m1=nB(fr-x.s2*.25),m2=nS(fr-x.s1),ton=r.silo&&r.silo.id==="panea";
   const row=(k,lab,v,sub)=>`<div class="pr"><span class="t">${lab}<small>${sub}</small></span><span class="step"><button data-st="${k}" data-v="-1" aria-label="${lab} weniger">−</button><output>${v}</output><button data-st="${k}" data-v="1" aria-label="${lab} mehr">+</button></span></div>`;
   const nd=(need,v)=>need==null?"Bedarf unbekannt":need>0?(v>=need?`<span class="okk">Bedarf ${need} ✓</span>`:`Bedarf ${need}`):"kein Bedarf";
@@ -859,7 +878,7 @@ function pack(r){
    <div class="restl ${rest<-0.001?"w":""}"><span>${rest<-0.001?`${f1(-rest)} kg zu viel`:`Rest <b>${f1(rest)} kg</b>`}</span>${rest>=.25?`<button data-fill="1">+ ${nS(rest)} × 250 g</button>`:""}</div>
    ${rest>0.001&&rest<.25||rest>=.25?`<p class="hint" style="margin-top:-8px">Der Rest bleibt unverpackt im Regal und steht beim nächsten Mal wieder hier.</p>`:""}
    <button class="primary big" data-ok="1"${rest<-0.001||u<=0?" disabled":""}>Fertig abgepackt</button>
-   <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1">Zurück zum Vorschlag</button><button class="link" data-drop="1">Nichts mehr da</button></div></div>`;
+   <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1">Zurück zum Vorschlag</button>${KO&&KO.n===r.n?"":korr(r)}<button class="link" data-drop="1">Nichts mehr da</button></div>${KO&&KO.n===r.n?korr(r):""}</div>`;
 }
 const say2=t=>{$("wmsg").textContent=t;clearTimeout(say2.t);say2.t=setTimeout(()=>$("wmsg").textContent="",4000)};
 $("roastC").addEventListener("click",e=>{
@@ -889,9 +908,20 @@ $("caW").addEventListener("submit",e=>{e.preventDefault();if(!CA||!CA.so)return;
   const w=A.wait[n]||(A.wait[n]={roh:0});w.roh=Math.round((w.roh+kg)*1000)/1000;if(!w.d||d>w.d)w.d=d;
   A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key:"",add:{[n]:kg},txt:n+": "+CA.n+(CA.n===1?" Charge":" Chargen")+" nachgetragen",sub:kgT(kg)+" kg roh"});
   if(!aSave()){say2("Speichern hat nicht geklappt.");return}const c=CA.n;CA=null;say2(n+": "+c+(c===1?" Charge":" Chargen")+" im freien Kontingent.");renderW()});
+$("sl").addEventListener("input",e=>{if(e.target.id!=="koIn"||!KO)return;KO.v=e.target.value;const r=rowsW().find(x=>x.n===KO.n);if(!r)return;const v=parseKg(KO.v),d=v==null?null:Math.round((v-r.w)*100)/100;
+  $("koDf").innerHTML=korrDf(r,v,d);const b=$("korr").querySelector("[data-kook]");if(b)b.disabled=v==null||Math.abs(d)<.005});
+$("sl").addEventListener("keydown",e=>{if(e.target.id==="koIn"&&e.key==="Enter"){e.preventDefault();const b=$("korr").querySelector("[data-kook]");if(b&&!b.disabled)b.click();else e.target.blur()}});
 $("sl").addEventListener("click",e=>{
-  const h=e.target.closest("[data-s]");if(h){openS=openS===h.dataset.s?null:h.dataset.s;delete PS[openS];lossOpen=null;renderW();return}
+  const h=e.target.closest("[data-s]");if(h){openS=openS===h.dataset.s?null:h.dataset.s;delete PS[openS];lossOpen=null;KO=null;renderW();return}
   const R=rowsW(),r=R.find(x=>x.n===openS);if(!r)return;const x=PS[r.n];
+  if(e.target.closest("[data-ko]")){KO={n:r.n,v:kgT(r.w).replace(".",",")};renderSorts(R);const i=$("koIn");if(i){i.focus();i.select()}return}
+  if(e.target.closest("[data-kox]")){KO=null;renderSorts(R);return}
+  const ks=e.target.closest("[data-kos]");if(ks&&KO){const v=parseKg(KO.v);KO.v=kgT(Math.max(0,Math.min(500,Math.round(((v==null?r.w:v)+.1*ks.dataset.kos)*10)/10)));renderSorts(R);return}
+  if(e.target.closest("[data-kook]")&&KO){const v=parseKg(KO.v);if(v==null||Math.abs(v-r.w)<.005)return;
+    const w0=A.wait[r.n],prev=w0?{roh:w0.roh,d:w0.d}:null,roh=Math.round(v/(1-r.loss/100)*1000)/1000;
+    if(v<.005)delete A.wait[r.n];else A.wait[r.n]={roh,d:(w0&&w0.d)||today()};
+    A.log.unshift({id:uid(),n:Date.now(),d:today(),t:"korr",n:r.n,prev,roh:Math.round((roh-(prev?prev.roh:0))*1000)/1000,kg:v,txt:r.n+": Bestand korrigiert",sub:`vorher ${kgT(r.w)} kg · jetzt ${kgT(v)} kg geröstet`});
+    if(!aSave()){say2("Speichern hat nicht geklappt.");return}KO=null;delete PS[r.n];say2(r.n+": Bestand jetzt "+kgT(v)+" kg.");renderW();return}
   if(e.target.closest("[data-lossopen]")){lossOpen=lossOpen===r.n?null:r.n;renderSorts(R);return}
   const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,r.loss+ +lo.dataset.loss));aSave();renderW();return}
   const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,Math.min(200,x.s1+v));else if(k==="2")x.s2=Math.max(0,Math.min(400,x.s2+v));else x.e=r.silo.id==="panea"?Math.max(0,Math.round((Math.round(x.e/tonKg(r.loss))+v)*tonKg(r.loss)*100)/100):Math.max(0,Math.round((x.e+.5*v)*10)/10);renderSorts(R);return}
@@ -1011,6 +1041,7 @@ function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
   if(l.t==="pack"){const w=A.wait[l.n]||(A.wait[l.n]={roh:0});w.roh=Math.round((w.roh+l.roh)*1000)/1000;if(l.wk===A.pw.key&&A.pw.p[l.n]){A.pw.p[l.n].p1=Math.max(0,A.pw.p[l.n].p1-l.s1);A.pw.p[l.n].p2=Math.max(0,A.pw.p[l.n].p2-l.s2)}
     if(l.bid)commit(s=>{s.buch=s.buch.filter(b=>b.id!==l.bid);s.list.forEach(z=>{if(z.ton)z.ton=z.ton.filter(t=>t.b!==l.bid)})})}
   if(l.t==="drop"){A.wait[l.n]={roh:l.roh,d:l.wd}}
+  if(l.t==="korr"){if(l.prev)A.wait[l.n]={roh:l.prev.roh,d:l.prev.d};else delete A.wait[l.n]}
   A.log=A.log.filter(x=>x!==l);aSave()}
 
 
@@ -1025,7 +1056,7 @@ function uDo(){const pre=UND.pop();if(!pre)return;
   if(pre.a==null)localStorage.removeItem(AK);else localStorage.setItem(AK,pre.a);
   const g=gLoad();g.silos=JSON.parse(pre.g)||undefined;if(!g.silos)delete g.silos;gSave(g);
   A=rLoad(AK);if(!A||typeof A!=="object")A={v:1};G=gLoad();
-  CA=null;RI=null;rOpen=null;askL=null;askDel=null;PS={};RC={};CH=null;mode=null;KD=null;kOpen=null;
+  CA=null;KO=null;RI=null;rOpen=null;askL=null;askDel=null;PS={};RC={};CH=null;mode=null;KD=null;kOpen=null;
   render();if(page==="W")renderW();else if(page==="R")renderR();else if(page==="K")renderK();else if(page==="V")renderV();
   uShow(UND.length?"Zurückgenommen. Noch einen Schritt?":"Zurückgenommen.")}
 document.addEventListener("click",uBefore,true);document.addEventListener("submit",uBefore,true);document.addEventListener("change",uBefore,true);
