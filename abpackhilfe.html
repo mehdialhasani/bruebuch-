@@ -338,6 +338,9 @@ details.set .pr{margin-top:8px}
 .drin label.f{display:flex;flex-direction:column;gap:4px;font-size:13px;color:var(--muted);font-weight:600}
 .drin input{font:16px var(--f);min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--paper);color:var(--ink);padding:10px 12px;width:100%}
 .drin .btns{display:flex;gap:8px;justify-content:flex-end}
+.akl{display:flex;flex-direction:column;gap:2px;margin-top:6px}
+.akr{display:flex;flex-direction:column;gap:6px;padding:8px 0;border-top:1px solid var(--line)}
+.akr span{font-weight:600;font-size:15px}
 select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px solid var(--line);border-radius:12px;background:var(--paper);color:var(--ink);padding:0 12px}
 .chb .res{margin:0;font-size:15px;color:var(--ink2)}.chb .res b{font-size:24px;color:var(--ink);font-variant-numeric:tabular-nums}
 .lk{border:0;background:none;padding:0 0 0 4px;min-height:0;font-size:12px;font-weight:600;color:var(--accent)}
@@ -797,7 +800,7 @@ const _r=render;render=function(){_r();kurz();lagerBrain()};
 const AK="abpack.v1";
 const rLoad=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
 let A=rLoad(AK);if(!A||typeof A!=="object")A={v:1};
-const AN=()=>{A.sort=A.sort||[];A.reg=A.reg||{};A.wait=A.wait||{};A.conf=A.conf||{};A.loss=A.loss||{};A.log=A.log||[];A.pw=A.pw||{key:"",p:{}};if(!A.regMig)regMig();return A};
+const AN=()=>{A.sort=A.sort||[];A.reg=A.reg||{};A.wait=A.wait||{};A.conf=A.conf||{};A.loss=A.loss||{};A.log=A.log||[];A.pw=A.pw||{key:"",p:{}};if(!A.regMig)regMig();const m=new Map();A.sort.forEach(x=>{const c=norm0(x.name);(Array.isArray(x.aka)?x.aka:[]).forEach(a=>{const k=norm0(a);if(k&&c&&k!==c)m.set(k,c)})});AKA=m;return A};
 // einmalig: Tonnen von vor v28 hatten 10 kg; richtig ist das Röstgewicht von 2 Chargen
 function tonMig(){AN();if(A.tonMig)return;A.tonMig=1;const k=tonKg(),bids={};
   commit(s=>{const z=s.list.find(y=>y.id==="panea");if(z&&z.ton)z.ton.forEach(t=>{if(t.kg===10){t.kg=k;bids[t.b]=(bids[t.b]||0)+1}});
@@ -811,7 +814,10 @@ function regMig(){A.regMig=1;const seen=new Set();
     const g=A.reg[l.n]||(A.reg[l.n]={p1:0,p2:0});g.p1=(g.p1|0)+(l.s1|0);g.p2=(g.p2|0)+(l.s2|0);l.rg=1});
   try{aSave()}catch(e){}}
 const aSave=()=>{try{localStorage.setItem(AK,JSON.stringify(A));return true}catch(e){return false}};
-const norm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const norm0=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+// laden-v41: im Sortiment verknüpfte Namen (aka) zählen überall als dieselbe Sorte
+let AKA=new Map();
+const norm=s=>{const n=norm0(s);return AKA.get(n)||n};
 const kgT=v=>(Math.round(v*100)/100).toLocaleString("de-DE",{maximumFractionDigits:2});
 const nB=kg=>Math.max(0,Math.floor(kg+1e-9)),nS=kg=>Math.max(0,Math.floor(kg/.25+1e-9));
 const RIPE=14;
@@ -826,7 +832,11 @@ function wData(){
   const geb=name=>{const n=norm(name);if(!n||!vkW)return null;const v=vs.find(x=>norm(x.name)===n)||vs.find(x=>norm(x.name).split(" ")[0]===n.split(" ")[0]);const u=v&&v.u&&v.u[vkW];return u?{n1:u["1000"]|0,n2:u["250"]|0,unv:+u.unv||0}:null};
   const sorts=(Array.isArray(R.sorts)?R.sorts:[]).filter(s=>(s.totalG|0)>0).map(s=>({n:s.name||"Ohne Namen",g:s.totalG|0}));
   const e=(R.vId&&V.find(x=>x&&x.id===R.vId))||(V[0]&&V[0].week&&V[0].week===wk?V[0]:null);
-  return{wk,kw,loss,vkW,sorts,geb,e};
+  // laden-v41: Ziel im Regal je Größe = gewichteter Schnitt der verkauften Tüten der letzten 4 Berichtswochen (neueste zählt am meisten)
+  const uw=K&&K.weeks?Object.keys(K.weeks).map(Number).filter(w=>vs.some(s=>s.u&&s.u[w])&&(!vkW||w<=vkW)).sort((a,b)=>a-b).slice(-4):[];
+  const tgt=name=>{const n=norm(name);if(!n||!uw.length)return null;const v=vs.find(x=>norm(x.name)===n)||vs.find(x=>norm(x.name).split(" ")[0]===n.split(" ")[0]);if(!v||!v.u)return null;
+    let a1=0,a2=0,ws=0;uw.forEach((w,i)=>{const u=v.u[w]||{};a1+=(u["1000"]|0)*(i+1);a2+=(u["250"]|0)*(i+1);ws+=i+1});return{t1:Math.max(0,Math.ceil(a1/ws-.15)),t2:Math.max(0,Math.ceil(a2/ws-.15)),uw}};
+  return{wk,kw,loss,vkW,sorts,geb,e,tgt};
 }
 function siloFor(n){const m=norm(n);return S().list.find(x=>{const b=norm(x.sorte),a=norm(x.name);return (b&&m.includes(b))||(a&&a!=="muhle 2"&&(m.includes(a)||m.split(" ")[0]===a.split(" ")[0]))})||null}
 let KO=null;
@@ -835,9 +845,11 @@ function rowsW(){
   AN();if(A.pw.key!==WD.wk){A.pw={key:WD.wk,p:{}};aSave()}
   const names=[...new Set(WD.sorts.map(s=>s.n).concat(Object.keys(A.wait).filter(n=>A.wait[n].roh>.001)))];
   return names.map(n=>{const s=WD.sorts.find(x=>x.n===n),g=WD.geb(n),p=A.pw.p[n]||{p1:0,p2:0},w=A.wait[n]||{roh:0},loss=A.loss[n]!=null?A.loss[n]:WD.loss;
-    const n1=g?g.n1:null,n2=g?g.n2:null,needKg=g?n1+n2*.25:(s?s.g/1000:0),pk=p.p1+p.p2*.25;
-    return{n,g,n1,n2,needKg,p1:p.p1,p2:p.p2,pk,roh:w.roh||0,d:w.d,loss,w:Math.round((w.roh||0)*(1-loss/100)*100)/100,silo:siloFor(n),
-      m1:n1==null?null:Math.max(0,n1-p.p1),m2:n2==null?null:Math.max(0,n2-p.p2),missKg:Math.max(0,needKg-pk)}});
+    // gezähltes Regal bekannt (Wochen-Check/Inventur): Fehlt = Ziel − was im Regal steht; sonst wie bisher verkaufte Tüten der Berichtswoche
+    const t=WD.tgt?WD.tgt(n):null,rk=Object.keys(A.reg).find(x=>norm(x)===norm(n)),rg=rk?A.reg[rk]:null,cnt=!!(t&&rg&&lastCount(rk)),r1=cnt?rg.p1|0:p.p1,r2=cnt?rg.p2|0:p.p2;
+    const n1=cnt?t.t1:g?g.n1:null,n2=cnt?t.t2:g?g.n2:null,needKg=n1!=null?n1+n2*.25:(s?s.g/1000:0),pk=cnt?Math.min(needKg,r1+r2*.25):p.p1+p.p2*.25;
+    return{n,g:g||(cnt?{n1,n2,unv:0}:null),cnt,rg1:r1,rg2:r2,n1,n2,needKg,p1:p.p1,p2:p.p2,pk,roh:w.roh||0,d:w.d,loss,w:Math.round((w.roh||0)*(1-loss/100)*100)/100,silo:siloFor(n),
+      m1:n1==null?null:Math.max(0,n1-r1),m2:n2==null?null:Math.max(0,n2-r2),missKg:Math.max(0,needKg-pk)}});
 }
 const isDone=r=>r.needKg>0&&(r.g?r.m1+r.m2===0:r.missKg<.01);
 function suggest(r){let a=r.w;const x={e:0,s1:0,s2:0};if(r.g){x.s1=Math.min(r.m1,nB(a));a-=x.s1;x.s2=Math.min(r.m2,nS(a))}PS[r.n]=x}
@@ -851,7 +863,7 @@ function renderW(){
 }
 function renderRoast(){
   const c=$("roastC"),e=WD.e;
-  if(!e){c.hidden=!WD.sorts.length;c.innerHTML=`<h2>Rösttag bestätigen</h2><p class="hint">Im Röstplan auf „Liste“ die Liste im Verlauf sichern, dann erscheinen die Rösttage hier.</p>`;return}
+  if(!e){c.hidden=!WD.sorts.length;c.innerHTML=`<h2>Rösttag bestätigen</h2><p class="hint">Sobald in der Röstwoche alle Chargen einen Tag haben, erscheinen die Rösttage hier. Bestätigen geht auch direkt dort unter „Liste“ mit „Geröstet ✓“.</p>`;return}
   const days=[0,1,2].map(d=>({d,l:(e.days||[])[d]||[],nm:(e.dn||[])[d]||"Tag "+(d+1)})).concat([{d:3,l:e.open||[],nm:"Ohne Tag"}]).filter(x=>x.l.length);
   const open=days.filter(x=>!A.conf[e.id+"#"+x.d]);
   if(!open.length){c.hidden=false;c.className="card";c.innerHTML=`<div class="hrow"><h2>Rösttage ${esc(e.week||"")}</h2><span class="okk">alle bestätigt ✓</span></div>`;return}
@@ -870,7 +882,7 @@ function renderRoast(){
 }
 function bar(r){const N=Math.max(r.needKg,r.pk+r.w,.01),p=r.pk/N*100,w=Math.min(r.w,Math.max(0,N-r.pk))/N*100;return `<span class="bar" aria-hidden="true"><i class="p" style="width:${p}%"></i><i class="w" style="width:${w}%"></i></span>`}
 function renderSorts(R){
-  const rank=r=>isDone(r)&&r.w<=0?2:r.w>0?0:1,L2=R.slice().sort((a,b)=>rank(a)-rank(b));
+  const rank=r=>isDone(r)&&r.w<=0?2:r.w>0?0:1,fill=r=>r.needKg>0?r.pk/r.needKg:1,L2=R.slice().sort((a,b)=>rank(a)-rank(b)||(rank(a)===1?fill(a)-fill(b):0));
   $("sCnt").textContent=R.length?R.filter(isDone).length+" von "+R.filter(r=>r.needKg>0).length+" fertig":"";
   if(!R.length){$("sl").innerHTML=`<p class="empty">Noch keine Sorten. Sie kommen aus dem Wochenbericht im Röstplan.</p>`;return}
   $("sl").innerHTML=L2.map(r=>{const done=isDone(r),o=openS===r.n;
@@ -878,7 +890,7 @@ function renderSorts(R){
     const miss=r.g?[r.m1?r.m1+" × 1 kg":"",r.m2?r.m2+" × 250 g":""].filter(Boolean).join(" · "):f1(r.missKg)+" kg";
     return `<div class="so" data-open="${o?1:0}"><button class="h" data-s="${esc(r.n)}" aria-expanded="${o}">
       <span class="r1"><span class="nm">${esc(r.n)}${r.silo?`<small>+ ${r.silo.id==="panea"?"Tonnen":"Eigenbedarf"}</small>`:""}</span>${r.w>0&&r.d?ring(r.d):""}${st}</span>${bar(r)}
-      <span class="r3">${done?`${r.p1} × 1 kg · ${r.p2} × 250 g abgepackt`:`Fehlt: ${miss}${r.p1+r.p2?` · schon ${r.p1+r.p2} Tüten`:""}`}</span></button>
+      <span class="r3">${r.cnt?(done?"Regal reicht · ":`Fehlt: ${miss} · `)+`im Regal ${r.rg2} von ${r.n2} × 250 g${r.n1||r.rg1?` · ${r.rg1} von ${r.n1} × 1 kg`:""}`:done?`${r.p1} × 1 kg · ${r.p2} × 250 g abgepackt`:`Fehlt: ${miss}${r.p1+r.p2?` · schon ${r.p1+r.p2} Tüten`:""}`}</span></button>
       ${o?pack(r):""}</div>`}).join("");
 }
 // Bestand von Hand korrigieren: geröstetes Gewicht, das noch wartet (laden-v37)
@@ -970,7 +982,7 @@ $("sl").addEventListener("click",e=>{
 let kOpen=null,kFil="a",KD=null;
 const PROZ=["Washed","Natural","Honey","Anaerob","Andere"],TYP=["Espresso","Filter","Beides","Decaf"];
 function kSugg(){AN();let R={},K={};try{R=JSON.parse(localStorage.getItem("roestplan.v4"))||{}}catch(e){}try{K=JSON.parse(localStorage.getItem("verkauf.v1"))||{}}catch(e){}
-  const have=new Set(A.sort.map(x=>norm(x.name))),out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!have.has(k)&&!seen.has(k)){seen.add(k);out.push(n)}};
+  const have=new Set(A.sort.map(x=>norm(x.name)).concat((A.akaNo||[]).map(norm0))),out=[],seen=new Set(),add=n=>{n=String(n||"").trim();const k=norm(n);if(k&&!have.has(k)&&!seen.has(norm0(n))&&!seen.has(k)){seen.add(k);out.push(n)}};
   (Array.isArray(R.sorts)?R.sorts:[]).forEach(x=>add(x.name));(Array.isArray(K.sorts)?K.sorts:[]).forEach(x=>add(x.name));Object.keys(A.wait).forEach(add);return out.sort((a,b)=>a.localeCompare(b,"de"))}
 // einmalig (laden-v29): Angaben der fünf neuen Kaffees von den Etiketten (Übersicht 2026-08-24); nur leere Felder werden gefüllt
 const ETI=[{k:"mesgo",name:"MESGO Filter",land:"Kenia",vari:"SL 28, SL 34",proz:"Washed",typ:"Filter",notiz:"Single Estate. Wir schmecken: Rote Früchte, Schwarztee, Vanille"},
@@ -1010,11 +1022,11 @@ function kAdd(n){AN();A.sort.push({id:uid(),name:n,land:"",farm:"",vari:"",proz:
 function kRename(o,n){if(norm(o)===norm(n)&&o===n)return;AN();[A.loss,A.wait,A.reg].forEach(m=>{if(m[o]!=null&&m[n]==null){m[n]=m[o];delete m[o]}});
   commit(x=>{x.buch.forEach(b=>{if(b.sorte===o)b.sorte=n});x.plan.forEach(q=>{if(q.sorte===o)q.sorte=n});x.list.forEach(z=>{if(z.sorte===o)z.sorte=n;if(z.cur&&z.cur.sorte===o)z.cur.sorte=n})})}
 function renderK(){AN();WD=WD||wData();const sg=kSugg(),L=A.sort.filter(x=>kFil==="a"?!x.aus:x.aus).sort((a,b)=>a.name.localeCompare(b.name,"de"));
-  $("kSug").innerHTML=sg.length?`<div class="card"><h2 style="font-size:15px">${A.sort.length?"Neu im Röstplan oder Verkauf":"Sorten übernehmen"}</h2><p class="hint" style="margin:0">${sg.length} ${sg.length===1?"Sorte":"Sorten"} gefunden, die noch kein Profil haben. Antippen übernimmt eine.</p><div class="chips">${sg.map(n=>`<button type="button" data-kadd="${esc(n)}">+ ${esc(n)}</button>`).join("")}</div>${sg.length>1?`<button type="button" class="primary" data-kall="1">Alle ${sg.length} übernehmen</button>`:""}</div>`:"";
+  $("kSug").innerHTML=sg.length?`<div class="card"><h2 style="font-size:15px">${A.sort.length?"Neu im Röstplan oder Verkauf":"Sorten übernehmen"}</h2><p class="hint" style="margin:0">${sg.length} ${sg.length===1?"Sorte":"Sorten"} gefunden, die noch kein Profil haben. Antippen übernimmt eine.</p><div class="chips">${sg.map(n=>`<button type="button" data-kadd="${esc(n)}">+ ${esc(n)}</button>`).join("")}</div>${A.sort.length?`<p class="hint" style="margin:4px 0 0">Heißt ein Kaffee im Bericht nur anders? Dann hier verknüpfen, danach rechnen Röstwoche, Lager und Zahlen mit derselben Sorte.</p><div class="akl">${sg.map(n=>`<label class="akr"><span>${esc(n)}</span><select class="sosel" data-aka="${esc(n)}" aria-label="${esc(n)} verknüpfen"><option value="">Gleicher Kaffee wie …</option>${A.sort.filter(x=>!x.aus).sort((a,b)=>a.name.localeCompare(b.name,"de")).map(x=>`<option value="${x.id}">${esc(x.name)}</option>`).join("")}<option value="-">Nicht mehr zeigen</option></select></label>`).join("")}</div>`:""}${sg.length>1?`<button type="button" class="primary" data-kall="1">Alle ${sg.length} übernehmen</button>`:""}</div>`:"";
   const na=A.sort.filter(x=>!x.aus).length,nx=A.sort.length-na;
   $("kF").innerHTML=`<button type="button" data-kf="a" aria-pressed="${kFil==="a"}">Aktiv ${na}</button><button type="button" data-kf="x" aria-pressed="${kFil==="x"}">Ausgelaufen ${nx}</button>`;
   $("kl").innerHTML=(kOpen==="new"?kForm(null):"")+(L.length?L.map(x=>{const l=A.loss[x.name]!=null?A.loss[x.name]:WD.loss,sub=[x.land,x.proz,x.typ].filter(Boolean).join(" · ");
-    return kOpen===x.id?kForm(x):`<button type="button" class="krow" data-kid="${x.id}"><span class="t"><b>${esc(x.name)}</b><small>${sub?esc(sub)+" · ":""}${l} % Röstverlust${A.loss[x.name]==null?" (Standard)":""} · ${sizeOf(x.name)}-kg-Chargen</small></span><span class="ch">›</span></button>`}).join(""):kOpen==="new"?"":`<p class="hint">${kFil==="a"?"Noch keine Kaffees. Oben übernehmen oder neu anlegen.":"Keine ausgelaufenen Kaffees."}</p>`);
+    return kOpen===x.id?kForm(x):`<button type="button" class="krow" data-kid="${x.id}"><span class="t"><b>${esc(x.name)}</b><small>${sub?esc(sub)+" · ":""}${l} % Röstverlust${A.loss[x.name]==null?" (Standard)":""} · ${sizeOf(x.name)}-kg-Chargen${Array.isArray(x.aka)&&x.aka.length?" · auch „"+esc(x.aka.join("“, „"))+"“":""}</small></span><span class="ch">›</span></button>`}).join(""):kOpen==="new"?"":`<p class="hint">${kFil==="a"?"Noch keine Kaffees. Oben übernehmen oder neu anlegen.":"Keine ausgelaufenen Kaffees."}</p>`);
 }
 function kForm(x){if(!KD||KD.id!==(x?x.id:"new"))KD={id:x?x.id:"new",loss:x&&A.loss[x.name]!=null?A.loss[x.name]:WD.loss,aus:x?!!x.aus:false,size:x?sizeOf(x.name):5};
   const v=k=>esc(x?x[k]||"":""),sel=(id,L,cur)=>`<select id="${id}" class="sosel"><option value="">–</option>${L.map(o=>`<option${o===cur?" selected":""}>${o}</option>`).join("")}</select>`;
@@ -1038,7 +1050,10 @@ $("pgK").addEventListener("click",e=>{AN();
   const kz=e.target.closest("[data-ksz]");if(kz&&KD){KD.size=+kz.dataset.ksz;document.querySelectorAll("[data-ksz]").forEach(b=>b.setAttribute("aria-pressed",b===kz));return}
   const kl=e.target.closest("[data-kl]");if(kl&&KD){KD.loss=Math.min(30,Math.max(5,KD.loss+ +kl.dataset.kl));$("kLo").textContent=KD.loss+" %";return}
   if(e.target.closest("[data-kdel]")){const x=A.sort.find(y=>y.id===kOpen);if(!x)return;if(!confirm(x.name+" aus dem Sortiment entfernen? Lager und Verlauf bleiben."))return;A.sort=A.sort.filter(y=>y!==x);aSave();kOpen=null;renderK();return}});
-$("pgK").addEventListener("change",e=>{if(e.target.id==="kAus"&&KD)KD.aus=e.target.checked});
+$("pgK").addEventListener("change",e=>{if(e.target.id==="kAus"&&KD)KD.aus=e.target.checked;
+  const a=e.target.closest&&e.target.closest("[data-aka]");if(a&&a.value){AN();const n=a.dataset.aka;
+    if(a.value==="-"){A.akaNo=(A.akaNo||[]).concat([n]);aSave();renderK();$("kmsg").textContent=n+" wird nicht mehr vorgeschlagen.";return}
+    const x=A.sort.find(y=>y.id===a.value);if(!x)return;x.aka=(Array.isArray(x.aka)?x.aka:[]).filter(y=>norm0(y)!==norm0(n)).concat([n]);aSave();AN();WD=null;lagerBrain();renderK();$("kmsg").textContent=`„${n}“ zählt jetzt als ${x.name}.`}});
 $("pgK").addEventListener("submit",e=>{e.preventDefault();AN();const n=$("kN").value.trim();if(!n){$("kSay").textContent="Bitte einen Namen eingeben.";return}
   const x=kOpen==="new"?null:A.sort.find(y=>y.id===kOpen);if(A.sort.some(y=>y!==x&&norm(y.name)===norm(n))){$("kSay").textContent="Diesen Kaffee gibt es schon.";return}
   const d={name:n,land:$("kL").value.trim(),farm:$("kFa").value.trim(),vari:$("kV").value.trim(),proz:$("kP").value,typ:$("kT").value,notiz:$("kNo").value.trim(),aus:x?KD.aus:false,size:KD.size};
@@ -1086,7 +1101,7 @@ const ckDue=L=>{AN();return !!L&&(!A.chk||A.chk.key!==L.key)&&!(A.chk&&A.chk.y==
 // zuletzt gezählt: Wochen-Check oder Inventur im Regal
 function lastCount(n){AN();let d=(A.regD||{})[n]||"";A.log.forEach(l=>{if(l.t==="reg"&&l.n===n&&l.d>d)d=l.d});return d||null}
 function vkFor(K,n){const vs=K&&Array.isArray(K.sorts)?K.sorts:[],m=norm(n);return vs.find(x=>norm(x.name)===m)||vs.find(x=>norm(x.name).split(" ")[0]===m.split(" ")[0])||null}
-let CK=null,ckOpen=null;
+let CK=null,ckOpen=null,FROMR=false;
 function ckBuild(){AN();const L=ckLatest();if(!L)return null;
   const prevW=A.chk&&A.chk.y===L.y&&A.chk.w<L.w?A.chk.w:L.w-1;
   const act=A.sort.filter(x=>!x.aus).map(x=>x.name);
@@ -1101,6 +1116,7 @@ const kgR=r=>r.p1+r.p2*.25;
 function ckRes(){const off=CK.rows.filter(r=>r.ist.p1!==r.soll.p1||r.ist.p2!==r.soll.p2),dk=off.reduce((a,r)=>a+kgR(r.ist)-kgR(r.soll),0);
   const eig=CK.sil.reduce((a,s)=>a+Math.max(0,s.app-s.ist),0),mehr=CK.sil.reduce((a,s)=>a+Math.max(0,s.ist-s.app),0);return{off,dk,eig,mehr}}
 function ckBanner(id){const el=$(id);if(!el)return;const L=ckLatest();AN();
+  if(id==="ckR"&&FROMR&&L&&!ckDue(L)){el.className="card ck-b";el.hidden=false;el.innerHTML=`<div class="hrow"><h2>Wochen-Check KW ${A.chk?A.chk.w:L.w} erledigt ✓</h2></div><p class="hint" style="margin-top:-6px">Die Röstwoche rechnet jetzt mit dem gezählten Bestand.</p><a class="primary big" href="roestplan.html#chargen" style="display:flex;align-items:center;justify-content:center;text-decoration:none;border-radius:12px;font-weight:600;background:var(--accent);color:var(--accent-ink)">Zurück zur Röstwoche</a>`;return}
   if(L&&ckDue(L)){el.className="card ck-b";el.hidden=false;el.innerHTML=`<div class="hrow"><h2>Wochen-Check KW ${L.w}</h2><span class="hint">ca. 5 Min.</span></div><p class="hint" style="margin-top:-6px">Der Bericht ist da. Regal und Kisten kurz zählen, dann stimmt der Bestand für Röstwoche und Zahlen.</p><button type="button" class="primary big" data-ckgo="1">Jetzt zählen</button>`;return}
   if(id==="ckR"&&A.chk){el.className="ck-l";el.hidden=false;el.innerHTML=`<span class="hint">Letzter Wochen-Check: KW ${A.chk.w} am ${esc(dFmt(A.chk.d))}</span><button type="button" class="lk" data-ckgo="1">Nochmal zählen</button>`;return}
   if(id==="ckR"&&L){el.className="ck-l";el.hidden=false;el.innerHTML=`<button type="button" class="lk" data-ckgo="1">Wochen-Check machen</button>`;return}
@@ -1155,8 +1171,8 @@ function lagerBrain(){try{AN();const lossD=rpLoss(),best={},wk=s=>{const k=kwOf(
   const eigW={},packW={},lim=iso(new Date(Date.now()-182*864e5));
   S().list.forEach(s=>calc(s.id).ev.forEach(e=>{if(e.d>=lim){const k=wk(e.d);eigW[k]=Math.round(((eigW[k]||0)+e.kg)*100)/100}}));
   A.log.forEach(l=>{if(l.t==="pack"&&l.d>=lim){const k=wk(l.d),kg=(l.s1|0)+(l.s2|0)*.25+(+l.e||0);packW[k]=Math.round(((packW[k]||0)+kg)*100)/100}});
-  const known=[...new Set(Object.keys(A.reg).concat(Object.keys(A.wait)))];const lg={best,known,eigW,packW,chk:(A.chkH||[]).slice(0,26),regD:A.regD||{}},sig=JSON.stringify(lg);if(sig===LGs)return;
-  const g=gLoad();if(g.lager&&JSON.stringify({best:g.lager.best,known:g.lager.known,eigW:g.lager.eigW,packW:g.lager.packW,chk:g.lager.chk,regD:g.lager.regD})===sig){LGs=sig;return}
+  const known=[...new Set(Object.keys(A.reg).concat(Object.keys(A.wait)))];const lg={best,known,eigW,packW,chk:(A.chkH||[]).slice(0,26),regD:A.regD||{},aka:Object.fromEntries(AKA)},sig=JSON.stringify(lg);if(sig===LGs)return;
+  const g=gLoad();if(g.lager&&JSON.stringify({best:g.lager.best,known:g.lager.known,eigW:g.lager.eigW,packW:g.lager.packW,chk:g.lager.chk,regD:g.lager.regD,aka:g.lager.aka})===sig){LGs=sig;return}
   g.lager=Object.assign(lg,{at:new Date().toISOString()});if(gSave(g)){LGs=sig;G.lager=g.lager}}catch(e){}}
 
 /* ---------- Rückgängig (laden-v33): vor jedem Antippen/Speichern wird der Stand gemerkt. Hat sich danach etwas geändert, zeigt ein Hinweis „Rückgängig“.
@@ -1181,6 +1197,8 @@ try{etiMig()}catch(e){}try{etiMig2()}catch(e){}
 // einmalig (laden-v35): Planadas-Varietät von Mehdi nachgereicht, nur wenn das Feld leer ist
 try{AN();if(!A.etiMig3){A.etiMig3=1;A.sort.forEach(x=>{if(norm(x.name).includes("planadas")&&!x.vari)x.vari="Typica, Caturra"});aSave()}}catch(e){}
 render();renderW();
+// laden-v41: aus der Röstwoche (abpackhilfe.html#check) direkt in den Wochen-Check
+if(location.hash==="#check"){try{history.replaceState(null,"",location.pathname+location.search)}catch(e){}FROMR=true;try{ckStart()}catch(e){}}
 })();
 </script>
 

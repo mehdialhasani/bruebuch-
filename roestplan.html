@@ -213,6 +213,29 @@ section[hidden]{display:none!important}
 .lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
 @media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
 @media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+/* laden-v41: Zusammenspiel mit Lager und Zahlen */
+.note.sync .go{display:flex;gap:8px;margin-top:10px}
+.note.sync .go a{flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;font-size:15px}
+.note.sync .done{display:block;margin-top:6px;color:var(--d3);font-weight:600}
+.cs .pi{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.4}
+.cs .pi b{color:var(--fg);font-weight:600}
+.cs .pi .lo{color:var(--warn);font-weight:600}
+.sg{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;border-radius:10px;font-size:14px;font-weight:500;color:var(--d2);background:color-mix(in srgb,var(--d2) 13%,var(--card));text-align:left}
+.sg u{text-decoration:none;font-weight:700;white-space:nowrap}
+.sgall{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 0;padding:6px 6px 6px 12px;border-radius:12px;background:color-mix(in srgb,var(--d2) 13%,var(--card));color:var(--fg);font-size:14px}
+.sgall[hidden]{display:none}
+.sgall button{color:var(--d2);font-size:15px;min-height:40px;padding:0 8px;white-space:nowrap}
+.saved{font-size:14px;color:var(--muted);margin:0 0 8px}
+.saved:empty{display:none}
+.saved.ok{color:var(--d3);font-weight:600}
+.rrow{display:flex;justify-content:flex-end;margin-top:8px}
+.rrow .rbtn{min-height:42px;padding:0 18px;border-radius:11px;background:var(--dc,var(--accent));color:var(--card);font-size:15px}
+.rrow .rdone{font-size:14px;color:var(--d3);font-weight:600;min-height:30px;display:flex;align-items:center}
+.ask.rost{margin-top:8px}
+.ask.rost .loss{min-height:52px;border-bottom:1px solid var(--line)}
+.ask.rost .loss small{color:var(--muted);font-size:13px;font-weight:400}
+.ask.rost .dt{display:flex;justify-content:space-between;align-items:center;min-height:52px}
+.ask.rost input[type=date]{border:1px solid var(--line);border-radius:10px;background:var(--bg);height:40px;padding:0 10px}
 </style>
 
 <main>
@@ -244,6 +267,7 @@ section[hidden]{display:none!important}
 
   <section id="t-chargen" hidden>
     <p class="note" id="extraNote" style="margin-top:0"></p>
+    <div class="sgall" id="sgAll" hidden></div>
     <div class="lbl" style="margin-top:0">Tippe Chargen an für</div>
     <div class="dpick" id="dpick"></div>
     <div class="hint"><span id="openInfo"></span><button class="link" id="allOpen"></button></div>
@@ -256,6 +280,7 @@ section[hidden]{display:none!important}
   <section id="t-liste" hidden>
     <button class="auto" id="autoAll2" hidden style="margin:0 0 4px"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>Offene automatisch verteilen</button>
     <div class="acts" style="margin:0;justify-content:flex-end"><button class="link" id="lEditBtn">Bearbeiten</button></div>
+    <p class="saved" id="savedNote" role="status"></p>
     <div id="lList"></div>
     <div class="exp"><button class="main" id="saveImg">Als Bild sichern</button><button id="copyTxt">Text kopieren</button></div>
     <p class="note" id="expMsg" role="status"></p>
@@ -403,20 +428,89 @@ function liveWarn() {
 }
 
 /* Chargengröße und Röstverlust je Sorte kommen aus dem Sortiment der Abpackhilfe (abpack.v1), sonst Standard. */
-const normN = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+const normB = s => String(s || "").normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+// laden-v41: im Sortiment verknüpfte Namen zählen als dieselbe Sorte (z. B. anderer Name im Kassenbericht)
+const normN = s => { const n = normB(s); return sortimentInfo().aka.get(n) || n; };
 // abpack.v1 ist groß (Lager-Verlauf): nur einmal lesen und merken, statt bei jeder Sorte und jedem Tippen neu. Neu gelesen wird, wenn die Abpackhilfe etwas ändert oder die Seite wieder sichtbar wird.
 let SI = null;
 function sortimentInfo() {
   if (SI) return SI;
   let A = {}; try { A = JSON.parse(localStorage.getItem("abpack.v1")) || {}; } catch (e) {}
-  const sort = new Map(), loss = new Map();
-  (Array.isArray(A.sort) ? A.sort : []).forEach(x => { const n = normN(x.name); if (n && !sort.has(n)) sort.set(n, x); });
-  Object.keys(A.loss || {}).forEach(k => { const n = normN(k); if (n && !loss.has(n)) loss.set(n, +A.loss[k]); });
-  return SI = { sort, loss };
+  const sort = new Map(), loss = new Map(), aka = new Map(), reg = new Map(), wait = new Map(), known = new Set();
+  const L = Array.isArray(A.sort) ? A.sort : [];
+  L.forEach(x => { const n = normB(x.name); (Array.isArray(x.aka) ? x.aka : []).forEach(a => { const k = normB(a); if (k && n && k !== n) aka.set(k, n); }); });
+  const can = t => { const n = normB(t); return aka.get(n) || n; };
+  L.forEach(x => { const n = can(x.name); if (n && !sort.has(n)) sort.set(n, x); });
+  Object.keys(A.loss || {}).forEach(k => { const n = can(k); if (n && !loss.has(n)) loss.set(n, +A.loss[k]); });
+  // Bestand im Haus (geröstet): Tüten im Regal + was aufs Abpacken wartet
+  Object.entries(A.reg && typeof A.reg === "object" ? A.reg : {}).forEach(([k, g]) => { const n = can(k); if (!n || !g) return; reg.set(n, (reg.get(n) || 0) + (g.p1 | 0) + (g.p2 | 0) * .25); known.add(n); });
+  Object.entries(A.wait && typeof A.wait === "object" ? A.wait : {}).forEach(([k, w]) => { const n = can(k); if (!n || !w) return; const l = A.loss && A.loss[k] != null ? +A.loss[k] : S.loss; wait.set(n, (wait.get(n) || 0) + (+w.roh || 0) * (1 - l / 100)); known.add(n); });
+  return SI = { sort, loss, aka, reg, wait, known, conf: A.conf && typeof A.conf === "object" ? A.conf : {}, chk: A.chk || null };
 }
-addEventListener("storage", e => { if (e.key === "abpack.v1" || e.key === null) SI = null; });
-addEventListener("pageshow", () => { SI = null; });
-document.addEventListener("visibilitychange", () => { if (!document.hidden) SI = null; });
+addEventListener("storage", e => { if (e.key === "abpack.v1" || e.key === "verkauf.v1" || e.key === null) { SI = null; FI = null; } });
+addEventListener("pageshow", () => { SI = null; FI = null; });
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { SI = null; FI = null; } });
+
+/* laden-v41: Prognose je Sorte aus Zahlen (verkauf.v1), gleiche Rechnung wie dort: gewichteter Schnitt der letzten 6 Wochen + gedämpfter Trend.
+   Puffer lernt je Sorte: wie weit der echte Verkauf in den letzten 8 Berichtswochen über der Prognose lag (75-%-Wert, 0–30 %). */
+const FC = (() => {
+  function reg(pts) { const n = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
+    const sl = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / (pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0) || 1);
+    return { sl }; }
+  function fc2(vals) { const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if (pts.length < 4) return null;
+    const l6 = pts.slice(-6), ws = l6.reduce((a, _, i) => a + i + 1, 0), base = l6.reduce((a, p, i) => a + p[1] * (i + 1), 0) / ws, r = reg(pts.slice(-10));
+    const gap = vals.length - 1 - l6[l6.length - 1][0]; return Math.max(0, base + r.sl * .5 * (gap + .9)); }
+  function learn(vals) { const r = [];
+    for (let i = vals.length - 1; i >= 0 && r.length < 8; i--) { if (!(vals[i] > 0)) continue; const f = fc2(vals.slice(0, i)); if (!(f > 0)) continue; r.push(vals[i] / f - 1); }
+    if (r.length < 4) return null; const s = r.slice().sort((a, b) => a - b), p = s[Math.min(s.length - 1, Math.floor(s.length * .75))];
+    return { buf: Math.max(0, Math.min(30, Math.round(p * 20) * 5)), under: r.filter(x => x > .1).length, over: r.filter(x => x < -.1).length, n: r.length }; }
+  return { fc2, learn };
+})();
+let FI = null;
+function salesInfo() {
+  if (FI) return FI; const m = new Map(); let last = null;
+  try { const D = JSON.parse(localStorage.getItem("verkauf.v1"));
+    if (D && D.weeks && Array.isArray(D.sorts)) { const ks = Object.keys(D.weeks).map(Number).filter(Boolean).sort((a, b) => a - b);
+      if (ks.length) { last = ks[ks.length - 1]; const all = []; for (let w = ks[0]; w <= last; w++) all.push(w);
+        D.sorts.forEach(x => { const kg = x.kg || {}, sold = all.filter(w => (kg[w] || 0) > 0); if (!sold.length || sold[sold.length - 1] <= last - 3) return;
+          const vals = all.map(w => D.weeks[w] ? (kg[w] || 0) : null), P = FC.fc2(vals); if (P == null) return;
+          const n = normN(x.name); if (n && !m.has(n)) m.set(n, { P, L: FC.learn(vals) }); }); } } } catch (_) {}
+  let sil = []; try { const g = JSON.parse(localStorage.getItem("gehirn.v1")); sil = g && g.silos && Array.isArray(g.silos.list) ? g.silos.list : []; } catch (_) {}
+  return FI = { m, last, sil };
+}
+// Schlüssel suchen: gleicher Name, sonst gleiches erstes Wort (wie in Lager und Zahlen)
+const pickK = (keys, n) => { if (!n) return null; let f = null; for (const k of keys) { if (k === n) return k; if (f == null && k.split(" ")[0] === n.split(" ")[0]) f = k; } return f; };
+const f1 = v => (Math.round(v * 10) / 10).toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+const OPEN_DAYS = 6;
+function sugFor(r) {
+  const n = normN(r.name), I = sortimentInfo(), F = salesInfo(), fk = pickK(F.m.keys(), n), f = fk != null ? F.m.get(fk) : null;
+  const hk = pickK(I.known, n), known = hk != null, H = known ? (I.reg.get(hk) || 0) + (I.wait.get(hk) || 0) : null;
+  if (!f) return { known, H };
+  const s = S.sorts.find(x => x.id === r.id), e = effSort(s), buf = f.L ? f.L.buf : 10, P = f.P;
+  // Sorten mit Eigenbedarf (Tonnen, Mühle 2): der Verbrauch steht nicht im Verkaufsbericht, darum kein Vorschlag
+  if (eigSort(n)) return { known, H, P, buf, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: null, eig: true };
+  const need = P * (1 + buf / 100) - (H || 0), nS = need <= 0.05 ? 0 : Math.ceil(need / (1 - e.loss / 100) / e.s.size - 1e-9);
+  return { known, H, P, buf, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: nS };
+}
+function eigSort(n) { const L = salesInfo().sil;
+  return L.some(x => { const b = normB(x.sorte || ""), a = normB(x.name || ""); return (b && n.includes(b)) || (a && a !== "muhle 2" && (n.includes(a) || n.split(" ")[0] === a.split(" ")[0])); }); }
+// Röstung dieser Liste läuft schon (ein Tag bestätigt): dann keine Vorschläge mehr, der Bestand enthält ja schon Geröstetes dieser Liste
+function roastStarted() { const id = curVId(); if (!id) return false; const c = sortimentInfo().conf; return Object.keys(c).some(k => k.startsWith(id + "#")); }
+let SG = new Map();
+function piHtml(r, started) {
+  const x = sugFor(r); if (x.P == null && !x.known) return "";
+  const p = [];
+  if (x.known) p.push(`im Haus <b>${f1(x.H)} kg</b>` + (x.days != null ? ` · <span class="${x.days < 3 ? "lo" : ""}">${x.days < .5 ? "leer" : "reicht " + (x.days >= 12 ? "12+ Tage" : Math.round(x.days) + (Math.round(x.days) === 1 ? " Tag" : " Tage"))}</span>` : ""));
+  else if (x.P != null) p.push("im Lager noch nicht gezählt");
+  if (x.P != null) p.push(`Prognose <b>${f1(x.P)} kg</b> + ${x.buf} % Puffer${x.learned ? "" : " (Standard)"}` + (x.eig ? " · dazu Eigenbedarf, darum kein Vorschlag" : ""));
+  let h = `<div class="pi">${p.join(" · ")}</div>`;
+  if (x.n != null && x.known && !started && x.n !== r.batches.length) {
+    const d = x.n - r.batches.length; SG.set(r.id, x.n);
+    h += `<button class="sg" data-sg="${r.id}" data-n="${x.n}"><span>Vorschlag: ${x.n} ${x.n === 1 ? "Charge" : "Chargen"} (${d > 0 ? "+" : "−"}${Math.abs(d)})</span><u>Übernehmen</u></button>`;
+  }
+  return h;
+}
+function applySg(id, n) { const r = computeBatches().find(x => x.id === id); if (!r) return; S.adj[id] = (S.adj[id] || 0) + (n - r.batches.length); if (!S.adj[id]) delete S.adj[id]; }
 function prof(s) { const I = sortimentInfo(), n = normN(s.name), p = n ? I.sort.get(n) : null;
   const l = n && I.loss.has(n) ? I.loss.get(n) : NaN;
   return { size: p && (p.size === 3 || p.size === 5) ? p.size : (s.size === 3 ? 3 : 5), loss: l >= 0 && l < 60 ? l : S.loss, inSort: !!p }; }
@@ -470,11 +564,18 @@ function renderZahlen() {
   $("dSel").innerHTML = [0, 1, 2].map(d => `<select data-day="${d}" aria-label="Rösttag ${d + 1}"><option value="">Tag ${d + 1}</option>${WTAGE.map(w => `<option${S.days && S.days[d] === w ? " selected" : ""}>${w}</option>`).join("")}</select>`).join("");
   updTotals();
 }
+// laden-v41: nach dem Bericht direkt weiter zum Wochen-Check im Lager
+function syncBox() {
+  const el = $("syncBox"); if (!S.sync) { el.innerHTML = ""; return; }
+  let h = esc(S.sync); const kw = S.syncKw;
+  if (kw) { const c = sortimentInfo().chk; h += c && +c.w === +kw ? `<span class="done">✓ Wochen-Check KW ${kw} erledigt</span>` : `<div class="go"><a href="abpackhilfe.html#check">Weiter: Wochen-Check</a></div>`; }
+  el.innerHTML = h;
+}
 function updTotals() {
   $("zTot").textContent = kgFmt(S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), 2) + " kg";
   $("wk").textContent = S.week;
   $("warnBox").textContent = [S.warn, liveWarn()].filter(Boolean).join(" ");
-  $("syncBox").textContent = S.sync || "";
+  syncBox();
   updBadges();
 }
 $("zBody").addEventListener("input", e => {
@@ -523,12 +624,15 @@ function renderChargen() {
   $("extraNote").textContent = now === base ? "Berechnet: " + base + " Chargen" : (now > base ? "+" : "−") + Math.abs(now - base) + (Math.abs(now - base) === 1 ? " Charge" : " Chargen") + " von Hand (berechnet: " + base + ")";
   // alle Sorten zeigen, auch ohne Verkauf (z. B. neu hinzugefügt): mit + einplanen
   const vis = rows.filter(r => r.sold > 0 || r.batches.length || S.sorts.find(x => x.id === r.id).name.trim());
+  SG = new Map(); const started = roastStarted();
   setKids($("cList"), vis.map(r => `<div class="cs" data-id="${r.id}">
       <div class="hh"><button class="h" data-act="sort" aria-label="Alle Chargen von ${esc(r.name)} auf ${esc(dn(S.active))}"><b>${esc(r.name)}</b><span>${r.batches.length ? batchText(r.batches.map(b => b.kg)) : r.sold ? "keine" : "kein Verkauf"}${S.adj[r.id] ? " (" + (S.adj[r.id] > 0 ? "+" : "−") + Math.abs(S.adj[r.id]) + ")" : ""}</span></button>
-        <span class="adj"><button data-adj="-1" aria-label="Eine Charge weniger ${esc(r.name)}">−</button><button data-adj="1" aria-label="Eine Charge mehr ${esc(r.name)}">+</button></span></div>
+        <span class="adj"><button data-adj="-1" aria-label="Eine Charge weniger ${esc(r.name)}">−</button><button data-adj="1" aria-label="Eine Charge mehr ${esc(r.name)}">+</button></span></div>${piHtml(r, started)}
       <div class="bs">${r.batches.map(b => `<button class="b${b.day != null ? " on" : ""}" data-k="${b.key}" ${b.day != null ? `style="${dc(b.day)}"` : ""} aria-label="${b.kg} kg${b.day != null ? ", " + esc(dn(b.day)) : ", offen"}">${b.kg} kg${b.day != null ? `<sup>${esc(dnShort(b.day))}</sup>` : ""}</button>`).join("")}</div>
     </div>`), `<div class="empty">Noch keine Verkaufszahlen.</div>`);
-  updBadges();
+  const sa = $("sgAll"); sa.hidden = !SG.size;
+  if (SG.size) sa.innerHTML = `<span>${SG.size === 1 ? "1 Vorschlag" : SG.size + " Vorschläge"} aus Bestand im Haus und Prognose</span><button id="sgAllBtn">Alle übernehmen</button>`;
+  updBadges(); autoKeepSoon();
 }
 // Nur geänderte Zeilen neu zeichnen: beim Antippen einer Charge wird so eine Sorte ersetzt statt der ganzen Liste (flüssiger am iPhone)
 function setKids(box, htmls, empty) {
@@ -554,8 +658,10 @@ $("autoAll2").addEventListener("click", () => { autoAssign(); renderListe(); upd
 $("dpick").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.active = +b.dataset.d; save(); renderChargen(); });
 $("allOpen").addEventListener("click", () => { computeBatches().forEach(r => r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = S.active; })); save(); renderChargen(); });
 $("clearAll").addEventListener("click", () => { S.assign = {}; save(); renderChargen(); });
+$("sgAll").addEventListener("click", e => { if (!e.target.closest("#sgAllBtn")) return; [...SG.entries()].forEach(([id, n]) => applySg(id, n)); save(); renderChargen(); });
 $("cList").addEventListener("click", e => {
   const btn = e.target.closest("button"); if (!btn) return;
+  if (btn.dataset.sg) { applySg(btn.dataset.sg, +btn.dataset.n); save(); renderChargen(); return; }
   if (btn.dataset.adj) {
     const id = btn.closest(".cs").dataset.id, r = computeBatches().find(x => x.id === id), d = +btn.dataset.adj;
     if (d < 0 && !r.batches.length) return;
@@ -573,12 +679,12 @@ $("cList").addEventListener("click", e => {
 
 /* ===================== LISTE ===================== */
 const listTotals = list => ({ n: list.reduce((a, x) => a + x.kgs.length, 0), kg: list.reduce((a, x) => a + Core.sumKg(x.kgs), 0) });
-function listHtml(days, open, names) {
+function listHtml(days, open, names, live) {
   let h = "";
   days.forEach((list, d) => {
     if (!list.length) return; const t = listTotals(list);
     h += `<div class="dayh" style="${dc(d)}"><b><i></i>${esc(dn(d, names))}</b><span>${t.n} Chargen · ${intFmt(t.kg)} kg roh</span></div>
-      <div class="card">${list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
+      <div class="card">${list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>${live && !open.length ? rostHtml(d) : ""}`;
   });
   if (open.length) h += `<div class="dayh"><b>Noch nicht verteilt</b><span>${listTotals(open).n} Chargen</span></div>
       <div class="card">${open.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>`;
@@ -593,13 +699,75 @@ let lEdit = false;
 function renderListe() {
   const rows = computeBatches(); cleanAssign(rows);
   const { days, open } = dayLists(rows);
-  const h = lEdit && (days.some(l => l.length) || open.length) ? [0, 1, 2].map(d => edGroup(days[d], d)).join("") + (open.length ? edGroup(open, 3) : "") + `<p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag. Chargen änderst du unter „Chargen“.</p>` : listHtml(days, open), rk = rohSum(rows);
+  const h = lEdit && (days.some(l => l.length) || open.length) ? [0, 1, 2].map(d => edGroup(days[d], d)).join("") + (open.length ? edGroup(open, 3) : "") + `<p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag. Chargen änderst du unter „Chargen“.</p>` : listHtml(days, open, null, true), rk = rohSum(rows);
   $("lList").classList.toggle("ed", !!lEdit && !!h);
   $("lEditBtn").hidden = !h; $("lEditBtn").textContent = lEdit ? "Fertig" : "Bearbeiten";
   $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${rk.list.reduce((a, x) => a + x.kgs.length, 0)} Chargen · ${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)} · ${intFmt(x.kg)} kg</span></div>`).join("")}</div>` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
   $("clearAsk").hidden = true;
   $("autoAll2").hidden = !open.length;
+  savedNote(); autoKeepSoon();
 }
+/* laden-v41: Liste sichert sich selbst, sobald alle Chargen einen Tag haben (und bei jeder Änderung danach). Das Lager sieht die Rösttage dann sofort. */
+let akT = 0;
+function autoKeep() {
+  clearTimeout(akT); akT = 0;
+  const rows = computeBatches(), n = rows.reduce((a, r) => a + r.batches.length, 0);
+  if (!n || dayTotals(rows).open.n) return "";
+  const id = curVId(); return id ? refreshV(id) : keep();
+}
+function autoKeepSoon() { clearTimeout(akT); akT = setTimeout(() => { if (autoKeep() === "neu" && !$("t-liste").hidden && !lEdit) renderListe(); }, 350); }
+addEventListener("pagehide", () => { if (akT) autoKeep(); });
+const tFmt = iso => new Date(iso).toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" });
+function savedNote() {
+  const el = $("savedNote"), rows = computeBatches(), n = rows.reduce((a, r) => a + r.batches.length, 0), open = dayTotals(rows).open.n, id = curVId();
+  el.className = "saved";
+  if (!n) { el.textContent = ""; return; }
+  if (open) { el.textContent = `Noch ${open} ${open === 1 ? "Charge" : "Chargen"} ohne Tag. Sind alle verteilt, sichert sich die Liste von selbst und das Lager sieht die Rösttage.`; return; }
+  const v = id && V.find(x => x.id === id);
+  if (v) { el.className = "saved ok"; el.textContent = `✓ Automatisch gesichert ${tFmt(v.at)} · das Lager sieht die Rösttage`; }
+  else el.textContent = "";
+}
+/* laden-v41: Rösttag direkt hier bestätigen. Bucht wie „Rösttag bestätigen“ im Lager (gleicher Haken, kein doppeltes Buchen). */
+let RO = null;
+const todayIso = () => { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); };
+const dShort = iso => new Date(iso + "T12:00:00").toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" });
+function rostHtml(d) {
+  const id = curVId(); if (!id) return "";
+  const c = sortimentInfo().conf[id + "#" + d];
+  if (c) return `<div class="rrow"><span class="rdone">✓ geröstet ${esc(dShort(c))} · im Lager</span></div>`;
+  if (RO && RO.d === d) {
+    const t = RO.rows.reduce((a, r) => a + r.c, 0), roh = RO.rows.reduce((a, r) => a + r.c * r.size, 0);
+    return `<div class="ask rost" style="${dc(d)}"><p style="margin:0 0 4px"><b>${esc(dn(d))} geröstet?</b> Anders geröstet? Mit − und + ändern.</p>
+      ${RO.rows.map((r, i) => `<div class="loss"><span>${esc(r.n)}<br><small>${r.c} × ${r.size} kg roh</small></span><span class="step"><button data-rc="${i}" data-v="-1" aria-label="Eine Charge weniger ${esc(r.n)}">−</button><output>${r.c}</output><button data-rc="${i}" data-v="1" aria-label="Eine Charge mehr ${esc(r.n)}">+</button></span></div>`).join("")}
+      <div class="dt"><label for="roDate">Geröstet am</label><input type="date" id="roDate" value="${RO.date}" max="${todayIso()}"></div>
+      <p class="cap" style="margin:4px 0 0">${t} ${t === 1 ? "Charge" : "Chargen"} · ${intFmt(roh)} kg roh kommen ins Lager zum Abpacken.</p>
+      <div class="exp" style="margin-top:12px"><button data-rno="1">Abbrechen</button><button class="main" data-rok="1">So geröstet</button></div></div>`;
+  }
+  return `<div class="rrow" style="${dc(d)}"><button class="rbtn" data-roast="${d}">Geröstet ✓</button></div>`;
+}
+function bookRoast() {
+  autoKeep(); const id = curVId(); if (!id || !RO) return "Erst alle Chargen auf Tage verteilen.";
+  let A = null; try { A = JSON.parse(localStorage.getItem("abpack.v1")); } catch (_) {}
+  if (!A || typeof A !== "object") A = { v: 1 };
+  A.wait = A.wait && typeof A.wait === "object" ? A.wait : {}; A.conf = A.conf && typeof A.conf === "object" ? A.conf : {}; A.log = Array.isArray(A.log) ? A.log : [];
+  const key = id + "#" + RO.d; if (A.conf[key]) { SI = null; return "Dieser Rösttag ist schon bestätigt."; }
+  const d = RO.date || todayIso(), rows = RO.rows.filter(r => r.c > 0), add = {};
+  rows.forEach(r => { const w = A.wait[r.n] || (A.wait[r.n] = { roh: 0 }); w.roh = Math.round(((+w.roh || 0) + r.c * r.size) * 1000) / 1000; w.d = d; add[r.n] = (add[r.n] || 0) + r.c * r.size; });
+  A.conf[key] = d;
+  A.log.unshift({ id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), n: Date.now(), d, t: "roast", key, add, txt: "Rösttag " + dn(RO.d) + " bestätigt", sub: rows.map(r => r.n.split(" ")[0] + " " + r.c + "×").join(" · ") });
+  try { localStorage.setItem("abpack.v1", JSON.stringify(A)); } catch (_) { return "Speichern hat nicht geklappt, der Speicher ist voll."; }
+  SI = null; const n = rows.reduce((a, r) => a + r.c, 0);
+  return `${dn(RO.d)}: ${n} ${n === 1 ? "Charge" : "Chargen"} ins Lager übernommen. Rückgängig im Lager unter Verlauf.`;
+}
+$("lList").addEventListener("click", e => {
+  if (lEdit) return; const b = e.target.closest("button"); if (!b) return;
+  if (b.dataset.roast != null) { const d = +b.dataset.roast, { days } = dayLists(computeBatches()); RO = { d, rows: days[d].map(x => ({ n: x.name, size: x.kgs[0] || 5, c: x.kgs.length })), date: todayIso() }; renderListe(); return; }
+  if (!RO) return;
+  if (b.dataset.rc != null) { const r = RO.rows[+b.dataset.rc]; r.c = Math.max(0, Math.min(30, r.c + +b.dataset.v)); renderListe(); return; }
+  if (b.dataset.rno) { RO = null; renderListe(); return; }
+  if (b.dataset.rok) { const t = bookRoast(); RO = null; renderListe(); msg(t); }
+});
+$("lList").addEventListener("change", e => { if (e.target.id === "roDate" && RO) RO.date = e.target.value || todayIso(); });
 
 $("lEditBtn").addEventListener("click", () => { lEdit = !lEdit; renderListe(); });
 // Sorte x von Gruppe k (Tag 0–2, 3 = offen) nach Gruppe t an Stelle ti; ihre Chargen dieses Tages wandern mit
@@ -888,10 +1056,12 @@ $("vList").addEventListener("click", e => {
   const id = b.closest(".vh").dataset.id; vOpen = vOpen === id ? null : id; vEdit = null; D = null; renderVerlauf();
 });
 const keepMsg = { neu: "Im Verlauf gesichert.", gleich: "Diese Liste ist schon im Verlauf.", leer: "Keine Chargen, nichts zu sichern.", fehler: "Sichern hat nicht geklappt, der Speicher ist voll." };
-$("keepBtn").addEventListener("click", () => msg(keepMsg[keep()]));
+// laden-v41: die Liste der laufenden Woche hat genau einen Eintrag; Sichern aktualisiert ihn statt einen zweiten anzulegen
+const keepCur = () => { const id = curVId(); return id ? refreshV(id) : keep(); };
+$("keepBtn").addEventListener("click", () => msg(keepMsg[keepCur()]));
 // Leeren geht auf „Zahlen“ (wo man sieht, dass die Liste voll ist) und auf „Liste“; vorher wird gefragt, ob gesichert werden soll. Rückgabe wie keep(), ohne Sichern "aus"
 function clearList(withKeep) {
-  const r = withKeep ? keep() : "aus"; if (r === "fehler") return r;
+  const r = withKeep ? keepCur() : "aus"; if (r === "fehler") return r;
   S.sorts.forEach(s => { s.totalG = 0; s.unsure = false; });
   S.assign = {}; S.adj = {}; S.warn = ""; S.rep = null; S.source = "cleared"; S.vId = null; S.order = null;
   save(); renderListe(); renderZahlen(); return r;
@@ -938,14 +1108,14 @@ function applyImport(res, source) {
   const all = list.map(r => ({ name: String(r.name || "").trim(), totalG: Math.max(0, Math.round((+r.kg || 0) * 1000)), unsure: !!r.unsicher }))
     .filter(r => r.name && !/^(summe|gesamt|total|zwischensumme)/i.test(r.name));
   if (!all.length) throw new Error("Keine Sorten gefunden");
-  keep();  // alte Liste vor dem Überschreiben sichern
+  keepCur();  // alte Liste vor dem Überschreiben sichern (laufender Eintrag wird aktualisiert)
   const totAll = all.reduce((x, r) => x + Core.soldGrams(r), 0);
   const clean = all.filter(r => !ignored(r.name));
   const byName = new Map(S.sorts.map(s => [s.name.toLowerCase(), s]));
   S.sorts = clean.map(r => { const o = byName.get(r.name.toLowerCase()); return { id: o?.id || newId(), size: o?.size === 3 ? 3 : 5, ...r }; });
   S.assign = {}; S.adj = {}; S.source = source; S.vId = null; S.order = null;
   S.week = res.woche ? String(res.woche).slice(0, 20) : "KW " + isoWeek(new Date(Date.now() - 6 * 864e5));
-  S.sync = "";
+  S.sync = ""; S.syncKw = null; FI = null;
   S.warn = "";  // Hinweise zu Gesamtmenge und unsicheren Werten rechnet liveWarn() laufend neu
   S.rep = { g: typeof res.gesamt_kg === "number" ? Math.round(res.gesamt_kg * 1000) : null, ign: totAll - S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0) };
   save(); renderZahlen();
@@ -1085,7 +1255,7 @@ function syncSales(items, fname) {
     if (!r || !r.products.length) return "";
     let D = null; try { D = JSON.parse(localStorage.getItem("verkauf.v1")); } catch (_) {}
     if (D && D.weeks && (!D.year || !r.year || D.year === r.year)) {
-      const how = vkMerge(D, r); localStorage.setItem("verkauf.v1", JSON.stringify(D));
+      const how = vkMerge(D, r); localStorage.setItem("verkauf.v1", JSON.stringify(D)); syncSales.kw = r.kw; FI = null;
       return `Auch in Zahlen und Lager übernommen: KW ${r.kw}${how === "neu" ? "" : " (gleiche Woche ersetzt)"}.`;
     }
     let Q = []; try { Q = JSON.parse(localStorage.getItem("verkauf.neu")) || []; } catch (_) {}
@@ -1116,13 +1286,13 @@ async function readPdf(file, lbl) {
     try { rs = await pdfRows(file); }
     catch (_) { S.warn = "Das PDF konnte hier nicht gelesen werden. Bitte als Bildschirmfoto oder Excel/CSV laden."; renderZahlen(); return; }
     const res = Report.parse(rs);
-    const vs = syncSales(pdfRows.items, file.name);
-    if (res) { applyImport(res, "file"); S.sync = vs; save(); renderZahlen(); return; }
+    syncSales.kw = null; const vs = syncSales(pdfRows.items, file.name);
+    if (res) { applyImport(res, "file"); S.sync = vs; S.syncKw = syncSales.kw || null; save(); renderZahlen(); return; }
     const sample = await getCap("sample");
     if (!sample) { S.warn = "Die Tabelle im PDF wurde nicht erkannt. Bitte Zahlen unten eintippen."; renderZahlen(); return; }
     const txt = rs.map(r => r.join(" ; ")).join("\n").slice(0, 20000);
     applyImport(await sample.json(PROMPT_HEAD + S.sorts.map(s => s.name).join(", ") + "\n\nDer Bericht als Text (Spalten mit ; getrennt):\n" + txt, { modelTier: "default", cache: false }), "file");
-    S.sync = vs; save(); renderZahlen();
+    S.sync = vs; S.syncKw = syncSales.kw || null; save(); renderZahlen();
   } catch (e) { S.warn = errText(e); renderZahlen(); }
   finally { setBusy(lbl, false); }
 }
@@ -1164,6 +1334,10 @@ document.querySelector("nav").addEventListener("click", e => {
   window.scrollTo(0, 0);
 });
 renderZahlen();
+// laden-v41: Sprung von Start oder Lager direkt auf einen Reiter (roestplan.html#chargen)
+(() => { const h = (location.hash || "").slice(1); if (!h) return;
+  if (["chargen", "liste", "verlauf"].includes(h)) { const b = document.querySelector(`nav button[data-tab="${h}"]`); if (b) b.click(); }
+  try { history.replaceState(null, "", location.pathname + location.search); } catch (_) {} })();
 </script>
 
 <script>

@@ -141,6 +141,20 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   .ror{animation:draw 7s ease-in-out .7s infinite both}
   .fc{animation:blink 2.4s ease-in-out infinite}
 }
+/* laden-v41: Karte „Diese Woche“: fünf Schritte von Bericht bis Abpacken, hakt sich selbst ab, Antippen führt zum nächsten Schritt */
+.week{display:block;text-decoration:none;color:inherit;background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:10px 14px 11px;margin:0 0 12px;box-shadow:0 6px 18px var(--shadow);-webkit-tap-highlight-color:transparent}
+.week[hidden]{display:none}
+.week:active{transform:scale(.985)}
+.week:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.wk-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;font-size:15px}
+.wk-h span{color:var(--muted);font-size:13px;font-weight:600}
+.wk-s{display:grid;grid-template-columns:repeat(5,1fr);gap:4px;margin:8px 0 6px}
+.wk-s i{height:6px;border-radius:99px;background:var(--line)}
+.wk-s i.d{background:var(--accent)}
+.wk-s i.n{background:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.wk-x{margin:0;font-size:14px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.wk-x span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.wk-x b{color:var(--accent);font-weight:600;flex:none}
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
 :root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
@@ -158,6 +172,29 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 .lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
 @media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
 @media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+/* laden-v41: Zusammenspiel mit Lager und Zahlen */
+.note.sync .go{display:flex;gap:8px;margin-top:10px}
+.note.sync .go a{flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;font-size:15px}
+.note.sync .done{display:block;margin-top:6px;color:var(--d3);font-weight:600}
+.cs .pi{font-size:13px;color:var(--muted);margin-top:4px;line-height:1.4}
+.cs .pi b{color:var(--fg);font-weight:600}
+.cs .pi .lo{color:var(--warn);font-weight:600}
+.sg{display:flex;width:100%;justify-content:space-between;align-items:center;gap:8px;margin-top:8px;padding:8px 10px;border-radius:10px;font-size:14px;font-weight:500;color:var(--d2);background:color-mix(in srgb,var(--d2) 13%,var(--card));text-align:left}
+.sg u{text-decoration:none;font-weight:700;white-space:nowrap}
+.sgall{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 0;padding:6px 6px 6px 12px;border-radius:12px;background:color-mix(in srgb,var(--d2) 13%,var(--card));color:var(--fg);font-size:14px}
+.sgall[hidden]{display:none}
+.sgall button{color:var(--d2);font-size:15px;min-height:40px;padding:0 8px;white-space:nowrap}
+.saved{font-size:14px;color:var(--muted);margin:0 0 8px}
+.saved:empty{display:none}
+.saved.ok{color:var(--d3);font-weight:600}
+.rrow{display:flex;justify-content:flex-end;margin-top:8px}
+.rrow .rbtn{min-height:42px;padding:0 18px;border-radius:11px;background:var(--dc,var(--accent));color:var(--card);font-size:15px}
+.rrow .rdone{font-size:14px;color:var(--d3);font-weight:600;min-height:30px;display:flex;align-items:center}
+.ask.rost{margin-top:8px}
+.ask.rost .loss{min-height:52px;border-bottom:1px solid var(--line)}
+.ask.rost .loss small{color:var(--muted);font-size:13px;font-weight:400}
+.ask.rost .dt{display:flex;justify-content:space-between;align-items:center;min-height:52px}
+.ask.rost input[type=date]{border:1px solid var(--line);border-radius:10px;background:var(--bg);height:40px;padding:0 10px}
 .lgx.solo{width:auto}
 .lgx.solo button{padding:4px 28px}
 .wrap{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
@@ -166,6 +203,8 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 <div class="wrap">
   <p class="date" id="date"></p>
   <h1 id="hello">Hallo</h1>
+
+  <a class="week" id="week" href="roestplan.html" hidden aria-label="Diese Woche"><div class="wk-h"><b id="wkT">Diese Woche</b><span id="wkN"></span></div><div class="wk-s" id="wkS" aria-hidden="true"></div><p class="wk-x"><span id="wkX"></span><b id="wkG">›</b></p></a>
 
   <div class="tiles">
     <a class="tile" href="bruehbuch.html" aria-labelledby="t3">
@@ -465,6 +504,31 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   // Abpackhilfe: was aufs Abpacken wartet, Stand im Lager (Eigenbedarf)
   const ap = get("abpack.kurz"), fk = v => Number(v).toLocaleString("de-DE", {maximumFractionDigits: 1});
   if (ap && (ap.n || ap.wk > 0)) document.getElementById("s5").innerHTML = (ap.wk > 0 ? "<b>" + fk(ap.wk) + " kg</b> zum Abpacken · " : "") + "Lager <b>" + fk(ap.st) + " kg</b>" + (ap.pw == null || ap.wk > 0 ? "" : " · Ø " + fk(ap.pw) + " kg/Woche");
+  // laden-v41: Diese Woche: Bericht → Wochen-Check → Röstliste → Rösttage → Abpacken. Jeder Schritt hakt sich an den Daten ab.
+  try {
+    const G = id => document.getElementById(id);
+    const isoWk = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); };
+    const T = isoWk(new Date(Date.now() - 7 * 864e5)), kwOf = t => parseInt(String(t || "").replace(/[^0-9]+/g, " ").trim().split(" ")[0], 10) || null;
+    const vk1 = get("verkauf.v1"), ab = get("abpack.v1") || {}, rp = get("roestplan.v4"), rv = get("roestplan.verlauf");
+    if ((rp && rp.source && rp.source !== "preset") || (vk1 && vk1.weeks)) {
+      const e = rp && rp.vId && Array.isArray(rv) ? rv.find(x => x && x.id === rp.vId) : null, cur = e && kwOf(e.week) === T ? e : null;
+      const keys = cur ? [0, 1, 2].filter(d => (cur.days || [])[d] && cur.days[d].length).concat(cur.open && cur.open.length ? [3] : []) : [];
+      const conf = ab.conf || {}, nC = keys.filter(d => conf[cur.id + "#" + d]).length;
+      const wait = Object.values(ab.wait || {}).reduce((a, w) => a + (+(w && w.roh) || 0), 0);
+      const st = [
+        [!!(vk1 && vk1.weeks && vk1.weeks[T]), "Bericht KW " + T + " laden", "roestplan.html"],
+        [!!(ab.chk && +ab.chk.w === T), "Wochen-Check machen", "abpackhilfe.html#check"],
+        [!!cur, "Röstliste auf Tage verteilen", "roestplan.html#chargen"],
+        [!!cur && keys.length > 0 && nC === keys.length, cur && keys.length ? "Rösttage bestätigen (" + nC + " von " + keys.length + ")" : "Rösttage bestätigen", "roestplan.html#liste"],
+        [!!cur && keys.length > 0 && nC === keys.length && wait < .5, "Abpacken" + (wait >= .5 ? " (" + Math.round(wait) + " kg roh warten)" : ""), "abpackhilfe.html"]];
+      const next = st.findIndex(x => !x[0]), done = st.filter(x => x[0]).length;
+      G("wkT").textContent = "Diese Woche · KW " + T; G("wkN").textContent = done + " von 5";
+      G("wkS").innerHTML = st.map((x, i) => `<i class="${x[0] ? "d" : i === next ? "n" : ""}"></i>`).join("");
+      G("wkX").textContent = next < 0 ? "Alles erledigt ✓" : "Als Nächstes: " + st[next][1];
+      G("week").href = next < 0 ? "verkauf.html" : st[next][2]; G("wkG").textContent = next < 0 ? "Zahlen ›" : "›";
+      G("week").hidden = false;
+    }
+  } catch (_) {}
   // Datensicherung: alle Daten der drei Apps in einer Datei (Schlüssel bleiben unverändert)
   const KEYS = k => /^(kasse\.|roestplan|bruehbuch|verkauf\.|gehirn\.|abpack\.)/.test(k);
   const $ = id => document.getElementById(id), say = t => { $("bkMsg").textContent = t; };

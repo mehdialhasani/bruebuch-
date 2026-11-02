@@ -310,6 +310,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
   <div class="per"><button class="ar" id="wkPrev" aria-label="Woche davor">‹</button><div class="pt"><b id="wkPt">–</b><small id="wkPs">–</small></div><button class="ar" id="wkNext" aria-label="Woche danach">›</button></div>
   <div class="card"><h2>Wo ist der Kaffee hin?</h2><div id="wkBal"></div><p class="say" id="wkSay" style="margin:0"></p></div>
   <div class="card"><h2>Prognose dieser Woche</h2><div id="wkFc"></div></div>
+  <div class="card"><h2>Puffer je Sorte</h2><p class="hint" style="margin-top:-6px">lernt mit jeder Woche · so viel plant die Röstwoche über der Prognose ein, damit es in etwa 3 von 4 Wochen reicht</p><div id="wkBuf" style="overflow-x:auto"></div></div>
   <div class="card"><h2>Je Sorte</h2><p class="hint" style="margin-top:-6px">kg geröstet nach Röstverlust</p><div id="wkTab" style="overflow-x:auto"></div></div>
   <div class="card"><h2>Sorten im Trend</h2><p class="hint" style="margin-top:-6px">12 Wochen bis zu dieser · Ø kg pro Woche · Pfeil: letzte 6 Wochen gegen die 6 davor</p><div class="u-sms" id="wkSm"></div></div>
 </div>
@@ -1016,7 +1017,24 @@ function kurz(){try{const rep=M.all.filter(M.has),t=w=>kgW(w,"__all"),a=avgL(rep
   localStorage.setItem("verkauf.kurz",JSON.stringify({kw:M.last,avg:Math.round(a*10)/10,d:p>0?Math.round((a-p)/p*100):null}))}catch(e){}}
 function all(){derive();head();kurz();freeze();if(end==null||end>M.months.length-1)end=M.months.length-1;render();if(page==="u")renderU();else if(page==="w")renderWk()}
 /* ---------- Überblick und Woche (laden-v39): Bestand kommt aus dem Lager (gehirn.v1 „lager“), Röstmengen aus der Röstwoche (gehirn.v1 „geroestet“) ---------- */
-const nrm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const nrm0=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+// laden-v41: im Sortiment (Lager) verknüpfte Namen zählen als dieselbe Sorte
+const AKA=(()=>{try{const a=(gLoad().lager||{}).aka;return a&&typeof a==="object"?a:{}}catch(e){return{}}})();
+const nrm=s=>{const n=nrm0(s);return AKA[n]||n};
+/* laden-v41: wirklich geröstet = bestätigte Rösttage (Lager oder Röstwoche „Geröstet ✓“), sonst die geplante Liste */
+function istOf(ge){if(!ge||!ge.id)return null;let A=null,V=null;try{A=JSON.parse(localStorage.getItem("abpack.v1"))}catch(e){}try{V=JSON.parse(localStorage.getItem("roestplan.verlauf"))}catch(e){}
+  const v=Array.isArray(V)?V.find(x=>x&&x.id===ge.id):null;if(!v||!A||!A.conf)return null;
+  const keys=[0,1,2].filter(d=>(v.days||[])[d]&&v.days[d].length).concat(v.open&&v.open.length?[3]:[]),ok=keys.filter(d=>A.conf[ge.id+"#"+d]),sum={};
+  (Array.isArray(A.log)?A.log:[]).forEach(l=>{if(l&&l.t==="roast"&&l.key&&l.key.startsWith(ge.id+"#")&&A.conf[l.key])Object.entries(l.add||{}).forEach(([n,kg])=>{sum[n]=(sum[n]||0)+(+kg||0)})});
+  return{sum,n:ok.length,of:keys.length}}
+/* laden-v41: Puffer lernt je Sorte, gleiche Rechnung wie in der Röstwoche: wie weit lag der Verkauf in den letzten 8 Berichtswochen über der Prognose */
+function learnBuf(vals){const r=[];for(let i=vals.length-1;i>=0&&r.length<8;i--){if(!(vals[i]>0))continue;const f=fc2(vals.slice(0,i),1);if(!f||!(f[0].v>0))continue;r.push(vals[i]/f[0].v-1)}
+  if(r.length<4)return null;const s=r.slice().sort((a,b)=>a-b),p=s[Math.min(s.length-1,Math.floor(s.length*.75))];
+  return{buf:Math.max(0,Math.min(30,Math.round(p*20)*5)),under:r.filter(x=>x>.1).length,over:r.filter(x=>x<-.1).length,fit:r.filter(x=>x<=0).length,n:r.length}}
+function renderBuf(){const el=$("wkBuf");if(!el)return;
+  const rows=M.sorts.filter(s=>!s.ended&&s.lastW!=null).map(s=>({s,L:learnBuf(series(s.key)),a:hAvg(s)})).filter(x=>x.L).sort((a,b)=>b.a-a.a).slice(0,14);
+  el.innerHTML=rows.length?`<table class="u-t"><thead><tr><th>Sorte</th><th>Puffer</th></tr></thead><tbody>${rows.map(({s,L})=>{const ok=L.fit;
+    return`<tr><td>${esc(s.name)}<small style="display:block;color:var(--muted);font-weight:400;white-space:normal">ohne Puffer hätte die Prognose in ${ok} von ${L.n} Wochen gereicht</small></td><td><b>+${L.buf} %</b></td></tr>`}).join("")}</tbody></table>`:`<p class="hint">Noch zu wenige Berichtswochen.</p>`}
 const OPEN_DAYS=6; // Laden hat 6 Tage pro Woche offen
 const lagerOf=()=>{const g=gLoad();return g.lager&&g.lager.best?g.lager:null};
 function bestFor(lg,name){if(!lg)return null;const m=nrm(name),ks=Object.keys(lg.best);const k=ks.find(x=>nrm(x)===m)||ks.find(x=>nrm(x).split(" ")[0]===m.split(" ")[0]);if(!k){const kn=(lg.known||[]).some(x=>nrm(x)===m||nrm(x).split(" ")[0]===m.split(" ")[0]);return kn?{kg:0,reg:0,wait:0}:null}const b=lg.best[k];return{kg:(b.reg||0)+(b.wait||0),reg:b.reg||0,wait:b.wait||0}}
@@ -1065,23 +1083,23 @@ $("uReach").addEventListener("click",e=>{const r=e.target.closest("[data-uk]");i
 /* Woche: Bilanz einer Berichtswoche */
 let wkSel=null;
 function renderWk(){
-  const rep=M.all.filter(M.has);if(!rep.length)return;if(wkSel==null||!rep.includes(wkSel))wkSel=M.last;
+  const rep=M.all.filter(M.has);if(!rep.length)return;if(wkSel==null||!rep.includes(wkSel))wkSel=M.last;renderBuf();
   const i=rep.indexOf(wkSel),w=wkSel,y=D.year,key=y+"-"+w,g=gLoad(),lg=g.lager||{},th=thursday(y,w),sun=new Date(th.mon);sun.setUTCDate(th.mon.getUTCDate()+6);
   $("wkPt").textContent="KW "+w;$("wkPs").textContent=dd(th.mon)+" – "+dd(sun);$("wkPrev").disabled=i<=0;$("wkNext").disabled=i>=rep.length-1;
   const sold=kgW(w,"__all"),ge=(Array.isArray(g.geroestet)?g.geroestet:[]).find(x=>x&&x.kw===w&&(x.y||y)===y);
-  const roast=ge?ge.sorten.reduce((a,s)=>a+(s.rohKg||0),0)*(1-(+ge.loss||16)/100):null,eig=lg.eigW?lg.eigW[key]:undefined,pack=lg.packW?lg.packW[key]:undefined,chk=(lg.chk||[]).find(c=>c.w===w&&c.y===y);
-  const it=[["Verkauft",sold,"var(--good)","aus dem Lightspeed-Bericht"],["Nachgeröstet",roast,"var(--accent)",ge?"Röstliste „"+(ge.week||"KW "+w)+"“, geröstet nach Verlust":"keine Röstliste für diese Woche gesichert"],["Abgepackt",pack,"var(--s1)","Tüten, Kisten, Tonnen in dieser Kalenderwoche"],["Eigenbedarf",eig,"var(--warn)","aus Kisten und Tonnen im Lager"]];
+  const IST=istOf(ge),full=!!(IST&&IST.of>0&&IST.n===IST.of),roast=ge?(full?Object.values(IST.sum).reduce((a,v)=>a+v,0):ge.sorten.reduce((a,s)=>a+(s.rohKg||0),0))*(1-(+ge.loss||16)/100):null,eig=lg.eigW?lg.eigW[key]:undefined,pack=lg.packW?lg.packW[key]:undefined,chk=(lg.chk||[]).find(c=>c.w===w&&c.y===y);
+  const it=[["Verkauft",sold,"var(--good)","aus dem Lightspeed-Bericht"],["Nachgeröstet",roast,"var(--accent)",ge?(full?"bestätigte Rösttage „"+(ge.week||"KW "+w)+"“, nach Verlust":"Röstliste „"+(ge.week||"KW "+w)+"“"+(IST&&IST.n?`, ${IST.n} von ${IST.of} Rösttagen bestätigt`:", geplant")+", nach Verlust"):"keine Röstliste für diese Woche"],["Abgepackt",pack,"var(--s1)","Tüten, Kisten, Tonnen in dieser Kalenderwoche"],["Eigenbedarf",eig,"var(--warn)","aus Kisten und Tonnen im Lager"]];
   const mx=Math.max(1,...it.map(x=>x[1]||0));
   $("wkBal").innerHTML=it.map(([l,v,c,src])=>`<div class="u-bl"><span class="t">${l}<small>${esc(src)}</small></span><span class="u-bb">${v!=null?`<i style="width:${Math.max(2,v/mx*100)}%;background:${c}"></i>`:""}</span><b>${v!=null?f1(v)+" kg":"–"}</b></div>`).join("");
   const s=roast!=null?roast-sold-(eig||0):null;
-  $("wkSay").innerHTML=(s==null?"Für die Bilanz fehlt die Röstliste dieser Woche. In der Röstwoche die Liste im Verlauf sichern, dann erscheint sie hier.":Math.abs(s)<.5?`Nachgeröstet wurde fast genau so viel, wie verkauft und selbst verbraucht wurde.`:s>0?`Es wurden <b>${f1(s)} kg mehr</b> geröstet als verkauft und selbst verbraucht. Das liegt jetzt im Regal oder wartet aufs Abpacken.`:`Es wurden <b>${f1(-s)} kg weniger</b> geröstet als verkauft und selbst verbraucht. Das kam aus dem Bestand.`)
+  $("wkSay").innerHTML=(s==null?"Für die Bilanz fehlt die Röstliste dieser Woche. Sobald in der Röstwoche alle Chargen einen Tag haben, erscheint sie hier.":Math.abs(s)<.5?`Nachgeröstet wurde fast genau so viel, wie verkauft und selbst verbraucht wurde.`:s>0?`Es wurden <b>${f1(s)} kg mehr</b> geröstet als verkauft und selbst verbraucht. Das liegt jetzt im Regal oder wartet aufs Abpacken.`:`Es wurden <b>${f1(-s)} kg weniger</b> geröstet als verkauft und selbst verbraucht. Das kam aus dem Bestand.`)
     +(chk?` Beim Wochen-Check ${Object.keys(chk.off||{}).length?`${Object.keys(chk.off).length===1?"wich 1 Sorte":"wichen "+Object.keys(chk.off).length+" Sorten"} ab (${chk.dk>=0?"+":"−"}${f1(Math.abs(chk.dk))} kg im Regal).`:"stimmte das Regal."}`:"");
   // Prognose dieser Woche: festgehalten, sonst nachgerechnet
   const P=(g.prognosen||{})[key],ser=series("__all"),ix=M.all.indexOf(w),fc=fc2(ser.slice(0,ix),1),pred=P?P.all:fc?fc[0].v:null;
   if(pred!=null&&sold>0){const d=(pred-sold)/sold,a=Math.abs(d);$("wkFc").innerHTML=`<div class="u-kv"><span>vorhergesagt${P?"":" (nachgerechnet)"}</span><b>${f1(pred)} kg</b></div><div class="u-kv"><span>verkauft</span><b>${f1(sold)} kg</b></div><div class="u-kv"><span>Abweichung</span><b class="${a<.1?"u-ok":a<.25?"u-w":"u-x"}">${d>=0?"+":"−"}${Math.round(a*100)} % ${d>=0?"zu hoch":"zu niedrig"}</b></div>`}else $("wkFc").innerHTML=`<p class="hint">Für diese Woche gibt es noch keine Prognose.</p>`;
   // Je Sorte: verkauft, Prognose, nachgeröstet
   const top=M.sorts.filter(x=>(x.kg[w]||0)>0||(ge&&ge.sorten.some(z=>nrm(z.name)===nrm(x.name)&&z.rohKg>0))).sort((a,b)=>(b.kg[w]||0)-(a.kg[w]||0));
-  const rk=n=>{if(!ge)return null;const z=ge.sorten.find(z=>nrm(z.name)===nrm(n))||ge.sorten.find(z=>nrm(z.name).split(" ")[0]===nrm(n).split(" ")[0]);return z?z.rohKg*(1-(+ge.loss||16)/100):0};
+  const rk=n=>{if(!ge)return null;if(full){const ks=Object.keys(IST.sum),k=ks.find(x=>nrm(x)===nrm(n))||ks.find(x=>nrm(x).split(" ")[0]===nrm(n).split(" ")[0]);return k?IST.sum[k]*(1-(+ge.loss||16)/100):0}const z=ge.sorten.find(z=>nrm(z.name)===nrm(n))||ge.sorten.find(z=>nrm(z.name).split(" ")[0]===nrm(n).split(" ")[0]);return z?z.rohKg*(1-(+ge.loss||16)/100):0};
   $("wkTab").innerHTML=`<table class="u-t"><thead><tr><th>Sorte</th><th>verkauft</th><th>Progn.</th><th>geröstet</th></tr></thead><tbody>${top.map(x=>{const pf=P&&P.s&&P.s[x.key]?P.s[x.key].kg:(fc2(series(x.key).slice(0,ix),1)||[{}])[0].v,r=rk(x.name);
     return`<tr><td>${esc(x.name)}</td><td>${f1(x.kg[w]||0)}</td><td>${pf!=null?f1(pf):"–"}</td><td>${r==null?"–":f1(r)}</td></tr>`}).join("")}</tbody></table>`;
   // Trends: 9 meistverkaufte Sorten, 12 Wochen bis zu dieser Woche
