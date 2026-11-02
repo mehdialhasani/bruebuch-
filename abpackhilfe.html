@@ -310,6 +310,19 @@ details.set .pr{margin-top:8px}
 .tc span{font-size:11.5px;font-weight:600;color:var(--muted);margin-top:3px}
 .tc.z{background:transparent;border:1px dashed var(--line)}.tc.z b{color:var(--muted);font-weight:500;opacity:.6}
 .rr2.e .krow b{color:var(--muted)}
+/* Wochen-Check (laden-v39) */
+.ck-l{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:0 4px}
+.ck-l .lk{font-size:14px;min-height:36px}
+.ckst{display:flex;flex-direction:column;gap:6px}
+.cks{display:flex;align-items:center;gap:10px;font-size:14px;font-weight:600;color:var(--muted)}
+.cks i{flex:none;width:24px;height:24px;border-radius:99px;display:grid;place-items:center;font:700 12px var(--f);background:var(--grid);color:var(--ink2);font-style:normal}
+.cks.d{color:var(--ink)}.cks.d i{background:var(--good);color:var(--paper)}
+.ckrow{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:6px 2px 0}
+.ckt{font-size:12.5px;font-weight:700;padding:2px 9px;border-radius:99px}
+.ckt.ok{background:var(--good-soft);color:var(--good)}.ckt.w{background:var(--warn-soft);color:var(--warn)}
+.cks2{padding:4px 0;border-top:1px solid var(--grid)}.cks2:first-child{border-top:0}
+.ckin{width:64px;border:0;background:transparent;text-align:center;font:600 15px var(--f);color:var(--ink);font-variant-numeric:tabular-nums;min-height:38px;padding:0}
+.ckin:focus{outline:none;background:var(--accent-soft)}
 .ri{border:1px solid var(--accent);border-top:0;border-radius:0 0 12px 12px;padding:12px;display:flex;flex-direction:column;gap:10px;background:var(--bg)}
 .ri .pr .t{flex:1;font-weight:600;font-size:15px}
 .lh{display:flex;justify-content:space-between;align-items:center;width:100%;border:0;background:none;padding:0;text-align:left;min-height:44px;color:var(--ink)}
@@ -347,6 +360,7 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
 
 <div class="wrap" id="pgW">
   <div><h1>Abpackhilfe</h1><p class="sub" id="wSub"></p></div>
+  <div id="ckW" hidden></div>
   <div class="card" id="missC"></div>
   <div class="card roast" id="roastC" hidden></div>
   <div class="card">
@@ -361,9 +375,24 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
 
 <div class="wrap" id="pgR" hidden>
   <div><h1>Regal</h1><p class="sub">Abgepackte Tüten · was fertig zum Verkauf steht</p></div>
+  <div id="ckR" hidden></div>
   <div class="card" id="rSum"></div>
   <div class="card"><div class="hrow"><h2>Je Sorte</h2><span class="hint">antippen zum Zählen</span></div><div class="rl" id="rl"></div></div>
   <p class="msg" id="rmsg" role="status"></p>
+</div>
+
+<div class="wrap" id="pgC" hidden>
+  <div><h1>Wochen-Check</h1><p class="sub" id="ckSub"></p></div>
+  <div class="card ckst" id="ckSteps"></div>
+  <div class="card"><div class="hrow"><h2>Regal</h2><span class="hint">antippen, wenn es nicht stimmt</span></div>
+    <p class="hint" style="margin-top:-6px">Vorausgefüllt mit dem, was laut App da sein müsste: Regal minus verkaufte Tüten aus dem Bericht.</p>
+    <div class="rl" id="ckReg"></div></div>
+  <div class="card"><div class="hrow"><h2>Kisten und Tonnen</h2><span class="hint">kg geröstet</span></div>
+    <p class="hint" style="margin-top:-6px">Ablesen oder wiegen. Was weniger ist, zählt als Eigenbedarf.</p>
+    <div id="ckSil"></div></div>
+  <div class="card"><h2>Ergebnis</h2><div id="ckOut"></div></div>
+  <div class="btns"><button type="button" data-ckno="1">Abbrechen</button><button type="button" class="primary big" data-ckok="1">Woche abschließen</button></div>
+  <p class="msg" id="ckMsg" role="status"></p>
 </div>
 
 <div class="wrap" id="pgS" hidden>
@@ -689,7 +718,7 @@ function renderV(){AN();
   let h="",cur=null;
   B.forEach(x=>{const k=kwOf(x.d),key=k.y+"-"+k.w;if(key!==cur){cur=key;h+=`<h3>KW ${k.w}${k.y!==new Date().getFullYear()?" / "+k.y:""}</h3>`}
     if(x.l){const l=x.l,kg=l.t==="roast"?Object.values(l.add||{}).reduce((a,v)=>a+v,0):l.roh;
-      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span>${l.t==="reg"?`<span class="v m">Inventur</span>`:l.t==="korr"?`<span class="v m">= ${f1(l.kg)} kg</span>`:`<span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span>`}<button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
+      h+=`<div class="vl"><i class="dot" style="background:${l.t==="roast"?"var(--accent)":l.t==="pack"?"var(--good)":"var(--muted)"}"></i><span class="t">${esc(l.txt)}<small>${esc(dFmt(l.d))}${l.sub?" · "+esc(l.sub):""}</small></span>${l.t==="reg"?`<span class="v m">Inventur</span>`:l.t==="chk"?`<span class="v m">Check</span>`:l.t==="korr"?`<span class="v m">= ${f1(l.kg)} kg</span>`:`<span class="v${l.t==="roast"?" p":""}">${l.t==="roast"?"+":"−"}${f1(kg)} kg roh</span>`}<button type="button" data-ldel="${l.id}" aria-label="Zurücknehmen">×</button></div>`;
       if(askL===l.id)h+=`<div class="ask"><span>Zurücknehmen? Die Mengen werden zurückgerechnet${l.bid?", die Buchung im Lager auch":""}.</span><div class="btns"><button type="button" data-ldelno="1">Abbrechen</button><button type="button" class="primary" data-ldelyes="${l.id}">Zurücknehmen</button></div></div>`;return}
     const b=x.b,s=silo(b.silo),v=b.t==="rein"?`<span class="v p">+${f1(b.kg)} kg</span>`:b.t==="stand"?`<span class="v m">= ${f1(b.kg)} kg</span>`:`<span class="v">−${f1(b.kg)} kg</span>`;
     const ex=b.t==="stand"&&b._diff!=null&&Math.abs(b._diff)>=.05?(b._diff>0?` · ${f1(b._diff)} kg verbraucht`:` · ${f1(-b._diff)} kg mehr als erwartet`):"";
@@ -758,12 +787,12 @@ $("vk").addEventListener("click",e=>{
   const ly=e.target.closest("[data-ldelyes]");if(ly){undoLog(ly.dataset.ldelyes);askL=null;renderV();render()}
 });
 document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(!b)return;page=b.dataset.pg;
-  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));["W","R","S","K","V"].forEach(p=>$("pg"+p).hidden=page!==p);scrollTo(0,0);if(page==="V")renderV();else if(page==="W")renderW();else if(page==="R")renderR();else if(page==="K")renderK();else render()});
+  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));["W","R","S","K","V"].forEach(p=>$("pg"+p).hidden=page!==p);$("pgC").hidden=true;CK=null;scrollTo(0,0);if(page==="V")renderV();else if(page==="W")renderW();else if(page==="R")renderR();else if(page==="K")renderK();else render()});
 // Kachel auf der Übersicht: kurzer Stand
 function kurz(){try{const L=S().list.map(s=>({s,c:calc(s.id)})),st=L.reduce((a,x)=>a+x.c.st,0),pw=L.reduce((a,x)=>a+(x.c.perWeek||0),0),n=L.reduce((a,x)=>a+x.c.n,0);
   AN();const lossD=WD?WD.loss:16,wk=Object.entries(A.wait).reduce((a,[k,w])=>a+(w.roh||0)*(1-(A.loss[k]!=null?A.loss[k]:lossD)/100),0);
   localStorage.setItem("abpack.kurz",JSON.stringify({st:Math.round(st*10)/10,pw:L.some(x=>x.c.perWeek!=null)?Math.round(pw*10)/10:null,n,wk:Math.round(wk*10)/10}))}catch(e){}}
-const _r=render;render=function(){_r();kurz()};
+const _r=render;render=function(){_r();kurz();lagerBrain()};
 /* ---------- Woche: Bedarf aus Lightspeed, Rösttag aus dem Röstplan bestätigen, pro Sorte Tüten wählen (Schlüssel abpack.v1) ---------- */
 const AK="abpack.v1";
 const rLoad=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
@@ -818,7 +847,7 @@ function renderW(){
   const wk=R.reduce((x,r)=>x+r.w,0),ms=R.filter(r=>r.needKg>0&&!isDone(r)),bags=ms.reduce((x,r)=>x+(r.g?r.m1+r.m2:0),0),mkg=ms.reduce((x,r)=>x+r.missKg,0),ready=ms.filter(r=>r.w>0);
   $("missC").innerHTML=`<h2>Jetzt abpackbar</h2>${wk>0?`<div class="miss"><div class="big"><b>${f1(wk)}</b><span>kg geröstet</span></div><div><b>${nS(wk)}</b><span>× 250 g möglich</span></div><div><b>${nB(wk)}</b><span>× 1 kg möglich</span></div></div>`:`<p class="hint">Nichts geröstet, das wartet. Erst den Rösttag bestätigen.</p>`}
    ${R.length?`<h2 style="font-size:15px;margin-top:4px">Fehlt diese Woche noch</h2>${ms.length?`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""} · ${f1(mkg)} kg</b>${ready.length?` · davon jetzt abpackbar: ${ready.length}`:""}</p>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`}`:`<p class="hint">Im Röstplan einen Wochenbericht laden, dann steht hier der Bedarf.</p>`}`;
-  renderRoast();renderSorts(R);renderCA();kurz();
+  renderRoast();renderSorts(R);renderCA();kurz();ckBanner("ckW");
 }
 function renderRoast(){
   const c=$("roastC"),e=WD.e;
@@ -1017,7 +1046,7 @@ $("pgK").addEventListener("submit",e=>{e.preventDefault();AN();const n=$("kN").v
   A.loss[n]=KD.loss;aSave();kOpen=null;KD=null;renderK();$("kmsg").textContent=n+" gespeichert."});
 /* ---------- Regal: abgepackte Tüten je Sorte, Inventur (laden-v27) ---------- */
 let rOpen=null,RI=null;
-function renderR(){AN();const act=new Set(A.sort.filter(x=>!x.aus).map(x=>x.name));const names=[...new Set(Object.keys(A.reg).filter(n=>(A.reg[n].p1|0)+(A.reg[n].p2|0)>0).concat([...act]))].sort((a,b)=>a.localeCompare(b,"de"));
+function renderR(){AN();ckBanner("ckR");const act=new Set(A.sort.filter(x=>!x.aus).map(x=>x.name));const names=[...new Set(Object.keys(A.reg).filter(n=>(A.reg[n].p1|0)+(A.reg[n].p2|0)>0).concat([...act]))].sort((a,b)=>a.localeCompare(b,"de"));
   const t1=names.reduce((a,n)=>a+((A.reg[n]||{}).p1|0),0),t2=names.reduce((a,n)=>a+((A.reg[n]||{}).p2|0),0);
   $("rSum").innerHTML=`<div class="miss"><div class="big"><b>${f1(t1+t2*.25)}</b><span>kg abgepackt</span></div><div><b>${t2}</b><span>× 250 g</span></div><div><b>${t1}</b><span>× 1 kg</span></div></div>`;
   $("rl").innerHTML=names.length?names.map(n=>{const g=A.reg[n]||{p1:0,p2:0},o=rOpen===n;
@@ -1042,8 +1071,93 @@ function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
     if(l.bid)commit(s=>{s.buch=s.buch.filter(b=>b.id!==l.bid);s.list.forEach(z=>{if(z.ton)z.ton=z.ton.filter(t=>t.b!==l.bid)})})}
   if(l.t==="drop"){A.wait[l.n]={roh:l.roh,d:l.wd}}
   if(l.t==="korr"){if(l.prev)A.wait[l.n]={roh:l.prev.roh,d:l.prev.d};else delete A.wait[l.n]}
+  if(l.t==="chk"){A.regD=A.regD||{};Object.entries(l.prev||{}).forEach(([n,g])=>{if(g)A.reg[n]={p1:g.p1,p2:g.p2};else delete A.reg[n];const pd=(l.prevD||{})[n];if(pd)A.regD[n]=pd;else delete A.regD[n]});A.chk=l.prevChk||null;if(!A.chk)delete A.chk;A.chkH=(A.chkH||[]).filter(x=>x.id!==l.cid);
+    if(l.bids&&l.bids.length)commit(s=>{s.buch=s.buch.filter(b=>!l.bids.includes(b.id))})}
   A.log=A.log.filter(x=>x!==l);aSave()}
 
+
+/* ---------- Wochen-Check (laden-v39): nach dem Wochenbericht Regal und Kisten/Tonnen kurz zählen. Soll = Regal laut App − verkaufte Tüten aus den Berichten seit dem letzten Zählen ---------- */
+// Sonntag (Ende) einer ISO-Kalenderwoche als JJJJ-MM-TT
+function kwEnd(y,w){const j=new Date(y,0,4,12),d=(j.getDay()+6)%7;j.setDate(j.getDate()-d+(w-1)*7+6);return iso(j)}
+// Wochen mit Tüten-Zahlen im Verkaufsbericht (aufsteigend)
+function ckWeeks(K){const vs=K&&Array.isArray(K.sorts)?K.sorts:[];if(!K||!K.weeks)return[];return Object.keys(K.weeks).map(Number).filter(w=>vs.some(s=>s.u&&s.u[w])).sort((a,b)=>a-b)}
+function ckLatest(){const K=rLoad("verkauf.v1"),ws=ckWeeks(K);if(!ws.length)return null;const y=+(K.year||new Date().getFullYear()),w=ws[ws.length-1];return{K,y,w,key:y+"-"+w,ws}}
+const ckDue=L=>{AN();return !!L&&(!A.chk||A.chk.key!==L.key)&&!(A.chk&&A.chk.y===L.y&&A.chk.w>L.w)};
+// zuletzt gezählt: Wochen-Check oder Inventur im Regal
+function lastCount(n){AN();let d=(A.regD||{})[n]||"";A.log.forEach(l=>{if(l.t==="reg"&&l.n===n&&l.d>d)d=l.d});return d||null}
+function vkFor(K,n){const vs=K&&Array.isArray(K.sorts)?K.sorts:[],m=norm(n);return vs.find(x=>norm(x.name)===m)||vs.find(x=>norm(x.name).split(" ")[0]===m.split(" ")[0])||null}
+let CK=null,ckOpen=null;
+function ckBuild(){AN();const L=ckLatest();if(!L)return null;
+  const prevW=A.chk&&A.chk.y===L.y&&A.chk.w<L.w?A.chk.w:L.w-1;
+  const act=A.sort.filter(x=>!x.aus).map(x=>x.name);
+  const names=[...new Set(Object.keys(A.reg).filter(n=>(A.reg[n].p1|0)+(A.reg[n].p2|0)>0).concat(act).concat(L.K.sorts.filter(s=>s.u&&s.u[L.w]&&((s.u[L.w]["250"]|0)+(s.u[L.w]["1000"]|0))>0).map(s=>s.name).filter(n=>!Object.keys(A.reg).concat(act).some(x=>norm(x)===norm(n)||norm(x).split(" ")[0]===norm(n).split(" ")[0]))))];
+  const rows=names.map(n=>{const g=A.reg[n]||{p1:0,p2:0},v=vkFor(L.K,n),lc=lastCount(n);let s1=0,s2=0;const used=[];
+    if(v&&v.u)L.ws.filter(w=>w>prevW&&w<=L.w&&(!lc||kwEnd(L.y,w)>=lc)).forEach(w=>{const u=v.u[w];if(!u)return;s1+=u["1000"]|0;s2+=u["250"]|0;used.push(w)});
+    const soll={p1:Math.max(0,(g.p1|0)-s1),p2:Math.max(0,(g.p2|0)-s2)};
+    return{n,app:{p1:g.p1|0,p2:g.p2|0},s1,s2,used,soll,ist:{...soll},neg:(g.p1|0)-s1<0||(g.p2|0)-s2<0,known:!!A.reg[n]}}).filter(r=>r.app.p1+r.app.p2+r.s1+r.s2>0||act.includes(r.n)).sort((a,b)=>a.n.localeCompare(b.n,"de"));
+  const sil=S().list.map(s=>{const c=calc(s.id);return{id:s.id,name:s.name,sorte:s.sorte||"",app:Math.round(c.st*10)/10,ist:Math.round(c.st*10)/10,n:c.n}});
+  return{L,rows,sil,step:1,more:false}}
+const kgR=r=>r.p1+r.p2*.25;
+function ckRes(){const off=CK.rows.filter(r=>r.ist.p1!==r.soll.p1||r.ist.p2!==r.soll.p2),dk=off.reduce((a,r)=>a+kgR(r.ist)-kgR(r.soll),0);
+  const eig=CK.sil.reduce((a,s)=>a+Math.max(0,s.app-s.ist),0),mehr=CK.sil.reduce((a,s)=>a+Math.max(0,s.ist-s.app),0);return{off,dk,eig,mehr}}
+function ckBanner(id){const el=$(id);if(!el)return;const L=ckLatest();AN();
+  if(L&&ckDue(L)){el.className="card ck-b";el.hidden=false;el.innerHTML=`<div class="hrow"><h2>Wochen-Check KW ${L.w}</h2><span class="hint">ca. 5 Min.</span></div><p class="hint" style="margin-top:-6px">Der Bericht ist da. Regal und Kisten kurz zählen, dann stimmt der Bestand für Röstwoche und Zahlen.</p><button type="button" class="primary big" data-ckgo="1">Jetzt zählen</button>`;return}
+  if(id==="ckR"&&A.chk){el.className="ck-l";el.hidden=false;el.innerHTML=`<span class="hint">Letzter Wochen-Check: KW ${A.chk.w} am ${esc(dFmt(A.chk.d))}</span><button type="button" class="lk" data-ckgo="1">Nochmal zählen</button>`;return}
+  if(id==="ckR"&&L){el.className="ck-l";el.hidden=false;el.innerHTML=`<button type="button" class="lk" data-ckgo="1">Wochen-Check machen</button>`;return}
+  el.hidden=true;el.innerHTML=""}
+function ckShow(on){["W","R","S","K","V"].forEach(p=>$("pg"+p).hidden=on||page!==p);$("pgC").hidden=!on;scrollTo(0,0)}
+function ckStart(){CK=ckBuild();if(!CK){$("rmsg").textContent="Erst in Zahlen einen Wochenbericht laden.";return}ckOpen=null;page="R";
+  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x.dataset.pg==="R"));ckShow(true);renderC()}
+function ckTag(r){const d1=r.ist.p2-r.soll.p2,d2=r.ist.p1-r.soll.p1;if(!d1&&!d2)return`<span class="ckt ok">stimmt</span>`;
+  const p=[];if(d1)p.push((d1>0?"+":"−")+Math.abs(d1)+" × 250 g");if(d2)p.push((d2>0?"+":"−")+Math.abs(d2)+" × 1 kg");return`<span class="ckt w">${p.join(" · ")}</span>`}
+function renderC(){if(!CK)return;const L=CK.L,res=ckRes();
+  $("ckSub").textContent=`KW ${L.w} · Bericht von Lightspeed`;
+  $("ckSteps").innerHTML=[["Bericht KW "+L.w+" ist geladen",1],["Regal zählen",CK.step>1],["Kisten und Tonnen ablesen",CK.step>2]].map(([t,d],i)=>`<div class="cks${d?" d":""}"><i>${d?"✓":i+1}</i>${esc(t)}</div>`).join("");
+  const vis=CK.rows.map((r,i)=>[r,i]).filter(([r,i])=>CK.more||ckOpen===i||r.app.p1+r.app.p2+r.s1+r.s2+r.ist.p1+r.ist.p2>0),hid=CK.rows.length-vis.length;
+  $("ckReg").innerHTML=vis.length||hid?vis.map(([r,i])=>{const o=ckOpen===i,src=r.used.length?`verkauft ${r.s2} × 250 g · ${r.s1} × 1 kg (KW ${r.used.join(", ")})`:"nichts abgezogen, seit dem Bericht schon gezählt";
+    return `<div class="rr2${o?" o":""}"><button type="button" class="krow" data-ckr="${i}" aria-expanded="${o}"><span class="t"><b>${esc(r.n)}</b><small>${esc(src)}</small></span><span class="tc${r.ist.p2?"":" z"}"><b>${r.ist.p2}</b><span>250 g</span></span><span class="tc${r.ist.p1?"":" z"}"><b>${r.ist.p1}</b><span>1 kg</span></span></button>
+      <div class="ckrow">${r.neg&&r.ist.p1===r.soll.p1&&r.ist.p2===r.soll.p2?"":ckTag(r)}${r.neg?`<span class="ckt w" title="Laut App waren weniger Tüten im Regal als verkauft">${r.known?"bitte zählen":"noch nie gezählt"}</span>`:""}</div>
+      ${o?`<div class="ri"><p class="hint" style="margin:0">Laut App müssten ${r.soll.p2} × 250 g und ${r.soll.p1} × 1 kg da sein. Gezählt:</p>
+       <div class="pr"><span class="t">250-g-Tüten</span><span class="step"><button type="button" data-cki="p2" data-v="-1" aria-label="250 g weniger">−</button><output>${r.ist.p2}</output><button type="button" data-cki="p2" data-v="1" aria-label="250 g mehr">+</button></span></div>
+       <div class="pr"><span class="t">1-kg-Tüten</span><span class="step"><button type="button" data-cki="p1" data-v="-1" aria-label="1 kg weniger">−</button><output>${r.ist.p1}</output><button type="button" data-cki="p1" data-v="1" aria-label="1 kg mehr">+</button></span></div>
+       <div class="btns"><button type="button" data-ckx="1">Wie laut App</button><button type="button" class="primary" data-ckc="1">Fertig</button></div></div>`:""}</div>`}).join("")+(hid||CK.more?`<button type="button" class="lk" data-ckm="1" style="align-self:flex-start;min-height:40px;font-size:14px">${CK.more?"Sorten ohne Tüten ausblenden":hid+(hid===1?" Sorte":" Sorten")+" ohne Tüten und ohne Verkauf zeigen"}</button>`:""):`<p class="hint">Noch keine Sorten im Regal oder Sortiment.</p>`;
+  $("ckSil").innerHTML=CK.sil.map((s,i)=>`<div class="pr cks2"><span class="t">${esc(s.name)}<small>${s.sorte&&norm(s.sorte)!==norm(s.name)?esc(s.sorte)+" · ":""}laut App ${f1(s.app)} kg</small></span>
+      <span class="step sm"><button type="button" data-cks="${i}" data-v="-0.5" aria-label="${esc(s.name)} 0,5 kg weniger">−</button><input class="ckin" data-ckin="${i}" inputmode="decimal" enterkeyhint="done" autocomplete="off" aria-label="${esc(s.name)} kg jetzt" value="${f1(s.ist)}"><button type="button" data-cks="${i}" data-v="0.5" aria-label="${esc(s.name)} 0,5 kg mehr">+</button></span></div>`).join("");
+  $("ckOut").innerHTML=`<div class="tcount"><div class="${res.off.length?"y":"g"}"><b>${res.off.length}</b><span>${res.off.length===1?"Sorte weicht ab":"Sorten weichen ab"}</span></div><div class="${Math.abs(res.dk)<.01?"g":"y"}"><b>${Math.abs(res.dk)<.01?"0":(res.dk>0?"+":"−")+f1(Math.abs(res.dk))}</b><span>kg im Regal</span></div><div><b>${f1(res.eig)}</b><span>kg Eigenbedarf</span></div></div>
+    <p class="say">${res.off.length?`Abweichung bei ${res.off.map(r=>esc(r.n)).join(", ")}. ${res.dk<0?"Fehlende Tüten: Verkostung, Bruch oder nicht gebucht.":"Mehr Tüten als erwartet: vielleicht abgepackt, aber nicht gebucht."}`:"Das Regal stimmt mit dem Bericht überein."} ${res.eig>.04?`Aus den Kisten und Tonnen sind seit dem letzten Stand ${f1(res.eig)} kg verbraucht.`:""}${res.mehr>.04?` ${f1(res.mehr)} kg mehr in den Kisten als erwartet, das wird übernommen.`:""}</p>`;
+}
+function ckSave(){if(!CK)return;AN();const L=CK.L,res=ckRes(),prev={},prevD={},bids=[],d=today();A.regD=A.regD||{};
+  CK.rows.forEach(r=>{const g=A.reg[r.n];prev[r.n]=g?{p1:g.p1|0,p2:g.p2|0}:null;prevD[r.n]=A.regD[r.n]||null;A.reg[r.n]={p1:r.ist.p1,p2:r.ist.p2};A.regD[r.n]=d});
+  const ch=CK.sil.filter(s=>Math.abs(s.ist-s.app)>=.05||!s.n);
+  if(ch.length)commit(x=>ch.forEach(s=>{const id=uid();bids.push(id);x.buch.push({id,n:Date.now()+bids.length,silo:s.id,d,t:"stand",kg:Math.round(s.ist*1000)/1000,note:"Wochen-Check"})}));
+  const off={};res.off.forEach(r=>{off[r.n]=Math.round((kgR(r.ist)-kgR(r.soll))*100)/100});
+  const rec={id:uid(),key:L.key,y:L.y,w:L.w,d,dk:Math.round(res.dk*100)/100,eig:Math.round(res.eig*100)/100,off,regKg:Math.round(CK.rows.reduce((a,r)=>a+kgR(r.ist),0)*100)/100};
+  A.log.unshift({id:uid(),d,t:"chk",prev,prevD,prevChk:A.chk||null,cid:rec.id,bids,txt:"Wochen-Check KW "+L.w,sub:(res.off.length?res.off.length+(res.off.length===1?" Sorte weicht ab":" Sorten weichen ab"):"Regal stimmt")+(res.eig>.04?" · "+f1(res.eig)+" kg Eigenbedarf":"")});
+  A.chk=rec;A.chkH=[rec].concat((A.chkH||[]).filter(x=>x.key!==rec.key)).slice(0,30);
+  if(!aSave()){$("ckMsg").textContent="Speichern hat nicht geklappt, der Speicher ist voll.";return}
+  CK=null;ckShow(false);render();renderR();$("rmsg").textContent=`Wochen-Check KW ${L.w} gespeichert.`}
+$("pgC").addEventListener("click",e=>{if(!CK)return;
+  const r=e.target.closest("[data-ckr]");if(r){const i=+r.dataset.ckr;ckOpen=ckOpen===i?null:i;CK.step=Math.max(CK.step,2);renderC();return}
+  const b=e.target.closest("[data-cki]");if(b&&ckOpen!=null){const x=CK.rows[ckOpen].ist;x[b.dataset.cki]=Math.max(0,Math.min(500,x[b.dataset.cki]+ +b.dataset.v));renderC();return}
+  if(e.target.closest("[data-ckx]")&&ckOpen!=null){const r0=CK.rows[ckOpen];r0.ist={...r0.soll};renderC();return}
+  if(e.target.closest("[data-ckc]")){ckOpen=null;renderC();return}
+  if(e.target.closest("[data-ckm]")){CK.more=!CK.more;renderC();return}
+  const s=e.target.closest("[data-cks]");if(s){const x=CK.sil[+s.dataset.cks];x.ist=Math.max(0,Math.round((x.ist+ +s.dataset.v)*10)/10);CK.step=Math.max(CK.step,3);renderC();return}
+  if(e.target.closest("[data-ckok]")){ckSave();return}
+  if(e.target.closest("[data-ckno]")){CK=null;ckShow(false);renderR()}});
+$("pgC").addEventListener("change",e=>{const i=e.target.dataset&&e.target.dataset.ckin;if(i==null||!CK)return;const v=pk(e.target.value);if(v!=null&&v>=0&&v<=500)CK.sil[+i].ist=Math.round(v*10)/10;CK.step=Math.max(CK.step,3);renderC()});
+["pgW","pgR"].forEach(id=>$(id).addEventListener("click",e=>{if(e.target.closest("[data-ckgo]"))ckStart()}));
+/* Gemeinsames Gehirn, Teil „lager“ (laden-v39): Bestand je Sorte (Regal + geröstet, wartet), Eigenbedarf und Abgepacktes je Kalenderwoche, Wochen-Checks. Zahlen liest das für Reichweite und Wochenbilanz. */
+let LGs="";
+function lagerBrain(){try{AN();const lossD=rpLoss(),best={},wk=s=>{const k=kwOf(s);return k.y+"-"+k.w};
+  Object.entries(A.reg).forEach(([n,g])=>{const kg=(g.p1|0)+(g.p2|0)*.25;if(kg>0)best[n]={reg:kg,wait:0}});
+  Object.entries(A.wait).forEach(([n,w])=>{const kg=(w.roh||0)*(1-(A.loss[n]!=null?A.loss[n]:lossD)/100);if(kg>.01)(best[n]||(best[n]={reg:0,wait:0})).wait=Math.round(kg*100)/100});
+  const eigW={},packW={},lim=iso(new Date(Date.now()-182*864e5));
+  S().list.forEach(s=>calc(s.id).ev.forEach(e=>{if(e.d>=lim){const k=wk(e.d);eigW[k]=Math.round(((eigW[k]||0)+e.kg)*100)/100}}));
+  A.log.forEach(l=>{if(l.t==="pack"&&l.d>=lim){const k=wk(l.d),kg=(l.s1|0)+(l.s2|0)*.25+(+l.e||0);packW[k]=Math.round(((packW[k]||0)+kg)*100)/100}});
+  const known=[...new Set(Object.keys(A.reg).concat(Object.keys(A.wait)))];const lg={best,known,eigW,packW,chk:(A.chkH||[]).slice(0,26),regD:A.regD||{}},sig=JSON.stringify(lg);if(sig===LGs)return;
+  const g=gLoad();if(g.lager&&JSON.stringify({best:g.lager.best,known:g.lager.known,eigW:g.lager.eigW,packW:g.lager.packW,chk:g.lager.chk,regD:g.lager.regD})===sig){LGs=sig;return}
+  g.lager=Object.assign(lg,{at:new Date().toISOString()});if(gSave(g)){LGs=sig;G.lager=g.lager}}catch(e){}}
 
 /* ---------- Rückgängig (laden-v33): vor jedem Antippen/Speichern wird der Stand gemerkt. Hat sich danach etwas geändert, zeigt ein Hinweis „Rückgängig“.
    Bis zu 20 Schritte zurück, so lange die Seite offen ist. Zähler (+/−) selbst speichern nichts, nur der Knopf danach. ---------- */
@@ -1056,7 +1170,7 @@ function uDo(){const pre=UND.pop();if(!pre)return;
   if(pre.a==null)localStorage.removeItem(AK);else localStorage.setItem(AK,pre.a);
   const g=gLoad();g.silos=JSON.parse(pre.g)||undefined;if(!g.silos)delete g.silos;gSave(g);
   A=rLoad(AK);if(!A||typeof A!=="object")A={v:1};G=gLoad();
-  CA=null;KO=null;RI=null;rOpen=null;askL=null;askDel=null;PS={};RC={};CH=null;mode=null;KD=null;kOpen=null;
+  CA=null;KO=null;RI=null;rOpen=null;if(CK){CK=null;ckShow(false)}askL=null;askDel=null;PS={};RC={};CH=null;mode=null;KD=null;kOpen=null;
   render();if(page==="W")renderW();else if(page==="R")renderR();else if(page==="K")renderK();else if(page==="V")renderV();
   uShow(UND.length?"Zurückgenommen. Noch einen Schritt?":"Zurückgenommen.")}
 document.addEventListener("click",uBefore,true);document.addEventListener("submit",uBefore,true);document.addEventListener("change",uBefore,true);

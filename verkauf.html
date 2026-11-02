@@ -20,6 +20,8 @@
   --s1:#2a78d6; --s2:#eb6834; --s3:#1baf7a;
   --good:#5B7A3E; --good-soft:#E6EEDB; --warn:#9A6200; --warn-soft:#FBEFD6;
   --hatch:rgba(122,106,93,.22); --shadow:rgba(60,40,25,.18); --bar:rgba(250,247,243,.94);
+  --h1:#F6E7B8; --h2:#EFC77A; --h3:#E39A4B; --h4:#C9642E; --h5:#963A1E; --h6:#5A1C10;
+  --dn2:#2F67A6; --dn1:#93B6DE; --eq:#E2D9CC; --up1:#EDA86A; --up2:#C2502A; --u-r:#B3412B; --u-y:#C98A12;
   --f:"Helvetica Neue",Helvetica,Arial,sans-serif;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
@@ -27,14 +29,58 @@
   --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   --good:#A9C88A; --good-soft:#26301C; --warn:#E5B35A; --warn-soft:#3A2E17;
-  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94); color-scheme:dark}}
+  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94);
+  --h1:#3E2A16; --h2:#6E4119; --h3:#A65A26; --h4:#D9803C; --h5:#F0AE62; --h6:#FAD99A;
+  --dn2:#6FA2E0; --dn1:#33506F; --eq:#3A2F28; --up1:#8C4A22; --up2:#EC8D52; --u-r:#E5826B; --u-y:#E5B35A;
+  color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#17120F; --paper:#211A16; --ink:#EFE7DF; --ink2:#CBBEB2; --muted:#AD9E91; --line:#3A2F28; --grid:#2F2621;
   --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
   --s1:#3987e5; --s2:#d95926; --s3:#199e70;
   --good:#A9C88A; --good-soft:#26301C; --warn:#E5B35A; --warn-soft:#3A2E17;
-  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94); color-scheme:dark}
+  --hatch:rgba(173,158,145,.22); --shadow:rgba(0,0,0,.5); --bar:rgba(34,31,28,.94);
+  --h1:#3E2A16; --h2:#6E4119; --h3:#A65A26; --h4:#D9803C; --h5:#F0AE62; --h6:#FAD99A;
+  --dn2:#6FA2E0; --dn1:#33506F; --eq:#3A2F28; --up1:#8C4A22; --up2:#EC8D52; --u-r:#E5826B; --u-y:#E5B35A;
+  color-scheme:dark}
 *{box-sizing:border-box}
+/* Überblick + Woche (laden-v39) */
+.u-sum{display:flex;gap:6px;flex-wrap:wrap}
+.u-p{font-size:13px;padding:4px 10px;border-radius:99px;background:var(--grid);color:var(--ink2)}.u-p b{font-variant-numeric:tabular-nums}
+.u-p.r{background:color-mix(in srgb,var(--u-r) 16%,var(--paper));color:var(--u-r)}.u-p.y{background:var(--warn-soft);color:var(--warn)}.u-p.g{background:var(--good-soft);color:var(--good)}
+.u-rows{display:flex;flex-direction:column}
+.u-row{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;width:100%;text-align:left;border:0;border-top:1px solid var(--grid);border-radius:0;background:none;padding:10px 2px;min-height:0;color:var(--ink)}
+.u-row:first-child{border-top:0}
+.u-n{min-width:0}.u-n b{display:block;font-size:15px;font-weight:600}.u-n small{display:block;font-size:12.5px;color:var(--muted);font-weight:400}
+.u-d{font-size:15px;font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.u-d.r{color:var(--u-r)}.u-d.y{color:var(--warn)}.u-d.g{color:var(--good)}.u-d.n{color:var(--muted)}
+.u-bar{grid-column:1/-1;height:8px;border-radius:99px;background:var(--grid);position:relative;overflow:hidden}
+.u-bar i{position:absolute;inset:0 auto 0 0;border-radius:99px}.u-bar i.r{background:var(--u-r)}.u-bar i.y{background:var(--u-y)}.u-bar i.g{background:var(--good)}
+.u-bar em{position:absolute;top:0;bottom:0;width:2px;background:var(--paper)}
+.u-heat{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.u-heat table{border-collapse:separate;border-spacing:2px}
+.u-heat td{width:14px;min-width:14px;max-width:14px;height:20px;padding:0;border-radius:4px;cursor:pointer}
+.u-heat td.z{box-shadow:inset 0 0 0 1px var(--line)}
+.u-heat td.gap{cursor:default;background:repeating-linear-gradient(45deg,var(--grid) 0 2px,transparent 2px 5px)}
+.u-heat td[data-sel]{outline:2px solid var(--ink);outline-offset:-1px}
+.u-heat td.kw{height:14px;font-size:10px;color:var(--muted);position:relative;cursor:default}
+.u-heat td.kw span{position:absolute;left:50%;bottom:0;transform:translateX(-50%)}
+.u-heat th{position:sticky;left:0;z-index:1;background:var(--paper);text-align:left;font-size:12.5px;font-weight:500;color:var(--ink2);white-space:nowrap;padding-right:8px;max-width:130px;overflow:hidden;text-overflow:ellipsis}
+.u-read{font-size:14px;min-height:21px;font-variant-numeric:tabular-nums;margin:0}
+.u-bl{display:grid;grid-template-columns:minmax(0,1.2fr) 1fr auto;gap:10px;align-items:center;padding:6px 0;border-top:1px solid var(--grid)}
+.u-bl:first-child{border-top:0}
+.u-bl .t{font-size:15px;font-weight:600;min-width:0}.u-bl .t small{display:block;font-size:12px;color:var(--muted);font-weight:400}
+.u-bb{height:14px;border-radius:4px;background:var(--grid);overflow:hidden}.u-bb i{display:block;height:100%;border-radius:4px}
+.u-bl b{font-variant-numeric:tabular-nums;font-size:15px;min-width:64px;text-align:right}
+.u-kv{display:flex;justify-content:space-between;gap:10px;font-size:15px;font-variant-numeric:tabular-nums;padding:2px 0}.u-kv span{color:var(--ink2)}
+.u-ok{color:var(--good)}.u-w{color:var(--warn)}.u-x{color:var(--u-r)}
+.u-t{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+.u-t th{font-size:12px;font-weight:600;color:var(--muted);text-align:right;padding:0 0 6px 6px}
+.u-t th:first-child,.u-t td:first-child{text-align:left;padding-left:0}
+.u-t{font-size:13.5px}.u-t td{padding:7px 0 7px 6px;border-top:1px solid var(--grid);text-align:right;white-space:nowrap}.u-t td:first-child{white-space:normal;font-weight:500}
+.u-sms{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.u-sm{background:var(--bg);border-radius:12px;padding:8px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.u-sm b{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.u-sm small{font-size:11.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.u-sm svg{width:100%;height:30px;display:block}
 [hidden]{display:none!important}
 body{background:var(--bg);color:var(--ink);font:16px/1.5 var(--f);-webkit-font-smoothing:antialiased}
 .wrap{max-width:760px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:18px calc(110px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:16px}
@@ -246,7 +292,29 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 </style>
 </head><body>
 
-<div class="wrap" id="pgV">
+<div class="wrap" id="pgU">
+  <div><h1>Zahlen</h1><p class="sub" id="uCover">–</p></div>
+  <div class="card"><div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Reicht noch</h2><span class="hint">antippen = Verlauf der Sorte</span></div>
+    <p class="hint" style="margin-top:-6px">Bestand aus Regal und gerösteter Ware im Lager, geteilt durch die Prognose pro Ladentag. Rot oben.</p>
+    <div id="uReach"></div></div>
+  <div class="card"><h2>Verlauf auf einen Blick</h2>
+    <div class="seg" role="group" aria-label="Farben"><button data-hm="kg" aria-pressed="true">Menge in kg</button><button data-hm="avg" aria-pressed="false">Mehr / weniger als üblich</button></div>
+    <p class="hint" id="uHcap" style="margin:0"></p>
+    <div class="u-heat" id="uHeat"></div>
+    <div class="legend" id="uHleg"></div>
+    <p class="u-read" id="uHread" role="status"></p></div>
+</div>
+
+<div class="wrap" id="pgW" hidden>
+  <div><h1>Woche</h1><p class="sub">Bilanz aus Zahlen, Röstwoche und Lager</p></div>
+  <div class="per"><button class="ar" id="wkPrev" aria-label="Woche davor">‹</button><div class="pt"><b id="wkPt">–</b><small id="wkPs">–</small></div><button class="ar" id="wkNext" aria-label="Woche danach">›</button></div>
+  <div class="card"><h2>Wo ist der Kaffee hin?</h2><div id="wkBal"></div><p class="say" id="wkSay" style="margin:0"></p></div>
+  <div class="card"><h2>Prognose dieser Woche</h2><div id="wkFc"></div></div>
+  <div class="card"><h2>Je Sorte</h2><p class="hint" style="margin-top:-6px">kg geröstet nach Röstverlust</p><div id="wkTab" style="overflow-x:auto"></div></div>
+  <div class="card"><h2>Sorten im Trend</h2><p class="hint" style="margin-top:-6px">12 Wochen bis zu dieser · Ø kg pro Woche · Pfeil: letzte 6 Wochen gegen die 6 davor</p><div class="u-sms" id="wkSm"></div></div>
+</div>
+
+<div class="wrap" id="pgV" hidden>
   <div><h1>Verkaufsverlauf</h1><p class="sub" id="cover">–</p></div>
 
   <div class="ctl">
@@ -359,8 +427,10 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 
 <nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
   <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
-  <button role="tab" data-pg="v" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Verlauf</button>
-  <button role="tab" data-pg="p" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Prognose</button>
+  <button role="tab" data-pg="u" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="4" rx="1.5"/><rect x="3" y="10" width="12" height="4" rx="1.5"/><rect x="3" y="16" width="7" height="4" rx="1.5"/></svg>Überblick</button>
+  <button role="tab" data-pg="w" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>Woche</button>
+  <button role="tab" data-pg="v" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Verlauf</button>
+  <button role="tab" data-pg="p" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l6-6 4 4 8-8"/><path d="M15 7h6v6"/></svg>Prognose</button>
 </div></nav>
 <script>
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139: Linse gleitet federnd, ziehbar, Schimmer ---------- */
@@ -908,9 +978,13 @@ document.querySelector('[aria-label="Szenario"]').addEventListener("click",e=>{c
 $("ind").addEventListener("click",e=>{const b=e.target.closest("[data-ind]");if(b){openInd=openInd===b.dataset.ind?null:b.dataset.ind;renderP()}});
 $("sea").addEventListener("input",e=>{sea=+e.target.value;months3(pSel,series(pSel))});
 // Seiten umschalten über die Leiste
-let page="v";
-document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(!b)return;page=b.dataset.pg;
-  document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x===b));$("pgV").hidden=page!=="v";$("pgP").hidden=page!=="p";scrollTo(0,0);if(page==="p")renderP();else render()});
+let page="u";
+function go(p){page=p;document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x.dataset.pg===p));["u","w","v","p"].forEach(k=>$("pg"+k.toUpperCase()).hidden=page!==k);scrollTo(0,0);
+  if(page==="p")renderP();else if(page==="u")renderU();else if(page==="w")renderWk();else render()}
+document.querySelector("nav").addEventListener("click",e=>{const b=e.target.closest("[data-pg]");if(b)go(b.dataset.pg)});
+// Zurück aus Lager oder Röstwoche: Bestand und Röstmengen neu lesen
+addEventListener("pageshow",e=>{if(e.persisted&&M){if(page==="u")renderU();else if(page==="w")renderWk()}});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden&&M){if(page==="u")renderU();else if(page==="w")renderWk()}});
 
 /* ---------- Bedienung ---------- */
 document.querySelector('[aria-label="Zeitraum"]').addEventListener("click",e=>{const b=e.target.closest("[data-n]");if(!b)return;N=+b.dataset.n;render()});
@@ -929,7 +1003,7 @@ $("rows").addEventListener("click",e=>{if(e.target.closest("#zeroT")){showZero=!
   const h=e.target.closest(".sh");if(!h)return;const k=h.parentNode.dataset.x;openK=openK===k?null:k;render();
   const x=$("rows").querySelector(".sx.open");if(x){const r=x.getBoundingClientRect();if(r.top<70||r.top>innerHeight*.5)x.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})}});
 $("tyF").addEventListener("click",e=>{const b=e.target.closest("[data-ty]");if(b){tyF=b.dataset.ty;render()}});$("rank").addEventListener("click",e=>{if(e.target.closest("#gMore")){gAll=!gAll;gesamt();return}pick(e)});document.querySelector('[aria-label="Vergleich"]').addEventListener("click",e=>{const b=e.target.closest("[data-gm]");if(b){gm=b.dataset.gm;gesamt()}});$("ins").addEventListener("click",pick);$("endl").addEventListener("click",pick);
-let rzT;addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>page==="p"?renderP():render(),200)});
+let rzT;addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>page==="p"?renderP():page==="v"?render():0,200)});
 
 function head(){
   const rep=M.all.filter(M.has);
@@ -940,7 +1014,89 @@ function head(){
 }
 function kurz(){try{const rep=M.all.filter(M.has),t=w=>kgW(w,"__all"),a=avgL(rep.slice(-4).map(t)),p=avgL(rep.slice(-8,-4).map(t));
   localStorage.setItem("verkauf.kurz",JSON.stringify({kw:M.last,avg:Math.round(a*10)/10,d:p>0?Math.round((a-p)/p*100):null}))}catch(e){}}
-function all(){derive();head();kurz();freeze();if(end==null||end>M.months.length-1)end=M.months.length-1;render()}
+function all(){derive();head();kurz();freeze();if(end==null||end>M.months.length-1)end=M.months.length-1;render();if(page==="u")renderU();else if(page==="w")renderWk()}
+/* ---------- Überblick und Woche (laden-v39): Bestand kommt aus dem Lager (gehirn.v1 „lager“), Röstmengen aus der Röstwoche (gehirn.v1 „geroestet“) ---------- */
+const nrm=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+const OPEN_DAYS=6; // Laden hat 6 Tage pro Woche offen
+const lagerOf=()=>{const g=gLoad();return g.lager&&g.lager.best?g.lager:null};
+function bestFor(lg,name){if(!lg)return null;const m=nrm(name),ks=Object.keys(lg.best);const k=ks.find(x=>nrm(x)===m)||ks.find(x=>nrm(x).split(" ")[0]===m.split(" ")[0]);if(!k){const kn=(lg.known||[]).some(x=>nrm(x)===m||nrm(x).split(" ")[0]===m.split(" ")[0]);return kn?{kg:0,reg:0,wait:0}:null}const b=lg.best[k];return{kg:(b.reg||0)+(b.wait||0),reg:b.reg||0,wait:b.wait||0}}
+const dShort=s=>new Date(s).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+function renderU(){
+  const lg=lagerOf(),act=M.sorts.filter(s=>!s.ended&&s.lastW!=null);
+  const rows=act.map(s=>{const f=fc2(series(s.key),1),P=f?f[0].v:0,b=bestFor(lg,s.name),perDay=P/OPEN_DAYS;
+    return{s,P,b,days:b&&perDay>0?b.kg/perDay:null}}).filter(r=>r.P>.05||(r.b&&r.b.kg>0));
+  rows.sort((a,b)=>(a.days==null?1e9:a.days)-(b.days==null?1e9:b.days)||b.P-a.P);
+  const chk=lg&&lg.chk&&lg.chk[0];
+  $("uCover").textContent=lg?`Bestand ${chk?"gezählt KW "+chk.w+" am "+dShort(chk.d)+", seitdem":"laut Lager"} mitgerechnet · Prognose KW ${M.last+1}`:`Prognose KW ${M.last+1}`;
+  const red=rows.filter(r=>r.days!=null&&r.days<3).length,yel=rows.filter(r=>r.days!=null&&r.days>=3&&r.days<OPEN_DAYS).length;
+  const MX=12;
+  $("uReach").innerHTML=(lg?"":`<p class="say w" style="margin:0">Noch kein Bestand aus dem Lager. Öffne einmal Lager oder mach dort den Wochen-Check, dann steht hier, wie lange jede Sorte reicht.</p>`)+
+    (lg?`<div class="u-sum"><span class="u-p r"><b>${red}</b> unter 3 Tage</span><span class="u-p y"><b>${yel}</b> unter 1 Woche</span><span class="u-p g"><b>${rows.filter(r=>r.days!=null&&r.days>=OPEN_DAYS).length}</b> reicht</span>${rows.some(r=>r.days==null)?`<span class="u-p"><b>${rows.filter(r=>r.days==null).length}</b> nicht gezählt</span>`:""}</div>`:"")+
+    `<div class="u-rows">${rows.map(r=>{const c=r.days==null?"n":r.days<3?"r":r.days<OPEN_DAYS?"y":"g",d=r.days==null?null:Math.min(r.days,MX);
+      return `<button type="button" class="u-row" data-uk="${esc(r.s.key)}"><span class="u-n"><b>${esc(r.s.name)}</b><small>${!lg?"":!r.b?"noch nicht im Regal gezählt · ":""}${r.b?`${f1(r.b.kg)} kg da${r.b.wait>.05?` (davon ${f1(r.b.wait)} kg noch nicht abgepackt)`:""} · `:""}Prognose ${f1(r.P)} kg/Woche</small></span>
+        <span class="u-d ${c}">${r.days==null?(lg&&!r.b?"?":"–"):r.days<.5?"leer":r.days>=MX?MX+"+ Tage":Math.round(r.days)+(Math.round(r.days)===1?" Tag":" Tage")}</span>
+        ${d!=null?`<span class="u-bar"><i class="${c}" style="width:${Math.max(2,d/MX*100)}%"></i><em style="left:${3/MX*100}%"></em><em style="left:${OPEN_DAYS/MX*100}%"></em></span>`:""}</button>`}).join("")}</div>
+    <div class="legend"><span><i class="sw" style="background:var(--u-r)"></i>unter 3 Tage</span><span><i class="sw" style="background:var(--u-y)"></i>unter 1 Woche</span><span><i class="sw" style="background:var(--good)"></i>reicht</span><span>Striche: 3 Tage, 1 Woche (${OPEN_DAYS} Ladentage)</span></div>`;
+  renderHeat();
+}
+let hm="kg",hSel=null;
+const HK=[[1,"unter 1"],[2,"1–2"],[4,"2–4"],[8,"4–8"],[16,"8–16"],[1e9,"16+"]];
+const HA=[[-.4,"--dn2","40 % weniger"],[-.15,"--dn1","15–40 % weniger"],[.15,"--eq","normal ±15 %"],[.4,"--up1","15–40 % mehr"],[1e9,"--up2","40 % mehr"]];
+function hAvg(s){const v=M.all.filter(M.has).slice(-12).map(w=>s.kg[w]||0).filter(x=>x>0);return v.length?v.reduce((a,b)=>a+b,0)/v.length:0}
+function renderHeat(){
+  const ss=M.sorts.filter(s=>!s.ended&&s.lastW!=null).map(s=>({s,a:hAvg(s)})).sort((x,y)=>y.a-x.a);
+  const col=(x,v)=>{if(v<=0)return"";if(hm==="kg")return`var(--h${HK.findIndex(b=>v<b[0])+1})`;if(!x.a)return"var(--eq)";return`var(${HA.find(b=>v/x.a-1<b[0])[1]})`};
+  let h=`<table><thead><tr><th></th>${M.all.map(w=>`<td class="kw">${w%4===1||w===M.last?`<span>${w}</span>`:""}</td>`).join("")}</tr></thead><tbody>`;
+  ss.forEach((x,i)=>{h+=`<tr><th>${esc(x.s.name)}</th>${M.all.map(w=>{if(!M.has(w))return`<td class="gap"></td>`;const v=x.s.kg[w]||0,sel=hSel&&hSel.i===i&&hSel.w===w;
+    return`<td${v>0?` style="background:${col(x,v)}"`:` class="z"`}${sel?` data-sel="1"`:""} data-hi="${i}" data-hw="${w}"></td>`}).join("")}</tr>`});
+  $("uHeat").innerHTML=h+"</tbody></table>";
+  const sc=$("uHeat");if(!sc.dataset.s){sc.scrollLeft=sc.scrollWidth;sc.dataset.s="1"}
+  $("uHcap").textContent=hm==="kg"?"kg pro Woche. Jede Farbe ist ein fester Bereich. Schraffiert: Bericht fehlt.":"Jede Woche gegen den Schnitt der Sorte (letzte 12 Wochen): blau weniger, orange mehr. Leer: nichts verkauft.";
+  $("uHleg").innerHTML=hm==="kg"?HK.map((b,i)=>`<span><i class="sw" style="background:var(--h${i+1})"></i>${b[1]}</span>`).join("")+`<span>kg</span>`:HA.map(b=>`<span><i class="sw" style="background:var(${b[1]})"></i>${b[2]}</span>`).join("");
+  document.querySelectorAll("[data-hm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hm===hm));
+  const r=$("uHread");if(hSel&&ss[hSel.i]){const x=ss[hSel.i],v=x.s.kg[hSel.w]||0;r.innerHTML=`<b>${esc(x.s.name)} · KW ${hSel.w}:</b> ${f1(v)} kg${x.a?` · Schnitt ${f1(x.a)} kg, ${v>=x.a?"+":"−"}${Math.round(Math.abs(v/x.a-1)*100)} %`:""}`}else r.textContent="Kästchen antippen zeigt die Zahl.";
+  HS=ss;
+}
+let HS=[];
+$("uHeat").addEventListener("click",e=>{const td=e.target.closest("[data-hi]");if(!td)return;hSel={i:+td.dataset.hi,w:+td.dataset.hw};renderHeat()});
+document.querySelector('[aria-label="Farben"]').addEventListener("click",e=>{const b=e.target.closest("[data-hm]");if(b){hm=b.dataset.hm;renderHeat()}});
+$("uReach").addEventListener("click",e=>{const r=e.target.closest("[data-uk]");if(!r)return;sel=r.dataset.uk;go("v")});
+
+/* Woche: Bilanz einer Berichtswoche */
+let wkSel=null;
+function renderWk(){
+  const rep=M.all.filter(M.has);if(!rep.length)return;if(wkSel==null||!rep.includes(wkSel))wkSel=M.last;
+  const i=rep.indexOf(wkSel),w=wkSel,y=D.year,key=y+"-"+w,g=gLoad(),lg=g.lager||{},th=thursday(y,w),sun=new Date(th.mon);sun.setUTCDate(th.mon.getUTCDate()+6);
+  $("wkPt").textContent="KW "+w;$("wkPs").textContent=dd(th.mon)+" – "+dd(sun);$("wkPrev").disabled=i<=0;$("wkNext").disabled=i>=rep.length-1;
+  const sold=kgW(w,"__all"),ge=(Array.isArray(g.geroestet)?g.geroestet:[]).find(x=>x&&x.kw===w&&(x.y||y)===y);
+  const roast=ge?ge.sorten.reduce((a,s)=>a+(s.rohKg||0),0)*(1-(+ge.loss||16)/100):null,eig=lg.eigW?lg.eigW[key]:undefined,pack=lg.packW?lg.packW[key]:undefined,chk=(lg.chk||[]).find(c=>c.w===w&&c.y===y);
+  const it=[["Verkauft",sold,"var(--good)","aus dem Lightspeed-Bericht"],["Nachgeröstet",roast,"var(--accent)",ge?"Röstliste „"+(ge.week||"KW "+w)+"“, geröstet nach Verlust":"keine Röstliste für diese Woche gesichert"],["Abgepackt",pack,"var(--s1)","Tüten, Kisten, Tonnen in dieser Kalenderwoche"],["Eigenbedarf",eig,"var(--warn)","aus Kisten und Tonnen im Lager"]];
+  const mx=Math.max(1,...it.map(x=>x[1]||0));
+  $("wkBal").innerHTML=it.map(([l,v,c,src])=>`<div class="u-bl"><span class="t">${l}<small>${esc(src)}</small></span><span class="u-bb">${v!=null?`<i style="width:${Math.max(2,v/mx*100)}%;background:${c}"></i>`:""}</span><b>${v!=null?f1(v)+" kg":"–"}</b></div>`).join("");
+  const s=roast!=null?roast-sold-(eig||0):null;
+  $("wkSay").innerHTML=(s==null?"Für die Bilanz fehlt die Röstliste dieser Woche. In der Röstwoche die Liste im Verlauf sichern, dann erscheint sie hier.":Math.abs(s)<.5?`Nachgeröstet wurde fast genau so viel, wie verkauft und selbst verbraucht wurde.`:s>0?`Es wurden <b>${f1(s)} kg mehr</b> geröstet als verkauft und selbst verbraucht. Das liegt jetzt im Regal oder wartet aufs Abpacken.`:`Es wurden <b>${f1(-s)} kg weniger</b> geröstet als verkauft und selbst verbraucht. Das kam aus dem Bestand.`)
+    +(chk?` Beim Wochen-Check ${Object.keys(chk.off||{}).length?`${Object.keys(chk.off).length===1?"wich 1 Sorte":"wichen "+Object.keys(chk.off).length+" Sorten"} ab (${chk.dk>=0?"+":"−"}${f1(Math.abs(chk.dk))} kg im Regal).`:"stimmte das Regal."}`:"");
+  // Prognose dieser Woche: festgehalten, sonst nachgerechnet
+  const P=(g.prognosen||{})[key],ser=series("__all"),ix=M.all.indexOf(w),fc=fc2(ser.slice(0,ix),1),pred=P?P.all:fc?fc[0].v:null;
+  if(pred!=null&&sold>0){const d=(pred-sold)/sold,a=Math.abs(d);$("wkFc").innerHTML=`<div class="u-kv"><span>vorhergesagt${P?"":" (nachgerechnet)"}</span><b>${f1(pred)} kg</b></div><div class="u-kv"><span>verkauft</span><b>${f1(sold)} kg</b></div><div class="u-kv"><span>Abweichung</span><b class="${a<.1?"u-ok":a<.25?"u-w":"u-x"}">${d>=0?"+":"−"}${Math.round(a*100)} % ${d>=0?"zu hoch":"zu niedrig"}</b></div>`}else $("wkFc").innerHTML=`<p class="hint">Für diese Woche gibt es noch keine Prognose.</p>`;
+  // Je Sorte: verkauft, Prognose, nachgeröstet
+  const top=M.sorts.filter(x=>(x.kg[w]||0)>0||(ge&&ge.sorten.some(z=>nrm(z.name)===nrm(x.name)&&z.rohKg>0))).sort((a,b)=>(b.kg[w]||0)-(a.kg[w]||0));
+  const rk=n=>{if(!ge)return null;const z=ge.sorten.find(z=>nrm(z.name)===nrm(n))||ge.sorten.find(z=>nrm(z.name).split(" ")[0]===nrm(n).split(" ")[0]);return z?z.rohKg*(1-(+ge.loss||16)/100):0};
+  $("wkTab").innerHTML=`<table class="u-t"><thead><tr><th>Sorte</th><th>verkauft</th><th>Progn.</th><th>geröstet</th></tr></thead><tbody>${top.map(x=>{const pf=P&&P.s&&P.s[x.key]?P.s[x.key].kg:(fc2(series(x.key).slice(0,ix),1)||[{}])[0].v,r=rk(x.name);
+    return`<tr><td>${esc(x.name)}</td><td>${f1(x.kg[w]||0)}</td><td>${pf!=null?f1(pf):"–"}</td><td>${r==null?"–":f1(r)}</td></tr>`}).join("")}</tbody></table>`;
+  // Trends: 9 meistverkaufte Sorten, 12 Wochen bis zu dieser Woche
+  const win=M.all.filter(x=>x<=w).slice(-12),tp=M.sorts.filter(x=>!x.ended||(x.kg[w]||0)>0).map(x=>({x,t:win.reduce((a,v)=>a+(x.kg[v]||0),0)})).sort((a,b)=>b.t-a.t).slice(0,9);
+  $("wkSm").innerHTML=tp.map(({x})=>{const v=win.map(k=>M.has(k)?(x.kg[k]||0):null),p=v.filter(z=>z!=null),avg=p.reduce((a,b)=>a+b,0)/(p.length||1),m=Math.max(...p,.1);
+    const a=p.slice(-6),b=p.slice(-12,-6),ch=b.length&&a.length?(a.reduce((q,z)=>q+z,0)/a.length)/((b.reduce((q,z)=>q+z,0)/b.length)||1)-1:0;
+    const X=k=>2+k*(96/Math.max(1,v.length-1)),Y=z=>27-z/m*23;let pa="";v.forEach((z,k)=>{if(z==null)return;pa+=(pa?"L":"M")+X(k).toFixed(1)+","+Y(z).toFixed(1)});
+    const lk=v.length-1,ar=ch>.1?["↑","u-ok"]:ch<-.1?["↓","u-x"]:["→",""];
+    return`<div class="u-sm"><b>${esc(x.name)}</b><svg viewBox="0 0 100 30" preserveAspectRatio="none" aria-hidden="true"><path d="${pa}L${X(lk)},29L${X(0)},29Z" fill="var(--accent-soft)"/><path d="${pa}" fill="none" stroke="var(--accent)" stroke-width="1.6" vector-effect="non-scaling-stroke"/></svg><small>Ø ${f1(avg)} kg <span class="${ar[1]}">${ar[0]} ${ch>=0?"+":"−"}${Math.round(Math.abs(ch)*100)} %</span></small></div>`}).join("");
+}
+$("wkPrev").onclick=()=>{const rep=M.all.filter(M.has),i=rep.indexOf(wkSel);if(i>0){wkSel=rep[i-1];renderWk()}};
+$("wkNext").onclick=()=>{const rep=M.all.filter(M.has),i=rep.indexOf(wkSel);if(i<rep.length-1){wkSel=rep[i+1];renderWk()}};
+let wsx=null;$("pgW").addEventListener("touchstart",e=>{wsx=e.touches[0].clientX},{passive:true});
+$("pgW").addEventListener("touchend",e=>{if(wsx==null)return;const dx=e.changedTouches[0].clientX-wsx;wsx=null;if(Math.abs(dx)>70)(dx<0?$("wkNext"):$("wkPrev")).click()},{passive:true});
+
 
 /* ---------- Hochladen: Berichte einlesen, nach KW einordnen, nichts doppelt ---------- */
 function merge(r,fname,log){
