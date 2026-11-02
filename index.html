@@ -172,6 +172,14 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 .lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
 @media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
 @media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+/* laden-v42: wo ist der Bericht hinterlegt */
+.rep{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+.rep b{display:block;font-size:15px;margin-bottom:6px}
+.rep ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rep li{display:flex;justify-content:space-between;gap:10px}
+.rep li span:last-child{font-weight:600;text-align:right}
+.rep .y{color:var(--d3)}.rep .n{color:var(--warn)}
+.rep p{margin:8px 0 0;color:var(--muted);font-size:13px}
 /* laden-v41: Zusammenspiel mit Lager und Zahlen */
 .note.sync .go{display:flex;gap:8px;margin-top:10px}
 .note.sync .go a{flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;font-size:15px}
