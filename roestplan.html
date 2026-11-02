@@ -475,17 +475,39 @@ const FC = (() => {
     return { buf: Math.max(0, Math.min(30, Math.round(p * 20) * 5)), under: r.filter(x => x > .1).length, over: r.filter(x => x < -.1).length, n: r.length }; }
   return { fc2, learn };
 })();
+/* laden-v46: Jahreswechsel. verkauf.v1 zählt die Wochen fortlaufend ab D.year (erstes Jahr der Daten): KW 1 des Folgejahres = 54, weil 2026 53 Wochen hat.
+   So bleibt alles eine durchgehende Wochenreihe und kein Jahr überschreibt das andere. Angezeigt wird immer die echte KW. */
+const VKY = (() => {
+  const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+  const base = D => +(D && D.year) || new Date().getFullYear();
+  const idx = (D, y, kw) => { const b = base(D); y = +y || b; let o = 0; for (let i = b; i < y; i++) o += wks(i); for (let i = y; i < b; i++) o -= wks(i); return kw + o; };
+  const kwOf = (D, w) => { let y = base(D); w = +w; while (w > wks(y)) { w -= wks(y); y++; } while (w < 1) { y--; w += wks(y); } return { y, kw: w }; };
+  // Jahr zu einer KW ohne Jahresangabe: das Jahr, in dem diese KW am nächsten an ref liegt
+  const near = (kw, ref) => { ref = ref || new Date(); const r = ref.getFullYear(); let best = r, bd = 1e15;
+    [r - 1, r, r + 1].forEach(y => { const j4 = Date.UTC(y, 0, 4), d = new Date(j4).getUTCDay() || 7, th = j4 + ((kw - 1) * 7 + 4 - d) * 864e5, df = Math.abs(th - ref.getTime()); if (kw <= wks(y) && df < bd) { bd = df; best = y; } }); return best; };
+  // Bericht {kw, year, prevKw} -> fortlaufende Woche in D; null = Jahr vor dem Datenstart
+  const norm = (D, r) => { if (!r || !r.kw) return r; const y = +r.year || near(r.kw); if (D && !D.year) D.year = y; const w = idx(D, y, r.kw); if (w < 1) return null;
+    const p = r.prevKw ? (r.prevKw < r.kw ? w - (r.kw - r.prevKw) : w - 1) : null; return Object.assign({}, r, { kw: w, prevKw: p && p >= 1 ? p : null, realKw: r.kw, year: y }); };
+  return { wks, idx, kwOf, near, norm };
+})();
+// laden-v46: Saison-Zuschlag aus Zahlen › Prognose (gehirn.v1 saison.dez): Dezember voll, November halb, für die Woche nach dem letzten Bericht
+function seasonOf(D, last) {
+  let dez = 0; try { const g = JSON.parse(localStorage.getItem("gehirn.v1")); dez = g && g.saison ? +g.saison.dez || 0 : 0; } catch (_) {}
+  if (!dez || !D || last == null) return { pct: 0, mon: null };
+  const k = VKY.kwOf(D, last + 1), j4 = Date.UTC(k.y, 0, 4), d = new Date(j4).getUTCDay() || 7, mon = new Date(j4 + ((k.kw - 1) * 7 + 4 - d) * 864e5).getUTCMonth();
+  return { pct: mon === 11 ? dez : mon === 10 ? dez / 2 : 0, mon };
+}
 let FI = null;
 function salesInfo() {
-  if (FI) return FI; const m = new Map(); let last = null;
+  if (FI) return FI; const m = new Map(); let last = null, sea = { pct: 0, mon: null };
   try { const D = JSON.parse(localStorage.getItem("verkauf.v1"));
     if (D && D.weeks && Array.isArray(D.sorts)) { const ks = Object.keys(D.weeks).map(Number).filter(Boolean).sort((a, b) => a - b);
       if (ks.length) { last = ks[ks.length - 1]; const all = []; for (let w = ks[0]; w <= last; w++) all.push(w);
         D.sorts.forEach(x => { const kg = x.kg || {}, sold = all.filter(w => (kg[w] || 0) > 0); if (!sold.length || sold[sold.length - 1] <= last - 3) return;
           const vals = all.map(w => D.weeks[w] ? (kg[w] || 0) : null), P = FC.fc2(vals); if (P == null) return;
-          const n = normN(x.name); if (n && !m.has(n)) m.set(n, { P, L: FC.learn(vals) }); }); } } } catch (_) {}
+          const n = normN(x.name); if (n && !m.has(n)) m.set(n, { P, L: FC.learn(vals) }); }); sea = seasonOf(D, last); } } } catch (_) {}
   let sil = []; try { const g = JSON.parse(localStorage.getItem("gehirn.v1")); sil = g && g.silos && Array.isArray(g.silos.list) ? g.silos.list : []; } catch (_) {}
-  return FI = { m, last, sil };
+  return FI = { m, last, sil, sea };
 }
 // Schlüssel suchen: gleicher Name, sonst gleiches erstes Wort (wie in Lager und Zahlen)
 const pickK = (keys, n) => { if (!n) return null; let f = null; for (const k of keys) { if (k === n) return k; if (f == null && k.split(" ")[0] === n.split(" ")[0]) f = k; } return f; };
@@ -495,11 +517,11 @@ function sugFor(r) {
   const n = normN(r.name), I = sortimentInfo(), F = salesInfo(), fk = pickK(F.m.keys(), n), f = fk != null ? F.m.get(fk) : null;
   const hk = pickK(I.known, n), known = hk != null, H = known ? (I.reg.get(hk) || 0) + (I.wait.get(hk) || 0) : null;
   if (!f) return { known, H };
-  const s = S.sorts.find(x => x.id === r.id), e = effSort(s), buf = f.L ? f.L.buf : 10, P = f.P;
+  const s = S.sorts.find(x => x.id === r.id), e = effSort(s), buf = f.L ? f.L.buf : 10, sea = F.sea ? F.sea.pct : 0, P = f.P * (1 + sea / 100);
   // Sorten mit Eigenbedarf (Tonnen, Mühle 2): der Verbrauch steht nicht im Verkaufsbericht, darum kein Vorschlag
-  if (eigSort(n)) return { known, H, P, buf, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: null, eig: true };
+  if (eigSort(n)) return { known, H, P, buf, sea, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: null, eig: true };
   const need = P * (1 + buf / 100) - (H || 0), nS = need <= 0.05 ? 0 : Math.ceil(need / (1 - e.loss / 100) / e.s.size - 1e-9);
-  return { known, H, P, buf, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: nS };
+  return { known, H, P, buf, sea, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: nS };
 }
 function eigSort(n) { const L = salesInfo().sil;
   return L.some(x => { const b = normB(x.sorte || ""), a = normB(x.name || ""); return (b && n.includes(b)) || (a && a !== "muhle 2" && (n.includes(a) || n.split(" ")[0] === a.split(" ")[0])); }); }
@@ -511,7 +533,7 @@ function piHtml(r, started) {
   const p = [];
   if (x.known) p.push(`im Haus <b>${f1(x.H)} kg</b>` + (x.days != null ? ` · <span class="${x.days < 3 ? "lo" : ""}">${x.days < .5 ? "leer" : "reicht " + (x.days >= 12 ? "12+ Tage" : Math.round(x.days) + (Math.round(x.days) === 1 ? " Tag" : " Tage"))}</span>` : ""));
   else if (x.P != null) p.push("im Lager noch nicht gezählt");
-  if (x.P != null) p.push(`Prognose <b>${f1(x.P)} kg</b> + ${x.buf} % Puffer${x.learned ? "" : " (Standard)"}` + (x.eig ? " · dazu Eigenbedarf, darum kein Vorschlag" : ""));
+  if (x.P != null) p.push(`Prognose <b>${f1(x.P)} kg</b>${x.sea ? ` (inkl. ${x.sea > 0 ? "+" : "−"}${String(Math.abs(x.sea)).replace(".", ",")} % ${salesInfo().sea.mon === 11 ? "Dezember" : "November"})` : ""} + ${x.buf} % Puffer${x.learned ? "" : " (Standard)"}` + (x.eig ? " · dazu Eigenbedarf, darum kein Vorschlag" : ""));
   let h = `<div class="pi">${p.join(" · ")}</div>`;
   if (x.n != null && x.known && !started && x.n !== r.batches.length) {
     const d = x.n - r.batches.length; SG.set(r.id, x.n);
@@ -578,9 +600,10 @@ function renderZahlen() {
 const wkNum = t => parseInt(String(t || "").replace(/[^0-9]+/g, " ").trim().split(" ")[0], 10) || null;
 function healSales() {
   try {
-    const kw = wkNum(S.week); if (!kw || !["file", "photo"].includes(S.source)) return null;
+    let kw = wkNum(S.week); if (!kw || !["file", "photo"].includes(S.source)) return null;
     if (!S.sorts.some(s => Core.soldGrams(s) > 0)) return null;
-    const D = JSON.parse(localStorage.getItem("verkauf.v1")); if (!D || !D.weeks || D.weeks[kw]) return null;
+    const D = JSON.parse(localStorage.getItem("verkauf.v1")); if (!D || !D.weeks) return null;
+    const rk = kw; kw = VKY.idx(D, VKY.near(rk), rk); if (kw < 1 || D.weeks[kw]) return null;
     const ks = Object.keys(D.weeks).map(Number).filter(Boolean), last = ks.length ? Math.max(...ks) : kw;
     if (kw < last - 10 || kw > last + 3) return null;
     D.sorts = Array.isArray(D.sorts) ? D.sorts : [];
@@ -596,7 +619,8 @@ function repBox() {
   const el = $("repBox"), kw = wkNum(S.week);
   if (!kw || !["file", "photo"].includes(S.source) || !S.sorts.some(s => Core.soldGrams(s) > 0)) { el.hidden = true; return; }
   let D = null; try { D = JSON.parse(localStorage.getItem("verkauf.v1")); } catch (_) {}
-  const w = D && D.weeks ? D.weeks[kw] : null, bags = !!(D && Array.isArray(D.sorts) && D.sorts.some(s => s.u && s.u[kw] && Object.keys(s.u[kw]).length));
+  const ix = D && D.weeks ? VKY.idx(D, VKY.near(kw), kw) : null;
+  const w = D && D.weeks ? D.weeks[ix] : null, bags = !!(D && Array.isArray(D.sorts) && D.sorts.some(s => s.u && s.u[ix] && Object.keys(s.u[ix]).length));
   const li = (a, ok, t) => `<li><span>${a}</span><span class="${ok ? "y" : "n"}">${t}</span></li>`;
   el.innerHTML = `<b>Bericht KW ${kw} ist hinterlegt in</b><ul>${li("Röstwoche", true, "✓ kg je Sorte")}${li("Zahlen", !!w, w ? (w.src === "roestwoche" ? "✓ nur kg" : "✓ ganzer Bericht") : "fehlt")}${li("Lager", bags, bags ? "✓ Tütenzahlen" : "Tütenzahlen fehlen")}</ul>`
     + (!bags ? `<p>Für die Tütenzahlen (Lager, Wochen-Check) das Lightspeed-PDF von KW ${kw} hier oben über „Datei“ laden. Deine Verteilung auf die Rösttage bleibt dabei erhalten.</p>` : "");
@@ -606,7 +630,8 @@ function repBox() {
 function syncBox() {
   const el = $("syncBox"); if (!S.sync) { el.innerHTML = ""; return; }
   let h = esc(S.sync); const kw = S.syncKw;
-  if (kw) { const c = sortimentInfo().chk; h += c && +c.w === +kw ? `<span class="done">✓ Wochen-Check KW ${kw} erledigt</span>` : `<div class="go"><a href="abpackhilfe.html#check">Weiter: Wochen-Check</a></div>`; }
+  if (kw) { const c = sortimentInfo().chk; let kl = kw; try { kl = VKY.kwOf(JSON.parse(localStorage.getItem("verkauf.v1")), kw).kw; } catch (_) {}
+    h += c && +c.w === +kw ? `<span class="done">✓ Wochen-Check KW ${kl} erledigt</span>` : `<div class="go"><a href="abpackhilfe.html#check">Weiter: Wochen-Check</a></div>`; }
   el.innerHTML = h;
 }
 function updTotals() {
@@ -929,7 +954,7 @@ function toBrain(v) {
   v.days.flat().concat(v.open).forEach(x => { roh[x.name] = (roh[x.name] || 0) + x.kgs.reduce((a, k) => a + k, 0); });
   const kw = parseInt(String(v.week || "").replace(/[^0-9]+/g, " ").trim().split(" ")[0], 10) || null;
   g.geroestet = (Array.isArray(g.geroestet) ? g.geroestet : []).filter(x => !(v.week && x.week === v.week));
-  g.geroestet.unshift({ id: v.id, at: v.at, week: v.week, kw, y: new Date(v.at).getFullYear(), loss: v.loss,
+  g.geroestet.unshift({ id: v.id, at: v.at, week: v.week, kw, y: kw ? VKY.near(kw, new Date(v.at)) : new Date(v.at).getFullYear(), loss: v.loss,
     sorten: v.sorts.map(x => ({ name: x.name, planG: x.totalG, rohKg: roh[x.name] || 0 })) });
   g.geroestet = g.geroestet.slice(0, 260); gSave(g);
 }
@@ -1227,7 +1252,7 @@ const SALES = (() => {
     let m = text.match(/Verkaufswoche\s+KW\s*(\d{1,2})\s*\/\s*(\d{4})/i) || text.match(/\bKW\s*(\d{1,2})\s*(?:\/\s*(\d{4}))?\s*·\s*(\d{2})\.(\d{2})\.?\s*[–-]/);
     if (m) { kw = +m[1]; year = m[2] ? +m[2] : null; }
     const dm = text.match(/(\d{1,2})\.(?:(\d{1,2})\.)?\s*[–-]\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-    if (dm) { const yy = +dm[5], mon = dm[2] ? +dm[2] : +dm[4]; const w = isoWeek(new Date(yy, mon - 1, +dm[1])); if (!kw) kw = w.kw; if (!year) year = w.year; }
+    if (dm) { const yy = +dm[5] - (dm[2] && +dm[2] > +dm[4] ? 1 : 0), mon = dm[2] ? +dm[2] : +dm[4]; const w = isoWeek(new Date(yy, mon - 1, +dm[1])); if (!kw) kw = w.kw; if (!year) year = w.year; }
     const pm = text.match(/Vorwoche\s+KW\s*(\d{1,2})/i);
     // Spaltenköpfe finden
     let head = null, hi = -1;
@@ -1274,7 +1299,7 @@ const SALES = (() => {
     // Ohne kg-Spalte: aus den Stückzahlen rechnen
     prods.forEach(p => { const u = p.u, calc = (u[250] || 0) * .25 + (u[1000] || 0) + (u[3000] || 0) * 3 + (u[10000] || 0) * 10 + (u.unv || 0);
       p.calc = Math.round(calc * 1000) / 1000; if (!hasPrev) p.kg = p.calc; else if (p.kg == null) p.kg = p.calc; });
-    return { kw, year: year || 2026, prevKw, products: prods.filter(p => p.kg > 0 || p.prevKg > 0 || Object.keys(p.u).length) };
+    return { kw, year: year || null, prevKw, products: prods.filter(p => p.kg > 0 || p.prevKg > 0 || Object.keys(p.u).length) };
   }
   return { num, rows, parse, keyOf, isoWeek };
 })();
@@ -1295,12 +1320,13 @@ function syncSales(items, fname) {
     const r = items && SALES.parse(SALES.rows(items.map(i => { const pg = Math.floor(i.y / 100000) + 1, yy = pg * 100000 - i.y; return { ...i, y: pg * 2000 - yy }; })));
     if (!r || !r.products.length) return "";
     let D = null; try { D = JSON.parse(localStorage.getItem("verkauf.v1")); } catch (_) {}
-    if (D && D.weeks && (!D.year || !r.year || D.year === r.year)) {
-      const how = vkMerge(D, r); localStorage.setItem("verkauf.v1", JSON.stringify(D)); syncSales.kw = r.kw; FI = null;
+    if (D && D.weeks) {
+      const n = VKY.norm(D, r); if (!n) return `KW ${r.kw}/${r.year} liegt vor dem Start deiner Zahlen und wurde dort nicht übernommen.`;
+      const how = vkMerge(D, n); localStorage.setItem("verkauf.v1", JSON.stringify(D)); syncSales.kw = n.kw; FI = null;
       return `Auch in Zahlen und Lager übernommen: KW ${r.kw}${how === "neu" ? "" : " (gleiche Woche ersetzt)"}.`;
     }
     let Q = []; try { Q = JSON.parse(localStorage.getItem("verkauf.neu")) || []; } catch (_) {}
-    Q = Q.filter(x => x.r && x.r.kw !== r.kw).concat([{ r, f: fname || "", at: new Date().toISOString() }]).slice(-10);
+    Q = Q.filter(x => x.r && !(x.r.kw === r.kw && (x.r.year || 0) === (r.year || 0))).concat([{ r, f: fname || "", at: new Date().toISOString() }]).slice(-10);
     localStorage.setItem("verkauf.neu", JSON.stringify(Q));
     return `KW ${r.kw} ist vorgemerkt. Öffne einmal Zahlen, dann ist der Bericht auch dort und im Lager.`;
   } catch (_) { return ""; }

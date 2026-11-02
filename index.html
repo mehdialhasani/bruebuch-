@@ -516,16 +516,19 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   try {
     const G = id => document.getElementById(id);
     const isoWk = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); const y = new Date(Date.UTC(t.getUTCFullYear(), 0, 1)); return Math.ceil(((t - y) / 864e5 + 1) / 7); };
-    const T = isoWk(new Date(Date.now() - 7 * 864e5)), kwOf = t => parseInt(String(t || "").replace(/[^0-9]+/g, " ").trim().split(" ")[0], 10) || null;
-    const vk1 = get("verkauf.v1"), ab = get("abpack.v1") || {}, rp = get("roestplan.v4"), rv = get("roestplan.verlauf");
+    // laden-v46: Jahr der KW mitnehmen; verkauf.v1 zählt Wochen fortlaufend ab seinem ersten Jahr (KW 1/2027 = 54)
+    const isoY = d => { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())), day = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - day); return t.getUTCFullYear(); };
+    const wksY = y => isoWk(new Date(y, 11, 28)), idxOf = (base, y, kw) => { let o = 0; for (let i = base; i < y; i++) o += wksY(i); for (let i = y; i < base; i++) o -= wksY(i); return kw + o; };
+    const T = isoWk(new Date(Date.now() - 7 * 864e5)), TY = isoY(new Date(Date.now() - 7 * 864e5)), kwOf = t => parseInt(String(t || "").replace(/[^0-9]+/g, " ").trim().split(" ")[0], 10) || null;
+    const vk1 = get("verkauf.v1"), ab = get("abpack.v1") || {}, rp = get("roestplan.v4"), rv = get("roestplan.verlauf"), TI = idxOf(+(vk1 && vk1.year) || TY, TY, T);
     if ((rp && rp.source && rp.source !== "preset") || (vk1 && vk1.weeks)) {
       const e = rp && rp.vId && Array.isArray(rv) ? rv.find(x => x && x.id === rp.vId) : null, cur = e && kwOf(e.week) === T ? e : null;
       const keys = cur ? [0, 1, 2].filter(d => (cur.days || [])[d] && cur.days[d].length).concat(cur.open && cur.open.length ? [3] : []) : [];
       const conf = ab.conf || {}, nC = keys.filter(d => conf[cur.id + "#" + d]).length;
       const wait = Object.values(ab.wait || {}).reduce((a, w) => a + (+(w && w.roh) || 0), 0);
       const st = [
-        [!!(vk1 && vk1.weeks && vk1.weeks[T]), "Bericht KW " + T + " laden", "roestplan.html"],
-        [!!(ab.chk && +ab.chk.w === T), "Wochen-Check machen", "abpackhilfe.html#check"],
+        [!!(vk1 && vk1.weeks && vk1.weeks[TI]), "Bericht KW " + T + " laden", "roestplan.html"],
+        [!!(ab.chk && +ab.chk.w === TI), "Wochen-Check machen", "abpackhilfe.html#check"],
         [!!cur, "Röstliste auf Tage verteilen", "roestplan.html#chargen"],
         [!!cur && keys.length > 0 && nC === keys.length, cur && keys.length ? "Rösttage bestätigen (" + nC + " von " + keys.length + ")" : "Rösttage bestätigen", "roestplan.html#liste"],
         [!!cur && keys.length > 0 && nC === keys.length && wait < .5, "Abpacken" + (wait >= .5 ? " (" + Math.round(wait) + " kg roh warten)" : ""), "abpackhilfe.html"]];

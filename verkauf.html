@@ -489,7 +489,7 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
     <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>verkauft</span><span><i class="sw" style="box-shadow:inset 0 0 0 2px var(--accent)"></i>Prognose</span><span>* Monat teils geschätzt</span><span>Wo. = Wochen im Monat, deshalb sind Okt und Dez länger</span></div>
     <div class="cal" id="cal"></div>
     <label class="sl"><span>Saison-Zuschlag Dezember <b id="sv">+0 %</b></span><input type="range" id="sea" min="-20" max="50" step="5" value="0"></label>
-    <p class="hint" style="margin:0">November bekommt die Hälfte davon.</p>
+    <p class="hint" style="margin:0">November bekommt die Hälfte davon. Der Zuschlag wird gespeichert und gilt auch für die Röstvorschläge in der Röstwoche.</p>
   </div>
 
   <div class="card">
@@ -574,7 +574,7 @@ const VK = (() => {
     let m = text.match(/Verkaufswoche\s+KW\s*(\d{1,2})\s*\/\s*(\d{4})/i) || text.match(/\bKW\s*(\d{1,2})\s*(?:\/\s*(\d{4}))?\s*·\s*(\d{2})\.(\d{2})\.?\s*[–-]/);
     if (m) { kw = +m[1]; year = m[2] ? +m[2] : null; }
     const dm = text.match(/(\d{1,2})\.(?:(\d{1,2})\.)?\s*[–-]\s*(\d{1,2})\.(\d{1,2})\.(\d{4})/);
-    if (dm) { const yy = +dm[5], mon = dm[2] ? +dm[2] : +dm[4]; const w = isoWeek(new Date(yy, mon - 1, +dm[1])); if (!kw) kw = w.kw; if (!year) year = w.year; }
+    if (dm) { const yy = +dm[5] - (dm[2] && +dm[2] > +dm[4] ? 1 : 0), mon = dm[2] ? +dm[2] : +dm[4]; const w = isoWeek(new Date(yy, mon - 1, +dm[1])); if (!kw) kw = w.kw; if (!year) year = w.year; }
     const pm = text.match(/Vorwoche\s+KW\s*(\d{1,2})/i);
     // Spaltenköpfe finden
     let head = null, hi = -1;
@@ -621,9 +621,24 @@ const VK = (() => {
     // Ohne kg-Spalte: aus den Stückzahlen rechnen
     prods.forEach(p => { const u = p.u, calc = (u[250] || 0) * .25 + (u[1000] || 0) + (u[3000] || 0) * 3 + (u[10000] || 0) * 10 + (u.unv || 0);
       p.calc = Math.round(calc * 1000) / 1000; if (!hasPrev) p.kg = p.calc; else if (p.kg == null) p.kg = p.calc; });
-    return { kw, year: year || 2026, prevKw, products: prods.filter(p => p.kg > 0 || p.prevKg > 0 || Object.keys(p.u).length) };
+    return { kw, year: year || null, prevKw, products: prods.filter(p => p.kg > 0 || p.prevKg > 0 || Object.keys(p.u).length) };
   }
   return { num, rows, parse, keyOf, isoWeek };
+})();
+/* laden-v46: Jahreswechsel. verkauf.v1 zählt die Wochen fortlaufend ab D.year (erstes Jahr der Daten): KW 1 des Folgejahres = 54, weil 2026 53 Wochen hat.
+   So bleibt alles eine durchgehende Wochenreihe und kein Jahr überschreibt das andere. Angezeigt wird immer die echte KW. */
+const VKY = (() => {
+  const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+  const base = D => +(D && D.year) || new Date().getFullYear();
+  const idx = (D, y, kw) => { const b = base(D); y = +y || b; let o = 0; for (let i = b; i < y; i++) o += wks(i); for (let i = y; i < b; i++) o -= wks(i); return kw + o; };
+  const kwOf = (D, w) => { let y = base(D); w = +w; while (w > wks(y)) { w -= wks(y); y++; } while (w < 1) { y--; w += wks(y); } return { y, kw: w }; };
+  // Jahr zu einer KW ohne Jahresangabe: das Jahr, in dem diese KW am nächsten an ref liegt
+  const near = (kw, ref) => { ref = ref || new Date(); const r = ref.getFullYear(); let best = r, bd = 1e15;
+    [r - 1, r, r + 1].forEach(y => { const j4 = Date.UTC(y, 0, 4), d = new Date(j4).getUTCDay() || 7, th = j4 + ((kw - 1) * 7 + 4 - d) * 864e5, df = Math.abs(th - ref.getTime()); if (kw <= wks(y) && df < bd) { bd = df; best = y; } }); return best; };
+  // Bericht {kw, year, prevKw} -> fortlaufende Woche in D; null = Jahr vor dem Datenstart
+  const norm = (D, r) => { if (!r || !r.kw) return r; const y = +r.year || near(r.kw); if (D && !D.year) D.year = y; const w = idx(D, y, r.kw); if (w < 1) return null;
+    const p = r.prevKw ? (r.prevKw < r.kw ? w - (r.kw - r.prevKw) : w - 1) : null; return Object.assign({}, r, { kw: w, prevKw: p && p >= 1 ? p : null, realKw: r.kw, year: y }); };
+  return { wks, idx, kwOf, near, norm };
 })();
 
 </script>
@@ -635,14 +650,17 @@ const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&g
 const f1=v=>(Math.round(v*10)/10).toLocaleString("de-DE",{minimumFractionDigits:1,maximumFractionDigits:1});
 const f2=v=>v.toLocaleString("de-DE",{maximumFractionDigits:2});
 const pct=d=>(d>=0?"+":"−")+Math.round(Math.abs(d)*100)+" %";
-const MON=["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"],MONL=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
+const M12=a=>new Proxy(a,{get:(t,p)=>typeof p==="string"&&/^-?\d+$/.test(p)?t[((+p%12)+12)%12]:t[p]});
+const MON=M12(["Jan","Feb","Mär","Apr","Mai","Jun","Jul","Aug","Sep","Okt","Nov","Dez"]),MONL=M12(["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"]);
 // Datenstand: eingebaute Berichte + was hier hochgeladen wurde (nur auf diesem Gerät)
 let D=JSON.parse(JSON.stringify(SEED));
 try{const s=JSON.parse(localStorage.getItem("verkauf.v1"));if(s&&s.weeks)D=s}catch(e){}
 const save=()=>{try{localStorage.setItem("verkauf.v1",JSON.stringify(D))}catch(e){}};
 // Montag einer ISO-KW; Monat einer KW = Monat ihres Donnerstags
 const thursday=(y,w)=>{const j4=new Date(Date.UTC(y,0,4)),d=j4.getUTCDay()||7;const mon=new Date(j4);mon.setUTCDate(j4.getUTCDate()-d+1+(w-1)*7);const t=new Date(mon);t.setUTCDate(mon.getUTCDate()+3);return{mon,t}};
-const monthOf=w=>thursday(D.year,w).t.getUTCMonth();
+const monthOf=w=>{const t=thursday(D.year,w).t;return t.getUTCFullYear()*12+t.getUTCMonth()};
+// laden-v46: echte KW zur fortlaufenden Woche; Monatsnamen gehen über Jahresgrenzen (Monat = Jahr*12+Monat)
+const kwL=w=>VKY.kwOf(D,w).kw,yOf=k=>Math.floor(k/12);
 const dd=d=>String(d.getUTCDate()).padStart(2,"0")+"."+String(d.getUTCMonth()+1).padStart(2,"0")+".";
 
 let M;
@@ -688,29 +706,29 @@ function renderCmp(k){
   $("cmpCap").textContent=fest.length?`festgehalten: ${fest.length} ${fest.length===1?"Woche":"Wochen"}`:"festgehalten ab dieser Woche";
   $("cmpSay").innerHTML=err==null?"Noch kein Vergleich möglich.":`${k==="__all"?"Alle Sorten":esc(nameOf(k))}: Die Prognose lag ${fest.length>=3?"":"(nachgerechnet) "}im Schnitt <b>${Math.round(err*100)} % daneben</b>, ${under>use.length/2?`meist <b>zu niedrig</b> (${under} von ${use.length} Wochen)`:under<use.length/2?`meist <b>zu hoch</b> (${use.length-under} von ${use.length} Wochen)`:"mal drüber, mal drunter"}.`;
   const dv=r=>{if(r.act==null||!r.act)return"–";const d=(r.pred-r.act)/r.act,a=Math.abs(d);return`<span class="dv ${a<.1?"ok":a>.25?"far":""}">${d>=0?"+":"−"}${Math.round(a*100)} %</span>`};
-  $("cmp").innerHTML=rows.length?`<table class="cmp"><thead><tr><th>Woche</th><th>Prognose</th><th>Verkauft</th><th>Abw.</th></tr></thead><tbody>${rows.map(r=>`<tr class="${r.t==="nach"?"nach":r.t==="wait"?"wait":""}"><td>KW ${r.kw}${r.t==="wait"?`<small>festgehalten ${new Date(r.at).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}</small>`:r.t==="nach"?"<small>nachgerechnet</small>":r.t==="fehlt"?"<small>Bericht fehlt</small>":""}</td><td>${f1(r.pred)} kg</td><td>${r.t==="wait"?"wartet":r.act==null?"–":f1(r.act)+" kg"}</td><td>${r.t==="wait"?"":dv(r)}</td></tr>`).join("")}</tbody></table>`:"";
+  $("cmp").innerHTML=rows.length?`<table class="cmp"><thead><tr><th>Woche</th><th>Prognose</th><th>Verkauft</th><th>Abw.</th></tr></thead><tbody>${rows.map(r=>`<tr class="${r.t==="nach"?"nach":r.t==="wait"?"wait":""}"><td>KW ${kwL(r.kw)}${r.t==="wait"?`<small>festgehalten ${new Date(r.at).toLocaleDateString("de-DE",{day:"numeric",month:"short"})}</small>`:r.t==="nach"?"<small>nachgerechnet</small>":r.t==="fehlt"?"<small>Bericht fehlt</small>":""}</td><td>${f1(r.pred)} kg</td><td>${r.t==="wait"?"wartet":r.act==null?"–":f1(r.act)+" kg"}</td><td>${r.t==="wait"?"":dv(r)}</td></tr>`).join("")}</tbody></table>`:"";
 }
 
 /* ---------- Zustand ---------- */
 let N=1,end=null,sel="__all",sortBy="menge";
 const win=(e,n)=>n>=99?M.months.slice():M.months.slice(Math.max(0,e-n+1),e+1);
-const label=ms=>ms.length?(ms.length===1?MONL[ms[0].k]+" "+D.year:MON[ms[0].k]+" – "+MON[ms[ms.length-1].k]+" "+D.year):"";
+const label=ms=>{if(!ms.length)return "";const a=ms[0].k,b=ms[ms.length-1].k;return ms.length===1?MONL[a]+" "+yOf(a):yOf(a)===yOf(b)?MON[a]+" – "+MON[b]+" "+yOf(b):MON[a]+" "+yOf(a)+" – "+MON[b]+" "+yOf(b)};
 const wk=ms=>ms.flatMap(m=>m.weeks);
 const sum=(ws,k)=>ws.reduce((a,w)=>a+kgW(w,k),0);
 
 /* ---------- Diagramm: davor hell, jetzt dunkel, je mit Schnitt-Linie ---------- */
 function niceMax(v){const p=Math.pow(10,Math.floor(Math.log10(v||1))),n=v/p;return(n<=1?1:n<=2?2:n<=2.5?2.5:n<=5?5:10)*p}
-const short=ms=>label(ms).replace(" "+D.year,"");
+const short=ms=>label(ms).replace(/ (20\d\d)/g,(m,y)=>+y===new Date().getFullYear()?"":m);
 function chart(cur,prv){
   const el=$("chart"),W=Math.max(300,Math.min(720,Math.round(el.clientWidth||640))),H=236,L=34,T=34,B=34,pw=W-L-6,ph=H-T-B;
   const atEnd=end===M.months.length-1;
-  const wkBar=(w,g)=>({g,lab:String(w),sub:M.has(w)?(D.weeks[w].src==="vorwoche"?"Vorw.":""):"fehlt",v:M.has(w)?kgW(w,sel):null,
-    tip:`<b>KW ${w}</b><br>${M.has(w)?f2(kgW(w,sel))+" kg"+(D.weeks[w].src==="vorwoche"?" (aus Vorwoche)":""):"kein Bericht"}`});
+  const wkBar=(w,g)=>({g,lab:String(kwL(w)),sub:M.has(w)?(D.weeks[w].src==="vorwoche"?"Vorw.":""):"fehlt",v:M.has(w)?kgW(w,sel):null,
+    tip:`<b>KW ${kwL(w)}</b><br>${M.has(w)?f2(kgW(w,sel))+" kg"+(D.weeks[w].src==="vorwoche"?" (aus Vorwoche)":""):"kein Bericht"}`});
   const moBar=(m,g)=>{const v=m.weeks.length?sum(m.weeks,sel)/m.weeks.length:null;return{g,lab:MON[m.k],sub:m.weeks.length+" Wo.",v,
     tip:`<b>${MONL[m.k]}</b><br>Ø ${v==null?"–":f1(v)} kg pro Woche<br>zusammen ${f1(sum(m.weeks,sel))} kg in ${m.weeks.length} Wochen`}};
   let bars=N===1?[...(prv[0]?prv[0].all.map(w=>wkBar(w,0)):[]),...cur[0].all.map(w=>wkBar(w,1))]:[...prv.map(m=>moBar(m,0)),...cur.map(m=>moBar(m,1))];
   if(atEnd){const f=forecast(series(sel),N===1?1:4);if(f){const v=f.reduce((a,b)=>a+b,0)/f.length;
-    bars.push(N===1?{g:2,lab:String(M.last+1),sub:"Prognose",v,tip:`<b>KW ${M.last+1} · Prognose</b><br>etwa ${f1(v)} kg`}:{g:2,lab:"bald",sub:"Prognose",v,tip:`<b>Nächste 4 Wochen · Prognose</b><br>Ø etwa ${f1(v)} kg pro Woche`})}}
+    bars.push(N===1?{g:2,lab:String(M.last+1),sub:"Prognose",v,tip:`<b>KW ${kwL(M.last+1)} · Prognose</b><br>etwa ${f1(v)} kg`}:{g:2,lab:"bald",sub:"Prognose",v,tip:`<b>Nächste 4 Wochen · Prognose</b><br>Ø etwa ${f1(v)} kg pro Woche`})}}
   const cw=wk(cur),pw0=wk(prv),aNow=cw.length?sum(cw,sel)/cw.length:null,aPrev=pw0.length?sum(pw0,sel)/pw0.length:null;
   const max=niceMax(Math.max(1,...bars.map(b=>b.v||0))*1.1),n=bars.length,slot=pw/n,bw=Math.min(44,slot*.66);
   const Y=v=>T+ph-v/max*ph,X=i=>L+slot*(i+.5);let g="";
@@ -744,7 +762,7 @@ function render(){
   const cur=win(end,N),prv=N<99&&end-N>=0?win(end-N,N):[];
   const cw=wk(cur),pw=wk(prv);
   $("pt").textContent=label(cur);
-  $("ps").textContent=cw.length?`KW ${cur[0].all[0]}–${cur[cur.length-1].all.slice(-1)[0]} · ${cw.length} Wochen mit Zahlen`:"keine Zahlen";
+  $("ps").textContent=cw.length?`KW ${kwL(cur[0].all[0])}–${kwL(cur[cur.length-1].all.slice(-1)[0])} · ${cw.length} Wochen mit Zahlen`:"keine Zahlen";
   $("prev").disabled=end<=0||N>=99;$("next").disabled=end>=M.months.length-1||N>=99;
   document.querySelectorAll("[data-n]").forEach(b=>b.setAttribute("aria-pressed",+b.dataset.n===N));
   // Kennzahl: Ø pro Woche, weil Monate unterschiedlich viele Berichte haben
@@ -812,7 +830,7 @@ function rows(L,cw,pw){
   const sold=L.filter(r=>r.t>0),zero=L.filter(r=>r.t===0),first=cw[0];
   $("rowsH").textContent=`${sold.length} Sorten verkauft`;
   const mx=Math.max(.1,...L.map(r=>Math.max(r.a,r.b)));
-  const one=({s,a,t,d,b,share},i)=>{const tag=t===0?`<small class="end">nicht mehr verkauft</small>`:s.ended?`<small class="end">letzte KW ${s.lastW}</small>`:s.firstW>=first&&s.firstW>M.first?`<small class="new">neu ab KW ${s.firstW}</small>`:"";
+  const one=({s,a,t,d,b,share},i)=>{const tag=t===0?`<small class="end">nicht mehr verkauft</small>`:s.ended?`<small class="end">letzte KW ${kwL(s.lastW)}</small>`:s.firstW>=first&&s.firstW>M.first?`<small class="new">neu ab KW ${kwL(s.firstW)}</small>`:"";
     const dc=d==null?"":d>=.05?"up":d<=-.05?"dn":"",dt=d==null?(b>0?"":a>0&&pw.length?"neu":""):(d>=0?"▲ ":"▼ ")+pct(d),op=s.key===openK;
     return `<div class="sx${op?" open":""}" data-x="${esc(s.key)}"><button class="sh" aria-expanded="${op}"><span class="no">${t>0?i+1:"–"}</span><span class="nm">${esc(s.name)}${tag}</span><span class="v">${f1(a)} kg<small> /Wo</small></span>
       <span></span><span class="bw" aria-hidden="true"><i style="width:${(a/mx*100).toFixed(1)}%"></i>${pw.length&&b>0?`<b style="left:${(b/mx*100).toFixed(1)}%"></b>`:""}</span><span class="pl ${dc}">${dt||(t>0?Math.round(share*100)+" %":"0 kg")}</span></button>
@@ -844,7 +862,7 @@ function detail(s,cw,pw,r){
     <div class="wc" data-k="${esc(s.key)}" data-sl="${Lx}" data-slot="${slot}" data-w="${W}"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Wochenverlauf ${esc(s.name)}">${g}</svg></div>
     <div class="legend"><span><i class="sw" style="background:var(--accent)"></i>gewählter Zeitraum</span><span><i class="sw" style="height:0;border-top:2px solid var(--ink);border-radius:0"></i>Ø ${f1(r.a)} kg</span><span><i class="sw" style="background:var(--hatch)"></i>kein Bericht</span></div>
     <div class="kp">${kpi("Ø jetzt",f1(r.a)+" kg","pro Woche")+kpi("Ø davor",pw.length?f1(r.b)+" kg":"–",r.d==null?"kein Vergleich":(r.d>=0?"▲ ":"▼ ")+pct(r.d))+kpi("Anteil",Math.round(r.share*100)+" %","aller kg")+
-      kpi("Beste",best?"KW "+best:"–",best?f2(s.kg[best])+" kg":"")+kpi("Zuletzt",lw?f2(s.kg[lw]||0)+" kg":"–","KW "+lw)+kpi("Seit",s.firstW?"KW "+s.firstW:"–",s.ended?"bis KW "+s.lastW:"läuft")}</div>
+      kpi("Beste",best?"KW "+kwL(best):"–",best?f2(s.kg[best])+" kg":"")+kpi("Zuletzt",lw?f2(s.kg[lw]||0)+" kg":"–","KW "+kwL(lw))+kpi("Seit",s.firstW?"KW "+kwL(s.firstW):"–",s.ended?"bis KW "+s.lastW:"läuft")}</div>
     ${UL.length?`<div class="lbl">Wie verkauft im Zeitraum</div><div class="gb">${UL.map(x=>`<i style="background:${x[2]};flex:${U[x[0]]*x[3]/ukg}"></i>`).join("")}</div><div class="legend">${UL.map(x=>`<span><i class="sw" style="background:${x[2]}"></i>${x[1]} ${x[0]==="unv"?f1(U[x[0]])+" kg":"× "+Math.round(U[x[0]])}</span>`).join("")}</div>`:""}
     <div class="acts"><button data-show="${esc(s.key)}">${s.key===sel?"Oben wieder alle Sorten":"Oben in der Grafik zeigen"}</button></div>`;
 }
@@ -855,7 +873,7 @@ function scrub(el){
     ln.setAttribute("x1",Lx+slot*(i+.5));ln.setAttribute("x2",Lx+slot*(i+.5));ln.setAttribute("visibility","visible");
     svg.querySelectorAll(".wb").forEach(b=>b.style.opacity=+b.dataset.i===i?1:.45);
     const {mon}=thursday(D.year,w),sun=new Date(mon);sun.setUTCDate(mon.getUTCDate()+6);
-    rd.textContent=`KW ${w} · ${dd(mon)}–${dd(sun)}${M.has(w)&&D.weeks[w].src==="vorwoche"?" · aus Vorwoche":""}`;rv.textContent=M.has(w)?f2(s.kg[w]||0)+" kg":"kein Bericht"};
+    rd.textContent=`KW ${kwL(w)} · ${dd(mon)}–${dd(sun)}${M.has(w)&&D.weeks[w].src==="vorwoche"?" · aus Vorwoche":""}`;rv.textContent=M.has(w)?f2(s.kg[w]||0)+" kg":"kein Bericht"};
   const off=()=>{ln.setAttribute("visibility","hidden");svg.querySelectorAll(".wb").forEach(b=>b.style.opacity="");rd.textContent=def[0];rv.textContent=def[1]};
   el.addEventListener("pointerdown",e=>{at(e);el.setPointerCapture(e.pointerId)});el.addEventListener("pointermove",e=>{if(e.pointerType==="mouse"||el.hasPointerCapture(e.pointerId))at(e)});
   el.addEventListener("pointerup",e=>{if(e.pointerType!=="mouse")setTimeout(off,1600)});el.addEventListener("pointerleave",e=>{if(e.pointerType==="mouse")off()});el.addEventListener("pointercancel",off);
@@ -865,7 +883,7 @@ function scrub(el){
 function ended(){
   const E=M.sorts.filter(s=>s.ended).sort((a,b)=>b.lastW-a.lastW);
   $("endCard").hidden=!E.length;
-  $("endl").innerHTML=E.map(s=>`<button class="endr row" data-k="${esc(s.key)}" style="padding:6px 4px"><span class="nm">${esc(s.name)}</span><span class="w">zuletzt KW ${s.lastW} · ${MON[monthOf(s.lastW)]}</span>
+  $("endl").innerHTML=E.map(s=>`<button class="endr row" data-k="${esc(s.key)}" style="padding:6px 4px"><span class="nm">${esc(s.name)}</span><span class="w">zuletzt KW ${kwL(s.lastW)} · ${MON[monthOf(s.lastW)]}</span>
     <span class="strip">${M.all.map(w=>`<i class="${!M.has(w)?"miss":w===s.lastW?"cut":(s.kg[w]||0)>0?"on":""}"></i>`).join("")}</span></button>`).join("");
 }
 
@@ -886,15 +904,15 @@ function gesamt(){
   const rep=wk(win(end,N)),tot=w=>kgW(w,"__all"),all=rep.reduce((a,w)=>a+tot(w),0)||1,st=s=>rep.reduce((a,w)=>a+(s.kg[w]||0),0);
   if(!rep.length){$("gesCard").hidden=true;return}$("gesCard").hidden=false;
   const best=[...rep].sort((a,b)=>tot(b)-tot(a))[0],worst=[...rep].sort((a,b)=>tot(a)-tot(b))[0];
-  $("gFrom").textContent=(N>=99?"Gesamt seit KW "+M.first:label(win(end,N)))+", alle Sorten nebeneinander.";
+  $("gFrom").textContent=(N>=99?"Gesamt seit KW "+kwL(M.first):label(win(end,N)))+", alle Sorten nebeneinander.";
   $("gk").innerHTML=`<div><span>Verkauft</span><b>${f1(all)} kg</b><small>in ${rep.length} Wochen, Ø ${f1(all/rep.length)} kg</small></div>
-    <div><span>Beste Woche</span><b>KW ${best}</b><small>${f1(tot(best))} kg</small></div>
-    <div><span>Schwächste</span><b>KW ${worst}</b><small>${f1(tot(worst))} kg</small></div>`;
+    <div><span>Beste Woche</span><b>KW ${kwL(best)}</b><small>${f1(tot(best))} kg</small></div>
+    <div><span>Schwächste</span><b>KW ${kwL(worst)}</b><small>${f1(tot(worst))} kg</small></div>`;
   // Rangliste: Gesamt-kg oder Ø pro Woche, solange die Sorte im Sortiment war (fair für neue Sorten)
   const R=M.sorts.filter(s=>st(s)>0).map(s=>{const t=st(s),ws=rep.filter(w=>w>=s.firstW&&w<=(s.ended?s.lastW:M.last));return{s,t,avg:t/Math.max(1,ws.length),n:ws.length}});
   const val=r=>gm==="kg"?r.t:r.avg;R.sort((a,b)=>val(b)-val(a));const mx=Math.max(...R.map(val));
   document.querySelectorAll("[data-gm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.gm===gm));
-  $("rank").innerHTML=R.slice(0,gAll?R.length:10).map((r,i)=>`<button class="rk${r.s.ended?" end":""}${r.s.key===sel?" on":""}" data-k="${esc(r.s.key)}"><span class="nm">${i+1}. ${esc(r.s.name)}${r.s.ended?`<small>bis KW ${r.s.lastW}</small>`:""}</span>
+  $("rank").innerHTML=R.slice(0,gAll?R.length:10).map((r,i)=>`<button class="rk${r.s.ended?" end":""}${r.s.key===sel?" on":""}" data-k="${esc(r.s.key)}"><span class="nm">${i+1}. ${esc(r.s.name)}${r.s.ended?`<small>bis KW ${kwL(r.s.lastW)}</small>`:""}</span>
     <span class="v">${f1(val(r))} kg<small>${gm==="kg"?Math.round(r.t/all*100)+" %":r.n+" Wo."}</small></span><span class="tr"><i style="width:${(val(r)/mx*100).toFixed(1)}%"></i></span></button>`).join("")+(R.length>10?`<button id="gMore" class="ghost" style="align-self:flex-start;min-height:36px;font-size:14px">${gAll?"Weniger zeigen":"Alle "+R.length+" Sorten zeigen"}</button>`:"");
   // Espresso / Filter / Decaf / ohne Angabe
   const TY=[["esp","Espresso","var(--s1)"],["fil","Filter","var(--s2)"],["decaf","Decaf","var(--s3)"],["oth","ohne Angabe","var(--muted)"]];
@@ -914,6 +932,7 @@ function gesamt(){
 
 /* ---------- Seite Prognose ---------- */
 let pSel="__all",sz="mid",sea=0,openInd=null;
+try{const g=JSON.parse(localStorage.getItem("gehirn.v1"));const v=g&&g.saison?+g.saison.dez:0;if(v>=-20&&v<=50)sea=v}catch(e){}
 // Regression über Punkte [i,v]: Steigung und Streuung um die Linie
 function reg(pts){const n=pts.length,mx=pts.reduce((a,p)=>a+p[0],0)/n,my=pts.reduce((a,p)=>a+p[1],0)/n;
   const sl=pts.reduce((a,p)=>a+(p[0]-mx)*(p[1]-my),0)/(pts.reduce((a,p)=>a+(p[0]-mx)**2,0)||1);
@@ -933,7 +952,14 @@ const unitKg=(w,k,u)=>D.sorts.filter(s=>k==="__all"||s.key===k).reduce((a,s)=>{c
 /* Niedersachsen (Laden in Hannover-Linden): Schulferien und Feiertage 2026, Quelle: Kultusministerium / schulferien-deutschland.org */
 const NDS={2026:{fer:[["Sommerferien",[28,29,30,31,32]],["Herbstferien",[42,43]]],tag:{22:"Pfingstmontag 25.5.",40:"Tag der Dt. Einheit Sa 3.10."},
   next:[[44,"Reformationstag, Sa 31.10.: Feiertag in Niedersachsen"],[52,"Weihnachtsferien ab Mi 23.12., Feiertage Fr 25. und Sa 26.12."],[53,"Silvester Do 31.12., Neujahr Fr 1.1."],[54,"Weihnachtsferien bis Sa 9.1."]]}};
-function calEffect(k){const C=NDS[D.year];if(!C)return null;const rep=M.all.filter(M.has),v=w=>kgW(w,k);
+/* laden-v46: Niedersachsen 2027 (Kultusministerium / kalenderpedia.de): Halbjahresferien 1.–2.2., Osterferien 22.3.–3.4., Sommerferien 8.7.–18.8., Herbstferien 18.–30.10., Weihnachtsferien ab 23.12. */
+NDS[2027]={fer:[["Osterferien",[12,13]],["Sommerferien",[28,29,30,31,32]],["Herbstferien",[42,43]]],tag:{5:"Halbjahresferien 1.–2.2.",12:"Karfreitag 26.3.",13:"Ostermontag 29.3.",18:"Himmelfahrt Do 6.5.",20:"Pfingstmontag 17.5."},
+  next:[[5,"Halbjahresferien Mo 1. und Di 2.2."],[12,"Osterferien ab Mo 22.3., Karfreitag 26.3."],[13,"Ostermontag 29.3., Osterferien bis Sa 3.4."],[18,"Himmelfahrt Do 6.5."],[20,"Pfingstmontag 17.5."],[27,"Sommerferien ab Do 8.7."],[33,"Sommerferien bis Mi 18.8."],[42,"Herbstferien Mo 18.10. bis Sa 30.10."],[51,"Weihnachtsferien ab Do 23.12., Feiertage Sa 25. und So 26.12."]]};
+// alle Jahre ab Datenstart zusammen, Wochen fortlaufend wie in D (2026 hat KW 53, 54 = KW 1/2027)
+function ndsAll(){const b=+D.year||2026,o={fer:[],tag:{},next:[]};for(let y=b;y<=b+2;y++){const C=NDS[y];if(!C)continue;const ix=w=>VKY.idx(D,y,w);
+  C.fer.forEach(([n,ws])=>o.fer.push([n,ws.map(ix)]));Object.entries(C.tag).forEach(([w,t])=>o.tag[ix(+w)]=t);
+  C.next.forEach(([w,t])=>{const i=y===2026?w:ix(w);if(!o.next.some(x=>x[0]===i))o.next.push([i,t])})}o.next.sort((a,b)=>a[0]-b[0]);return o.fer.length?o:null}
+function calEffect(k){const C=ndsAll();if(!C)return null;const rep=M.all.filter(M.has),v=w=>kgW(w,k);
   const fw=C.fer.flatMap(x=>x[1]).filter(M.has),tw=Object.keys(C.tag).map(Number).filter(M.has),rest=rep.filter(w=>!fw.includes(w)&&!tw.includes(w));
   const base=avgL(rest.map(v));return{base,fer:fw.length?(avgL(fw.map(v))-base)/base:null,tag:tw.length?(avgL(tw.map(v))-base)/base:null,fw,tw,C}}
 function indicators(k){
@@ -968,7 +994,7 @@ function indicators(k){
     // Anlauf neuer Sorten: Ø der ersten 3 Wochen gegen Ø danach
     const nw=M.sorts.filter(s=>s.firstW>M.first+2).map(s=>{const ws=rep.filter(w=>w>=s.firstW).map(w=>s.kg[w]||0);return ws.length>=6?{a:avgL(ws.slice(0,3)),b:avgL(ws.slice(3))}:null}).filter(Boolean);
     if(nw.length){const a=avgL(nw.map(x=>x.a)),b=avgL(nw.map(x=>x.b));I.push({id:"nw",k:"Anlauf neuer Sorten",n:f1(b)+" kg",s:b>=a?st("good","legen zu"):st("bad","starten stark"),
-      t:`Ø pro Woche nach dem Start. In den ersten 3 Wochen: ${f1(a)} kg.`,how:`Aus ${nw.length} Sorten, die nach KW ${M.first+2} neu kamen. Hilft beim Planen der ersten Röstungen für eine neue Sorte.`})}
+      t:`Ø pro Woche nach dem Start. In den ersten 3 Wochen: ${f1(a)} kg.`,how:`Aus ${nw.length} Sorten, die nach KW ${kwL(M.first+2)} neu kamen. Hilft beim Planen der ersten Röstungen für eine neue Sorte.`})}
     const warn=M.sorts.filter(s=>!s.ended&&s.lastW!=null).map(s=>{const p=pts(series(s.key)),a=avgL(p.slice(-4)),b=avgL(p.slice(-8,-4));return{s,d:b>.5?(a-b)/b:0}}).filter(x=>x.d<=-.25);
     I.push({id:"wa",k:"Warnliste",n:warn.length+" Sorten",s:warn.length?st("bad","fallen stark"):st("good","keine"),t:warn.length?warn.map(x=>esc(x.s.name.split(" ")[0])+" "+pct(x.d)).join(", "):"Keine Sorte verliert mehr als 25 %.",how:"Sorten, deren letzte 4 Wochen mehr als 25 % unter den 4 Wochen davor liegen. Kann heißen: Sorte läuft aus oder ist zu wenig sichtbar im Laden."});
   }
@@ -977,14 +1003,14 @@ function indicators(k){
 
 function renderP(){
   const k=pSel,vals=series(k),f=fc2(vals,4);
-  $("pCover").textContent=`Aus ${M.all.filter(M.has).length} Wochen (KW ${M.first}–${M.last}). Je mehr Berichte, desto genauer.`;
+  $("pCover").textContent=`Aus ${M.all.filter(M.has).length} Wochen (KW ${kwL(M.first)}–${kwL(M.last)}). Je mehr Berichte, desto genauer.`;
   $("pSel").innerHTML=[["__all","Alle Sorten"]].concat([...M.sorts].filter(s=>!s.ended&&s.lastW!=null).sort((x,y)=>x.name.localeCompare(y.name,"de")).map(s=>[s.key,s.name])).map(([kk,n])=>`<option value="${esc(kk)}"${kk===k?" selected":""}>${esc(n)}</option>`).join("");
   document.querySelectorAll("[data-sz]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.sz===sz));
   if(!f){$("pBig").textContent="–";$("pSay").textContent="Zu wenige Wochen für eine Prognose.";$("pChart").innerHTML="";return}
   const s4=f.reduce((a,x)=>a+pick3(x),0),lo=f.reduce((a,x)=>a+x.lo,0),hi=f.reduce((a,x)=>a+x.hi,0),last4=pts(vals).slice(-4).reduce((a,b)=>a+b,0),d=last4>0?(s4-last4)/last4:null;
   $("pBig").innerHTML=`${f1(s4)}<small>kg</small>`;
   const dl=$("pDelta");dl.className="delta"+(d==null?"":d>=.03?" up":d<=-.03?" dn":"");dl.textContent=d==null?"":`${d>=0?"▲":"▼"} ${pct(d)} zu den letzten 4 Wochen`;
-  $("pSay").innerHTML=`${k==="__all"?"Alle Sorten zusammen":esc(nameOf(k))}: In KW ${M.last+1}–${M.last+4} ${sz==="lo"?"im schwächeren Fall":sz==="hi"?"im guten Fall":"voraussichtlich"} <b>${f1(s4)} kg</b>, also rund <b>${f1(s4/4)} kg pro Woche</b>. Dafür brauchst du etwa <b>${f1(s4/.84)} kg Rohkaffee</b>. Der übliche Bereich liegt zwischen ${f1(lo)} und ${f1(hi)} kg.`;
+  $("pSay").innerHTML=`${k==="__all"?"Alle Sorten zusammen":esc(nameOf(k))}: In KW ${kwL(M.last+1)}–${kwL(M.last+4)} ${sz==="lo"?"im schwächeren Fall":sz==="hi"?"im guten Fall":"voraussichtlich"} <b>${f1(s4)} kg</b>, also rund <b>${f1(s4/4)} kg pro Woche</b>. Dafür brauchst du etwa <b>${f1(s4/.84)} kg Rohkaffee</b>. Der übliche Bereich liegt zwischen ${f1(lo)} und ${f1(hi)} kg.`;
   // Verlauf + Prognose-Band
   const el=$("pChart"),W=Math.max(300,Math.min(720,Math.round(el.clientWidth||640))),H=220,L=36,T=14,B=26,pw=W-L-8,ph=H-T-B;
   const hist=M.all.slice(-16),n=hist.length+4,X=i=>L+pw*i/(n-1),hv=hist.map(w=>M.has(w)?kgW(w,k):null);
@@ -998,13 +1024,13 @@ function renderP(){
   g+=`<path d="${dd}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>`;
   g+=`<path d="M${X(fx)},${Y(lv)}${f.map((x,j)=>"L"+X(fx+j+1)+","+Y(pick3(x))).join("")}" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="5 4"/>`;
   f.forEach((x,j)=>g+=`<circle cx="${X(fx+j+1)}" cy="${Y(pick3(x))}" r="3.5" fill="var(--paper)" stroke="var(--accent)" stroke-width="2"/>`);
-  const stp=Math.max(2,Math.ceil(30/(pw/(n-1))));for(let i=0;i<n;i++){if(i%stp&&!(i===n-1&&i%stp>=stp/2))continue;const w=i<hist.length?hist[i]:M.last+(i-fx);g+=`<text x="${X(i)}" y="${T+ph+16}" text-anchor="middle">${i===0?"KW ":""}${w}</text>`}
+  const stp=Math.max(2,Math.ceil(30/(pw/(n-1))));for(let i=0;i<n;i++){if(i%stp&&!(i===n-1&&i%stp>=stp/2))continue;const w=i<hist.length?hist[i]:M.last+(i-fx);g+=`<text x="${X(i)}" y="${T+ph+16}" text-anchor="middle">${i===0?"KW ":""}${kwL(w)}</text>`}
   g+=`<line id="pxh" x1="0" x2="0" y1="${T}" y2="${T+ph}" stroke="var(--muted)" visibility="hidden"/><rect x="${L}" y="${T}" width="${pw}" height="${ph}" fill="transparent"/>`;
   el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Verlauf und Prognose">${g}</svg><div class="tip" hidden></div>`;
   const svg=el.querySelector("svg"),tip=el.querySelector(".tip"),xh=svg.querySelector("#pxh");
   const on=e=>{const bb=svg.getBoundingClientRect(),sc=bb.width/W,i=Math.max(0,Math.min(n-1,Math.round(((e.clientX-bb.left)/sc-L)/pw*(n-1))));
     xh.setAttribute("x1",X(i));xh.setAttribute("x2",X(i));xh.setAttribute("visibility","visible");
-    if(i>fx){const x=f[i-fx-1];tip.innerHTML=`<b>KW ${M.last+i-fx} · Prognose</b><br>${f1(pick3(x))} kg (${f1(x.lo)}–${f1(x.hi)})`}else{const v=hv[i];tip.innerHTML=`<b>KW ${hist[i]}</b><br>${v==null?"kein Bericht":f2(v)+" kg"}`}
+    if(i>fx){const x=f[i-fx-1];tip.innerHTML=`<b>KW ${kwL(M.last+i-fx)} · Prognose</b><br>${f1(pick3(x))} kg (${f1(x.lo)}–${f1(x.hi)})`}else{const v=hv[i];tip.innerHTML=`<b>KW ${kwL(hist[i])}</b><br>${v==null?"kein Bericht":f2(v)+" kg"}`}
     tip.hidden=false;tip.style.left=Math.min(bb.width-80,Math.max(80,X(i)*sc))+"px";tip.style.top=T*sc+40+"px"};
   svg.addEventListener("pointermove",on);svg.addEventListener("click",on);svg.addEventListener("pointerleave",()=>{tip.hidden=true;xh.setAttribute("visibility","hidden")});
   $("pLeg").innerHTML=`<span><i class="sw" style="height:0;border-top:2px solid var(--accent);border-radius:0"></i>verkauft</span><span><i class="sw" style="height:0;border-top:2px dashed var(--accent);border-radius:0"></i>${sz==="lo"?"vorsichtig":sz==="hi"?"gut":"normal"}</span><span><i class="sw" style="background:var(--accent);opacity:.25"></i>üblicher Bereich</span>`;
@@ -1015,7 +1041,7 @@ function renderP(){
 
 // Monate: letzte 3 echte + nächste 3 geschätzte, kg pro Monat
 function months3(k,vals){
-  const wkInMonth=key=>{let c=0;for(let w=1;w<=60;w++){const t=thursday(D.year,w).t;if(t.getUTCFullYear()*12+t.getUTCMonth()===key)c++}return c};
+  const wkInMonth=key=>{let c=0;for(let w=1;w<=M.last+30;w++){const t=thursday(D.year,w).t;if(t.getUTCFullYear()*12+t.getUTCMonth()===key)c++}return c};
   const keyOf=w=>{const t=thursday(D.year,w).t;return t.getUTCFullYear()*12+t.getUTCMonth()},lastKey=keyOf(M.last);
   const H=Math.max(1,...Array.from({length:3},(_,i)=>lastKey+1+i).map(kk=>{let mx=0;for(let w=M.last+1;w<=M.last+20;w++)if(keyOf(w)===kk)mx=w-M.last;return mx}));
   const f=fc2(vals,H)||[];
@@ -1033,7 +1059,7 @@ function months3(k,vals){
       :`<path d="M${cx-bw/2},${T+ph} V${y+r} q0,-${r} ${r},-${r} H${cx+bw/2-r} q${r},0 ${r},${r} V${T+ph} Z" fill="var(--accent)"/>`;
     g+=`<text x="${cx}" y="${y-6}" text-anchor="middle" style="fill:var(--ink);font-weight:600">${Math.round(b.tot)}</text><text x="${cx}" y="${T+ph+15}" text-anchor="middle" style="${b.fut?"fill:var(--ink)":""}">${MON[b.mon]}</text><text x="${cx}" y="${T+ph+27}" text-anchor="middle" style="font-size:10px">${b.n} Wo.${b.mix?"*":""}</text>`});
   el.innerHTML=`<svg viewBox="0 0 ${W} ${Hh}" role="img" aria-label="Kg pro Monat, Prognose">${g}</svg>`;
-  const C=NDS[D.year];$("cal").innerHTML=C?`<div class="lbl" style="display:block">Kalender Niedersachsen</div>`+C.next.filter(x=>x[0]>M.last).map(([w,t])=>{const m=thursday(D.year,w).mon;return `<div><b>KW ${w>53?w-53:w}</b><span>${t}</span></div>`}).join("")+`<p class="hint" style="margin:0">Wie stark Weihnachten wirkt, zeigen deine Zahlen erst nach einem Jahr. Bis dahin stellst du den Zuschlag unten selbst ein.</p>`:"";
+  const C=ndsAll();$("cal").innerHTML=C?`<div class="lbl" style="display:block">Kalender Niedersachsen</div>`+C.next.filter(x=>x[0]>M.last).slice(0,5).map(([w,t])=>{const m=thursday(D.year,w).mon;return `<div><b>KW ${kwL(w)}</b><span>${t}</span></div>`}).join("")+`<p class="hint" style="margin:0">Wie stark Weihnachten wirkt, zeigen deine Zahlen erst nach einem Jahr. Bis dahin stellst du den Zuschlag unten selbst ein.</p>`:"";
   $("sv").textContent=(sea>=0?"+":"−")+Math.abs(sea)+" %";
 }
 
@@ -1051,7 +1077,9 @@ function outlook(){
 $("pSel").onchange=e=>{pSel=e.target.value;renderP()};
 document.querySelector('[aria-label="Szenario"]').addEventListener("click",e=>{const b=e.target.closest("[data-sz]");if(b){sz=b.dataset.sz;renderP()}});
 $("ind").addEventListener("click",e=>{const b=e.target.closest("[data-ind]");if(b){openInd=openInd===b.dataset.ind?null:b.dataset.ind;renderP()}});
+$("sea").value=sea;
 $("sea").addEventListener("input",e=>{sea=+e.target.value;months3(pSel,series(pSel))});
+$("sea").addEventListener("change",()=>{const g=gLoad();g.saison={dez:sea,at:new Date().toISOString()};gSave(g)});
 // Seiten umschalten über die Leiste
 let page="u";
 function go(p){page=p;document.querySelectorAll("nav [data-pg]").forEach(x=>x.setAttribute("aria-selected",x.dataset.pg===p));["u","w","v","p"].forEach(k=>$("pg"+k.toUpperCase()).hidden=page!==k);scrollTo(0,0);
@@ -1082,13 +1110,13 @@ let rzT;addEventListener("resize",()=>{clearTimeout(rzT);rzT=setTimeout(()=>page
 
 function head(){
   const rep=M.all.filter(M.has);
-  $("cover").textContent=`KW ${M.first} bis KW ${M.last}/${D.year} · ${rep.length} Wochen mit Zahlen`;
+  $("cover").textContent=`KW ${kwL(M.first)}${VKY.kwOf(D,M.first).y!==VKY.kwOf(D,M.last).y?"/"+VKY.kwOf(D,M.first).y:""} bis KW ${kwL(M.last)}/${VKY.kwOf(D,M.last).y} · ${rep.length} Wochen mit Zahlen`;
   $("wl").innerHTML=M.all.map(w=>{const {mon}=thursday(D.year,w),sun=new Date(mon);sun.setUTCDate(mon.getUTCDate()+6);const src=M.has(w)?D.weeks[w].src:null;
-    return `<span class="${src==="vorwoche"?"v":src?"":"m"}">KW ${w} · ${dd(mon)}–${dd(sun)} · ${src==="bericht"?"Bericht":src==="vorwoche"?"aus Vorwoche":src==="roestwoche"?"aus der Röstwoche, nur kg":"fehlt"}</span>`}).join("");
+    return `<span class="${src==="vorwoche"?"v":src?"":"m"}">KW ${kwL(w)} · ${dd(mon)}–${dd(sun)} · ${src==="bericht"?"Bericht":src==="vorwoche"?"aus Vorwoche":src==="roestwoche"?"aus der Röstwoche, nur kg":"fehlt"}</span>`}).join("");
   $("notes").innerHTML=(D.notes||[]).map(t=>`<li>${esc(t)}</li>`).join("")+`<li>„aus Vorwoche“: Für diese Wochen gab es keinen eigenen Bericht. Die Zahlen stammen aus der Spalte „Vorwoche KG“ des Folgeberichts. Kommt der eigene Bericht später dazu, ersetzt er sie.</li>`;
 }
 function kurz(){try{const rep=M.all.filter(M.has),t=w=>kgW(w,"__all"),a=avgL(rep.slice(-4).map(t)),p=avgL(rep.slice(-8,-4).map(t));
-  localStorage.setItem("verkauf.kurz",JSON.stringify({kw:M.last,avg:Math.round(a*10)/10,d:p>0?Math.round((a-p)/p*100):null}))}catch(e){}}
+  localStorage.setItem("verkauf.kurz",JSON.stringify({kw:kwL(M.last),y:VKY.kwOf(D,M.last).y,avg:Math.round(a*10)/10,d:p>0?Math.round((a-p)/p*100):null}))}catch(e){}}
 function all(){derive();head();kurz();freeze();if(end==null||end>M.months.length-1)end=M.months.length-1;render();if(page==="u")renderU();else if(page==="w")renderWk()}
 /* ---------- Überblick und Woche (laden-v39): Bestand kommt aus dem Lager (gehirn.v1 „lager“), Röstmengen aus der Röstwoche (gehirn.v1 „geroestet“) ---------- */
 const nrm0=s=>String(s||"").normalize("NFD").replace(/[̀-ͯ]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
@@ -1130,7 +1158,7 @@ const MON=["Jan.","Feb.","März","Apr.","Mai","Juni","Juli","Aug.","Sep.","Okt."
 const MONL=["Januar","Februar","März","April","Mai","Juni","Juli","August","September","Oktober","November","Dezember"];
 function monday(w){const j=new Date(Date.UTC(Y,0,4)),d=(j.getUTCDay()+6)%7,m=new Date(j);m.setUTCDate(j.getUTCDate()-d+(w-1)*7);return m}
 function span(w){const a=monday(w),b=new Date(a);b.setUTCDate(a.getUTCDate()+6);return a.getUTCMonth()===b.getUTCMonth()?`${a.getUTCDate()}.–${b.getUTCDate()}. ${MON[b.getUTCMonth()]}`:`${a.getUTCDate()}. ${MON[a.getUTCMonth()]} – ${b.getUTCDate()}. ${MON[b.getUTCMonth()]}`}
-const monthOf=w=>{const t=monday(w);t.setUTCDate(t.getUTCDate()+3);return t.getUTCMonth()};
+const monthOf=w=>{const t=monday(w);t.setUTCDate(t.getUTCDate()+3);return t.getUTCFullYear()*12+t.getUTCMonth()};
 /* Stufen für Wochensumme gegen den Schnitt */
 const LV=[[.88,"ruhige Woche"],[.96,"etwas weniger als üblich"],[1.04,"ganz normale Woche"],[1.12,"etwas mehr als üblich"],[1e9,"starke Woche"]];
 const lvOf=t=>LV.findIndex(l=>t/AVG<l[0]);
@@ -1144,8 +1172,8 @@ const lastW=s=>Math.max(...Object.keys(s.kg).filter(w=>s.kg[w]>0).map(Number));
 function weekFacts(w){
   const t=TOT[w],out=[],rank=RW.slice().sort((a,b)=>TOT[b]-TOT[a]).indexOf(w)+1;
   const ss=D.sorts.map(s=>({s,v:kg(s,w),u:usual(s,w)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v);
-  if(rank<=3)out.push(["★",`${rank===1?"Beste":rank+".-beste"} Woche seit KW ${FIRST}.`]);
-  else if(rank>=RW.length-2)out.push(["↓",`${rank===RW.length?"Ruhigste":"Eine der ruhigsten"} Wochen seit KW ${FIRST}.`]);
+  if(rank<=3)out.push(["★",`${rank===1?"Beste":rank+".-beste"} Woche seit KW ${kwL(FIRST)}.`]);
+  else if(rank>=RW.length-2)out.push(["↓",`${rank===RW.length?"Ruhigste":"Eine der ruhigsten"} Wochen seit KW ${kwL(FIRST)}.`]);
   const up=ss.filter(x=>x.u>0&&x.v-x.u>=1&&x.v/x.u>=1.35&&firstW(x.s)<w).sort((a,b)=>(b.v-b.u)-(a.v-a.u))[0];
   const dn=ss.concat(D.sorts.filter(s=>!kg(s,w)&&lastW(s)>w).map(s=>({s,v:0,u:usual(s,w)}))).filter(x=>x.u>=1.5&&x.u-x.v>=1&&x.v/x.u<=.65).sort((a,b)=>(b.u-b.v)-(a.u-a.v))[0];
   if(up)out.push(["↑",`<b>${esc(short(up.s.name))}</b> lief stark: ${f1(up.v)} kg statt sonst ${f1(up.u)}.`]);
@@ -1202,10 +1230,10 @@ function drawSky(){
     else if(!st)body=box(x,base,bw,h,dx,dy,"var(--eq2)",true);
     else{const h1=st[1]/(st[0]+st[1])*h;body=box(x,base,bw,h1,dx,dy,SHC[1],false)+box(x,base-h1,bw,h-h1,dx,dy,SHC[0],true)}
     const mk=!sel&&(w===hiW||w===loW)?`<text x="${x+bw/2+dx/2}" y="${top-dy-4}" text-anchor="middle" style="fill:var(--ink2);font-size:${Math.max(9,Math.min(13,bw*1.2))}px;font-weight:700">${w===hiW?"★":"↓"}</text>`:"";
-    g+=`<g class="tw" data-w="${w}" role="button" tabindex="0" aria-label="KW ${w}: ${f1(TOT[w])} kg${w===hiW?", beste Woche im Zeitraum":w===loW?", ruhigste Woche im Zeitraum":""}">${body}${mk}
+    g+=`<g class="tw" data-w="${w}" role="button" tabindex="0" aria-label="KW ${kwL(w)}: ${f1(TOT[w])} kg${w===hiW?", beste Woche im Zeitraum":w===loW?", ruhigste Woche im Zeitraum":""}">${body}${mk}
       ${sel?`<polygon points="${x},${top} ${x+dx},${top-dy} ${x+bw+dx},${top-dy} ${x+bw+dx},${base-dy} ${x+bw},${base} ${x},${base}" style="fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round"/>
       <text x="${x+bw/2+dx/2}" y="${top-dy-7}" text-anchor="middle" style="fill:var(--ink);font-size:13px;font-weight:700">${f0(TOT[w])} kg</text>`:""}</g>`;
-    if(i%(n>20?4:n>8?2:1)===0||sel)g+=`<text x="${x+bw/2}" y="${base+18}" text-anchor="middle" style="fill:${sel?"var(--ink)":"var(--muted)"};font-size:11px;font-weight:${sel?700:400}">${w}</text>`});
+    if(i%(n>20?4:n>8?2:1)===0||sel)g+=`<text x="${x+bw/2}" y="${base+18}" text-anchor="middle" style="fill:${sel?"var(--ink)":"var(--muted)"};font-size:11px;font-weight:${sel?700:400}">${kwL(w)}</text>`});
   g+=`<line x1="${x0-4}" x2="${x0+tw}" y1="${ay}" y2="${ay}" style="stroke:var(--ink);stroke-opacity:.35;stroke-dasharray:3 4"/>`;
   g+=`<text x="${W/2}" y="${H-2}" text-anchor="middle" style="fill:var(--muted);font-size:11px">Kalenderwoche · Turm antippen</text>`;
   $("aSky").innerHTML=g;$("aLeg").innerHTML=(aMode==="shop"?`<span><i style="background:var(--esp)"></i>Linden</span><span><i style="background:var(--fil)"></i>Lister Meile</span><span><i style="background:var(--eq2)"></i>ohne Ladenaufteilung im Bericht</span>`:legLv())+`<span><i style="background:var(--hatch)"></i>Bericht fehlt</span><span>- - - Schnitt ${f0(AVG)} kg</span><span>★ beste · ↓ ruhigste Woche</span>`;
@@ -1221,7 +1249,7 @@ function renderA(){
   drawSky();
   const w=aW,lv=lvOf(TOT[w]),rep=RW,i=rep.indexOf(w);
   const ss=D.sorts.map(s=>({s,v:kg(s,w),u:usual(s,w)})).filter(x=>x.v>0).sort((a,b)=>b.v-a.v),mx=ss[0].v;
-  $("aWeek").innerHTML=`<div class="znav"><button id="aPrev" aria-label="Woche davor" ${i<=0?"disabled":""}>‹</button><div class="t"><b>KW ${w}</b><small>${span(w)}</small></div><button id="aNext" aria-label="Woche danach" ${i>=rep.length-1?"disabled":""}>›</button></div>
+  $("aWeek").innerHTML=`<div class="znav"><button id="aPrev" aria-label="Woche davor" ${i<=0?"disabled":""}>‹</button><div class="t"><b>KW ${kwL(w)}</b><small>${span(w)}</small></div><button id="aNext" aria-label="Woche danach" ${i>=rep.length-1?"disabled":""}>›</button></div>
     <div class="zrow" style="align-items:center"><div class="zbig">${f1(TOT[w])}<small>kg</small></div><span class="pill" style="background:${lvC(lv)};color:${lvO(lv)}">${LV[lv][1]}</span></div>
     <ul class="zfacts">${weekFacts(w).map(f=>`<li><i>${f[0]}</i><span>${f[1]}</span></li>`).join("")}</ul>
     ${shopWeek(w)}
@@ -1264,7 +1292,7 @@ function shopCard(a){const ws=a.rep.filter(w=>shopTot(w));if(ws.length<2)return`
   const L=T.reduce((s,x)=>s+x[0],0),I=T.reduce((s,x)=>s+x[1],0);
   const rows=D.sorts.filter(s=>!/panea/i.test(s.name)).map(s=>{let l=0,i=0;ws.forEach(w=>{const v=shopOf(s,w);if(v){l+=v[0];i+=v[1]}});return{n:s.name,l,i}}).filter(x=>x.l+x.i>=3).map(x=>({...x,ix:(x.l/L+1e-9)/(x.i/I+1e-9)}));
   const li=rows.filter(x=>x.ix>=1.3).sort((a,b)=>b.ix-a.ix).slice(0,4),ln=rows.filter(x=>x.ix<=.77).sort((a,b)=>a.ix-b.ix).slice(0,4);
-  return`<div class="card"><div class="zrow"><h2>Zwei Läden</h2><span class="note">kg pro Woche · KW ${ws[0]}–${ws[ws.length-1]}</span></div>${svg}
+  return`<div class="card"><div class="zrow"><h2>Zwei Läden</h2><span class="note">kg pro Woche · KW ${kwL(ws[0])}–${kwL(ws[ws.length-1])}</span></div>${svg}
     <p style="margin:0;font-size:15px">Linden verkauft <b>${Math.round(I/(L+I)*100)} %</b>, die Lister Meile <b>${Math.round(L/(L+I)*100)} %</b>.</p>
     ${li.length?`<div><div class="lbl" style="margin-bottom:6px">Läuft in der Lister Meile besser</div><div class="bt">${li.map(x=>`<span style="background:color-mix(in srgb,var(--fil) 30%,var(--paper))">${esc(short(x.n))}</span>`).join("")}</div></div>`:""}
     ${ln.length?`<div><div class="lbl" style="margin-bottom:6px">Läuft in Linden besser</div><div class="bt">${ln.map(x=>`<span style="background:color-mix(in srgb,var(--esp) 25%,var(--paper))">${esc(short(x.n))}</span>`).join("")}</div></div>`:""}
@@ -1285,7 +1313,7 @@ function lifeCard(nw,gone0){const SKIP=/^(panea|mogiana)/i;
     const yb=base-x.best*hs,yn=base-x.now*hs,xe=lw+n*(bw+gap)+dx;
     g+=`<line x1="${lw-4}" x2="${xe}" y1="${yb}" y2="${yb}" style="stroke:var(--ink);stroke-opacity:.55;stroke-dasharray:4 4"/><text x="${lw-6}" y="${yb+4}" text-anchor="end" style="fill:var(--ink2);font-size:10.5px;font-weight:600">${f1(x.best)}</text>`;
     const x4=lw+(n-4)*(bw+gap)-2;g+=`<line x1="${x4}" x2="${xe}" y1="${yn}" y2="${yn}" style="stroke:${hot};stroke-width:2.5"/><text x="${lw-6}" y="${yn+4}" text-anchor="end" style="fill:${hot};font-size:10.5px;font-weight:700">${Math.abs(yn-yb)<10?"":f1(x.now)}</text>`;
-    g+=`<text x="${lw}" y="${base+16}" style="fill:var(--muted);font-size:10.5px">KW ${ws[0]}</text><text x="${xe}" y="${base+16}" text-anchor="end" style="fill:var(--muted);font-size:10.5px">KW ${ws[n-1]}</text>`;
+    g+=`<text x="${lw}" y="${base+16}" style="fill:var(--muted);font-size:10.5px">KW ${kwL(ws[0])}</text><text x="${xe}" y="${base+16}" text-anchor="end" style="fill:var(--muted);font-size:10.5px">KW ${kwL(ws[n-1])}</text>`;
     return`<svg viewBox="0 0 ${W} 98" style="width:100%;display:block" aria-hidden="true">${g}</svg>`};
   const say=x=>x.r<.6?`verkauft nur noch <b>${Math.round(x.r*100)} %</b> seiner besten Zeit`:x.r>.95?`ist gerade auf seinem Höchststand`:`liegt bei <b>${Math.round(x.r*100)} %</b> seiner besten Zeit`;
   const row=x=>{const st=ST(x);return`<div class="lr"><div class="zrow row" style="align-items:center"><b style="font-size:17px">${esc(short(x.s.name))}</b><span class="st" style="background:var(--${st[1]});color:var(--${st[2]})">${st[0]}</span></div>${big(x,st)}<p class="note" style="font-size:13.5px;color:var(--ink2)">${f1(x.now)} kg pro Woche, ${say(x)} (${f1(x.best)} kg).</p></div>`};
@@ -1303,12 +1331,12 @@ function renderWr(el,pk){
   const p=PER.find(x=>x.k===pk),c=compare(p),a=c.a,top=a.per.slice(0,3);
   const real=s=>RW.reduce((q,w)=>q+kg(s,w),0)>=1,nw=D.sorts.filter(s=>real(s)&&firstW(s)>=a.ws[0]&&firstW(s)>FIRST),gone=D.sorts.filter(s=>real(s)&&lastW(s)>=a.ws[0]&&lastW(s)<=LAST-4);
   el.innerHTML=`
-    <div class="wr" style="background:var(--ink);color:var(--paper)"><span class="k">${p.k==="all"?`Seit KW ${FIRST}`:`Letzte ${p.n}`} · KW ${a.ws[0]}–${a.ws[a.ws.length-1]}</span>
+    <div class="wr" style="background:var(--ink);color:var(--paper)"><span class="k">${p.k==="all"?`Seit KW ${kwL(FIRST)}`:`Letzte ${p.n}`} · KW ${kwL(a.ws[0])}–${kwL(a.ws[a.ws.length-1])}</span>
       <span class="v">${f0(a.sum)} kg verkauft</span><span class="d">Das sind ${f0(a.avg)} kg pro Woche${c.b?`, ${pctW(a.avg,c.b.avg)} in den ${p.n} davor`:""}.${a.repU.length?` Ungefähr ${f0(a.bags/a.repU.length)} kleine Tüten pro Woche.`:""}</span></div>
     <div class="card"><div class="lbl">Die drei Großen</div>${top.map((x,j)=>`<div class="sb" style="grid-template-columns:22px minmax(0,1fr) auto"><b style="text-align:left;min-width:0;color:var(--muted)">${j+1}</b><span style="font-size:16px;font-weight:600">${esc(x.s.name)}</span><b>${Math.round(x.v/a.sum*100)} %</b></div>`).join("")}
       <p class="note">Zusammen ${Math.round(top.reduce((s,x)=>s+x.v,0)/a.sum*100)} % von allem, was verkauft wurde.</p></div>
     <div class="card"><div class="lbl">Espresso, Filter, Decaf</div>${ring(a.ty)}</div>
-    ${!c.b?`<p class="note">Ein Vergleich mit dem Zeitraum davor geht erst, wenn ältere Berichte da sind (Daten starten KW ${FIRST}).</p>`:""}`+shopCard(a)+lifeCard(nw,gone);
+    ${!c.b?`<p class="note">Ein Vergleich mit dem Zeitraum davor geht erst, wenn ältere Berichte da sind (Daten starten KW ${kwL(FIRST)}).</p>`:""}`+shopCard(a)+lifeCard(nw,gone);
 }
 
 function swipe(el,cb){let x0=null,y0=null;el.addEventListener("pointerdown",e=>{x0=e.clientX;y0=e.clientY},{passive:true});
@@ -1322,8 +1350,8 @@ function renderU(){
     return{s,P,b,days:b&&perDay>0?b.kg/perDay:null}}).filter(r=>r.P>.05||(r.b&&r.b.kg>0));
   rows.sort((a,b)=>(a.days==null?1e9:a.days)-(b.days==null?1e9:b.days)||b.P-a.P);
   const chk=lg&&lg.chk&&lg.chk[0];
-  const lw=D.weeks[M.last],srcT=lw&&lw.src==="roestwoche"?` · KW ${M.last} nur kg aus der Röstwoche, Tütenzahlen fehlen`:"";
-  $("uCover").textContent=`Neuester Bericht KW ${M.last}${srcT} · `+(lg?`Bestand ${chk?"gezählt KW "+chk.w+" am "+dShort(chk.d)+", seitdem":"laut Lager"} mitgerechnet · Prognose KW ${M.last+1}`:`Prognose KW ${M.last+1}`);
+  const lw=D.weeks[M.last],srcT=lw&&lw.src==="roestwoche"?` · KW ${kwL(M.last)} nur kg aus der Röstwoche, Tütenzahlen fehlen`:"";
+  $("uCover").textContent=`Neuester Bericht KW ${kwL(M.last)}${srcT} · `+(lg?`Bestand ${chk?"gezählt KW "+kwL(chk.w)+" am "+dShort(chk.d)+", seitdem":"laut Lager"} mitgerechnet · Prognose KW ${kwL(M.last+1)}`:`Prognose KW ${kwL(M.last+1)}`);
   const red=rows.filter(r=>r.days!=null&&r.days<3).length,yel=rows.filter(r=>r.days!=null&&r.days>=3&&r.days<OPEN_DAYS).length;
   const MX=12;
   $("uReach").innerHTML=(lg?"":`<p class="say w" style="margin:0">Noch kein Bestand aus dem Lager. Öffne einmal Lager oder mach dort den Wochen-Check, dann steht hier, wie lange jede Sorte reicht.</p>`)+
@@ -1342,7 +1370,7 @@ function hAvg(s){const v=M.all.filter(M.has).slice(-12).map(w=>s.kg[w]||0).filte
 function renderHeat(){
   const ss=M.sorts.filter(s=>!s.ended&&s.lastW!=null).map(s=>({s,a:hAvg(s)})).sort((x,y)=>y.a-x.a);
   const col=(x,v)=>{if(v<=0)return"";if(hm==="kg")return`var(--h${HK.findIndex(b=>v<b[0])+1})`;if(!x.a)return"var(--eq)";return`var(${HA.find(b=>v/x.a-1<b[0])[1]})`};
-  let h=`<table><thead><tr><th></th>${M.all.map(w=>`<td class="kw">${w%4===1||w===M.last?`<span>${w}</span>`:""}</td>`).join("")}</tr></thead><tbody>`;
+  let h=`<table><thead><tr><th></th>${M.all.map(w=>`<td class="kw">${w%4===1||w===M.last?`<span>${kwL(w)}</span>`:""}</td>`).join("")}</tr></thead><tbody>`;
   ss.forEach((x,i)=>{h+=`<tr><th>${esc(x.s.name)}</th>${M.all.map(w=>{if(!M.has(w))return`<td class="gap"></td>`;const v=x.s.kg[w]||0,sel=hSel&&hSel.i===i&&hSel.w===w;
     return`<td${v>0?` style="background:${col(x,v)}"`:` class="z"`}${sel?` data-sel="1"`:""} data-hi="${i}" data-hw="${w}"></td>`}).join("")}</tr>`});
   $("uHeat").innerHTML=h+"</tbody></table>";
@@ -1350,7 +1378,7 @@ function renderHeat(){
   $("uHcap").textContent=hm==="kg"?"kg pro Woche. Jede Farbe ist ein fester Bereich. Schraffiert: Bericht fehlt.":"Jede Woche gegen den Schnitt der Sorte (letzte 12 Wochen): blau weniger, orange mehr. Leer: nichts verkauft.";
   $("uHleg").innerHTML=hm==="kg"?HK.map((b,i)=>`<span><i class="sw" style="background:var(--h${i+1})"></i>${b[1]}</span>`).join("")+`<span>kg</span>`:HA.map(b=>`<span><i class="sw" style="background:var(${b[1]})"></i>${b[2]}</span>`).join("");
   document.querySelectorAll("[data-hm]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.hm===hm));
-  const r=$("uHread");if(hSel&&ss[hSel.i]){const x=ss[hSel.i],v=x.s.kg[hSel.w]||0;r.innerHTML=`<b>${esc(x.s.name)} · KW ${hSel.w}:</b> ${f1(v)} kg${x.a?` · Schnitt ${f1(x.a)} kg, ${v>=x.a?"+":"−"}${Math.round(Math.abs(v/x.a-1)*100)} %`:""}`}else r.textContent="Kästchen antippen zeigt die Zahl.";
+  const r=$("uHread");if(hSel&&ss[hSel.i]){const x=ss[hSel.i],v=x.s.kg[hSel.w]||0;r.innerHTML=`<b>${esc(x.s.name)} · KW ${kwL(hSel.w)}:</b> ${f1(v)} kg${x.a?` · Schnitt ${f1(x.a)} kg, ${v>=x.a?"+":"−"}${Math.round(Math.abs(v/x.a-1)*100)} %`:""}`}else r.textContent="Kästchen antippen zeigt die Zahl.";
   HS=ss;
 }
 let HS=[];
@@ -1362,11 +1390,11 @@ $("uReach").addEventListener("click",e=>{const r=e.target.closest("[data-uk]");i
 let wkSel=null;
 function renderWk(){
   const rep=M.all.filter(M.has);if(!rep.length)return;if(wkSel==null||!rep.includes(wkSel))wkSel=M.last;renderBuf();
-  const i=rep.indexOf(wkSel),w=wkSel,y=D.year,key=y+"-"+w,g=gLoad(),lg=g.lager||{},th=thursday(y,w),sun=new Date(th.mon);sun.setUTCDate(th.mon.getUTCDate()+6);
-  $("wkPt").textContent="KW "+w;$("wkPs").textContent=dd(th.mon)+" – "+dd(sun);$("wkPrev").disabled=i<=0;$("wkNext").disabled=i>=rep.length-1;
-  const sold=kgW(w,"__all"),ge=(Array.isArray(g.geroestet)?g.geroestet:[]).find(x=>x&&x.kw===w&&(x.y||y)===y);
-  const IST=istOf(ge),full=!!(IST&&IST.of>0&&IST.n===IST.of),roast=ge?(full?Object.values(IST.sum).reduce((a,v)=>a+v,0):ge.sorten.reduce((a,s)=>a+(s.rohKg||0),0))*(1-(+ge.loss||16)/100):null,eig=lg.eigW?lg.eigW[key]:undefined,pack=lg.packW?lg.packW[key]:undefined,chk=(lg.chk||[]).find(c=>c.w===w&&c.y===y);
-  const it=[["Verkauft",sold,"var(--good)","aus dem Lightspeed-Bericht"],["Nachgeröstet",roast,"var(--accent)",ge?(full?"bestätigte Rösttage „"+(ge.week||"KW "+w)+"“, nach Verlust":"Röstliste „"+(ge.week||"KW "+w)+"“"+(IST&&IST.n?`, ${IST.n} von ${IST.of} Rösttagen bestätigt`:", geplant")+", nach Verlust"):"keine Röstliste für diese Woche"],["Abgepackt",pack,"var(--s1)","Tüten, Kisten, Tonnen in dieser Kalenderwoche"],["Eigenbedarf",eig,"var(--warn)","aus Kisten und Tonnen im Lager"]];
+  const i=rep.indexOf(wkSel),w=wkSel,y=D.year,key=y+"-"+w,RK=VKY.kwOf(D,w),rKey=RK.y+"-"+RK.kw,g=gLoad(),lg=g.lager||{},th=thursday(y,w),sun=new Date(th.mon);sun.setUTCDate(th.mon.getUTCDate()+6);
+  $("wkPt").textContent="KW "+kwL(w);$("wkPs").textContent=dd(th.mon)+" – "+dd(sun);$("wkPrev").disabled=i<=0;$("wkNext").disabled=i>=rep.length-1;
+  const sold=kgW(w,"__all"),ge=(Array.isArray(g.geroestet)?g.geroestet:[]).find(x=>x&&x.kw===RK.kw&&(x.y||RK.y)===RK.y);
+  const IST=istOf(ge),full=!!(IST&&IST.of>0&&IST.n===IST.of),roast=ge?(full?Object.values(IST.sum).reduce((a,v)=>a+v,0):ge.sorten.reduce((a,s)=>a+(s.rohKg||0),0))*(1-(+ge.loss||16)/100):null,eig=lg.eigW?lg.eigW[rKey]:undefined,pack=lg.packW?lg.packW[rKey]:undefined,chk=(lg.chk||[]).find(c=>c.w===w&&c.y===y);
+  const it=[["Verkauft",sold,"var(--good)","aus dem Lightspeed-Bericht"],["Nachgeröstet",roast,"var(--accent)",ge?(full?"bestätigte Rösttage „"+(ge.week||"KW "+kwL(w))+"“, nach Verlust":"Röstliste „"+(ge.week||"KW "+kwL(w))+"“"+(IST&&IST.n?`, ${IST.n} von ${IST.of} Rösttagen bestätigt`:", geplant")+", nach Verlust"):"keine Röstliste für diese Woche"],["Abgepackt",pack,"var(--s1)","Tüten, Kisten, Tonnen in dieser Kalenderwoche"],["Eigenbedarf",eig,"var(--warn)","aus Kisten und Tonnen im Lager"]];
   const mx=Math.max(1,...it.map(x=>x[1]||0));
   $("wkBal").innerHTML=it.map(([l,v,c,src])=>`<div class="u-bl"><span class="t">${l}<small>${esc(src)}</small></span><span class="u-bb">${v!=null?`<i style="width:${Math.max(2,v/mx*100)}%;background:${c}"></i>`:""}</span><b>${v!=null?f1(v)+" kg":"–"}</b></div>`).join("");
   const s=roast!=null?roast-sold-(eig||0):null;
@@ -1396,13 +1424,14 @@ $("pgW").addEventListener("touchend",e=>{if(wsx==null)return;const dx=e.changedT
 
 /* ---------- Hochladen: Berichte einlesen, nach KW einordnen, nichts doppelt ---------- */
 function merge(r,fname,log){
+  const r0=r;r=VKY.norm(D,r);if(!r){log.push(`KW ${r0.kw}/${r0.year}: liegt vor dem Start deiner Zahlen, übersprungen (${fname})`);return}
   const kw=r.kw;const had=D.weeks[kw];
   D.sorts.forEach(s=>{delete s.kg[kw];if(s.u)delete s.u[kw];if(s.sh)delete s.sh[kw]});
   r.products.forEach(p=>{let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.u=s.u||{};s.kg[kw]=p.kg;if(p.sh){s.sh=s.sh||{};s.sh[kw]=p.sh}if(p.u&&Object.keys(p.u).length)s.u[kw]=p.u;else delete s.u[kw];s.name=kw>=Math.max(0,...Object.keys(s.kg).map(Number))?p.name:s.name});
   D.weeks[kw]={src:"bericht"};
-  log.push(`KW ${kw}: ${had?had.src==="bericht"?"schon da, ersetzt":"ersetzt die Zahlen aus der Vorwoche":"neu"} (${fname})`);
+  log.push(`KW ${kwL(kw)}/${VKY.kwOf(D,kw).y}: ${had?had.src==="bericht"?"schon da, ersetzt":"ersetzt die Zahlen aus der Vorwoche":"neu"} (${fname})`);
   if(r.prevKw&&!D.weeks[r.prevKw]&&r.products.some(p=>p.prevKg!=null)){r.products.forEach(p=>{if(p.prevKg==null)return;let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.kg[r.prevKw]=p.prevKg});
-    D.weeks[r.prevKw]={src:"vorwoche"};log.push(`KW ${r.prevKw}: aus der Vorwoche-Spalte ergänzt`)}
+    D.weeks[r.prevKw]={src:"vorwoche"};log.push(`KW ${kwL(r.prevKw)}: aus der Vorwoche-Spalte ergänzt`)}
 }
 $("files").addEventListener("change",async e=>{const fs=[...e.target.files];if(!fs.length)return;const log=[],box=$("log");box.hidden=false;box.innerHTML="Lese "+fs.length+" Datei(en) …";
   try{pdfjsLib.GlobalWorkerOptions.workerSrc="lib/pdf.worker.min.js"}catch(x){}
@@ -1410,11 +1439,11 @@ $("files").addEventListener("change",async e=>{const fs=[...e.target.files];if(!
   for(const f of fs){try{const doc=await pdfjsLib.getDocument({data:await f.arrayBuffer()}).promise;const it=[];
       for(let p=1;p<=doc.numPages;p++){const tc=await (await doc.getPage(p)).getTextContent();tc.items.forEach(i=>it.push({s:i.str,x:i.transform[4],w:i.width,y:p*2000-i.transform[5]}))}
       const r=VK.parse(VK.rows(it));if(r)parsed.push([r,f.name]);else log.push(f.name+": keine Wochenzahlen gefunden")}catch(x){log.push(f.name+": konnte nicht gelesen werden")}}
-  parsed.sort((a,b)=>a[0].kw-b[0].kw).forEach(([r,n])=>merge(r,n,log));
+  parsed.sort((a,b)=>((a[0].year||VKY.near(a[0].kw))*100+a[0].kw)-((b[0].year||VKY.near(b[0].kw))*100+b[0].kw)).forEach(([r,n])=>merge(r,n,log));
   save();box.innerHTML=log.map(esc).join("<br>");e.target.value="";end=null;all()});
 
 // Berichte aus der Röstwoche, die ankamen, bevor Zahlen das erste Mal offen war (laden-v40)
-try{const Q=JSON.parse(localStorage.getItem("verkauf.neu"))||[];if(Q.length){const lg=[];Q.slice().sort((a,b)=>a.r.kw-b.r.kw).forEach(x=>{if(x&&x.r&&(!x.r.year||x.r.year===D.year))merge(x.r,x.f||"Röstwoche",lg)});save();localStorage.removeItem("verkauf.neu")}}catch(e){}
+try{const Q=JSON.parse(localStorage.getItem("verkauf.neu"))||[];if(Q.length){const lg=[];Q.filter(x=>x&&x.r&&x.r.kw).sort((a,b)=>((a.r.year||VKY.near(a.r.kw))*100+a.r.kw)-((b.r.year||VKY.near(b.r.kw))*100+b.r.kw)).forEach(x=>{if(x&&x.r)merge(x.r,x.f||"Röstwoche",lg)});save();localStorage.removeItem("verkauf.neu")}}catch(e){}
 all();
 })();
 </script>

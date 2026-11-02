@@ -532,6 +532,24 @@ function soSel(id,cur,L,none){cur=cur||"";if(cur&&!L.some(n=>norm(n)===norm(cur)
 const selVal=id=>{const e=$(id);if(!e)return null;return e.value==="__x"?(($(id+"T")||{}).value||"").trim():e.value};
 const soList=s=>chNames(s).filter(n=>norm(n)!==norm(s.name));
 const soHtml=(s,id)=>soFld(s)?`<label class="f">Kaffee darin${soSel(id,s.sorte,soList(s),"Sorte wählen …")}</label>`:"";
+/* laden-v46: Jahreswechsel. verkauf.v1 zählt die Wochen fortlaufend ab D.year (erstes Jahr der Daten): KW 1 des Folgejahres = 54, weil 2026 53 Wochen hat.
+   So bleibt alles eine durchgehende Wochenreihe und kein Jahr überschreibt das andere. Angezeigt wird immer die echte KW. */
+const VKY = (() => {
+  const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+  const base = D => +(D && D.year) || new Date().getFullYear();
+  const idx = (D, y, kw) => { const b = base(D); y = +y || b; let o = 0; for (let i = b; i < y; i++) o += wks(i); for (let i = y; i < b; i++) o -= wks(i); return kw + o; };
+  const kwOf = (D, w) => { let y = base(D); w = +w; while (w > wks(y)) { w -= wks(y); y++; } while (w < 1) { y--; w += wks(y); } return { y, kw: w }; };
+  // Jahr zu einer KW ohne Jahresangabe: das Jahr, in dem diese KW am nächsten an ref liegt
+  const near = (kw, ref) => { ref = ref || new Date(); const r = ref.getFullYear(); let best = r, bd = 1e15;
+    [r - 1, r, r + 1].forEach(y => { const j4 = Date.UTC(y, 0, 4), d = new Date(j4).getUTCDay() || 7, th = j4 + ((kw - 1) * 7 + 4 - d) * 864e5, df = Math.abs(th - ref.getTime()); if (kw <= wks(y) && df < bd) { bd = df; best = y; } }); return best; };
+  // Bericht {kw, year, prevKw} -> fortlaufende Woche in D; null = Jahr vor dem Datenstart
+  const norm = (D, r) => { if (!r || !r.kw) return r; const y = +r.year || near(r.kw); if (D && !D.year) D.year = y; const w = idx(D, y, r.kw); if (w < 1) return null;
+    const p = r.prevKw ? (r.prevKw < r.kw ? w - (r.kw - r.prevKw) : w - 1) : null; return Object.assign({}, r, { kw: w, prevKw: p && p >= 1 ? p : null, realKw: r.kw, year: y }); };
+  return { wks, idx, kwOf, near, norm };
+})();
+// echte KW zu einer Woche aus verkauf.v1 (fortlaufend ab dessen erstem Jahr)
+let VKYR=null;const vkY=()=>{if(VKYR==null){try{VKYR=+(JSON.parse(localStorage.getItem("verkauf.v1"))||{}).year||0}catch(e){VKYR=0}}return VKYR||new Date().getFullYear()};
+const kL=(w,y)=>VKY.kwOf({year:y||vkY()},w).kw;
 /* Chargen-Rechner: Sorte aus Liste, Chargen × roh − Röstverlust der Sorte = kg (laden-v26) */
 let CH=null;
 const rpLoss=()=>{try{return +(JSON.parse(localStorage.getItem("roestplan.v4"))||{}).loss||16}catch(e){return 16}};
@@ -831,8 +849,8 @@ function ring(d,big){if(!d)return "";const n=Math.max(0,ddays(d,today())),p=Math
 function wData(){
   const R=rLoad("roestplan.v4")||{},V=rLoad("roestplan.verlauf")||[],K=rLoad("verkauf.v1");
   const wk=R.week||"",kw=parseInt(String(wk).replace(/[^0-9]+/g," ").trim().split(" ")[0],10)||null,loss=+R.loss||16;
-  const vs=K&&Array.isArray(K.sorts)?K.sorts:[];let vkW=null;
-  if(K&&K.weeks){const ks=Object.keys(K.weeks).map(Number).filter(w=>vs.some(s=>s.u&&s.u[w])).sort((a,b)=>a-b);vkW=kw&&ks.includes(kw)?kw:ks.length?ks[ks.length-1]:null}
+  const vs=K&&Array.isArray(K.sorts)?K.sorts:[];let vkW=null,kwOff=false;
+  if(K&&K.weeks){const ks=Object.keys(K.weeks).map(Number).filter(w=>vs.some(s=>s.u&&s.u[w])).sort((a,b)=>a-b);const kwI=kw&&K.year?VKY.idx(K,VKY.near(kw),kw):kw;vkW=kwI&&ks.includes(kwI)?kwI:ks.length?ks[ks.length-1]:null;kwOff=kwI&&vkW&&kwI>vkW}
   const geb=name=>{const n=norm(name);if(!n||!vkW)return null;const v=vs.find(x=>norm(x.name)===n)||vs.find(x=>norm(x.name).split(" ")[0]===n.split(" ")[0]);const u=v&&v.u&&v.u[vkW];return u?{n1:u["1000"]|0,n2:u["250"]|0,unv:+u.unv||0}:null};
   const sorts=(Array.isArray(R.sorts)?R.sorts:[]).filter(s=>(s.totalG|0)>0).map(s=>({n:s.name||"Ohne Namen",g:s.totalG|0}));
   const e=(R.vId&&V.find(x=>x&&x.id===R.vId))||(V[0]&&V[0].week&&V[0].week===wk?V[0]:null);
@@ -840,7 +858,7 @@ function wData(){
   const uw=K&&K.weeks?Object.keys(K.weeks).map(Number).filter(w=>vs.some(s=>s.u&&s.u[w])&&(!vkW||w<=vkW)).sort((a,b)=>a-b).slice(-4):[];
   const tgt=name=>{const n=norm(name);if(!n||!uw.length)return null;const v=vs.find(x=>norm(x.name)===n)||vs.find(x=>norm(x.name).split(" ")[0]===n.split(" ")[0]);if(!v||!v.u)return null;
     let a1=0,a2=0,ws=0;uw.forEach((w,i)=>{const u=v.u[w]||{};a1+=(u["1000"]|0)*(i+1);a2+=(u["250"]|0)*(i+1);ws+=i+1});return{t1:Math.max(0,Math.ceil(a1/ws-.15)),t2:Math.max(0,Math.ceil(a2/ws-.15)),uw}};
-  return{wk,kw,loss,vkW,sorts,geb,e,tgt};
+  return{wk,kw,loss,vkW,vkL:vkW?kL(vkW,K&&K.year):null,kwOff,sorts,geb,e,tgt};
 }
 function siloFor(n){const m=norm(n);return S().list.find(x=>{const b=norm(x.sorte),a=norm(x.name);return (b&&m.includes(b))||(a&&a!=="muhle 2"&&(m.includes(a)||m.split(" ")[0]===a.split(" ")[0]))})||null}
 let KO=null;
@@ -859,7 +877,7 @@ const isDone=r=>r.needKg>0&&(r.g?r.m1+r.m2===0:r.missKg<.01);
 function suggest(r){let a=r.w;const x={e:0,s1:0,s2:0};if(r.g){x.s1=Math.min(r.m1,nB(a));a-=x.s1;x.s2=Math.min(r.m2,nS(a))}PS[r.n]=x}
 function renderW(){
   WD=wData();const R=rowsW();
-  $("wSub").textContent=WD.wk?`${WD.wk} · Bedarf ${WD.vkW?"aus Lightspeed KW "+WD.vkW:"aus dem Röstplan (kg)"}${WD.kw&&WD.vkW&&WD.kw>WD.vkW?` · Tütenzahlen für KW ${WD.kw} fehlen: PDF in der Röstwoche laden`:""}`:"Noch kein Bericht im Röstplan";
+  $("wSub").textContent=WD.wk?`${WD.wk} · Bedarf ${WD.vkW?"aus Lightspeed KW "+WD.vkL:"aus dem Röstplan (kg)"}${WD.kwOff?` · Tütenzahlen für KW ${WD.kw} fehlen: PDF in der Röstwoche laden`:""}`:"Noch kein Bericht im Röstplan";
   const wk=R.reduce((x,r)=>x+r.w,0),ms=R.filter(r=>r.needKg>0&&!isDone(r)),bags=ms.reduce((x,r)=>x+(r.g?r.m1+r.m2:0),0),mkg=ms.reduce((x,r)=>x+r.missKg,0),ready=ms.filter(r=>r.w>0);
   $("missC").innerHTML=`<h2>Jetzt abpackbar</h2>${wk>0?`<div class="miss"><div class="big"><b>${f1(wk)}</b><span>kg geröstet</span></div><div><b>${nS(wk)}</b><span>× 250 g möglich</span></div><div><b>${nB(wk)}</b><span>× 1 kg möglich</span></div></div>`:`<p class="hint">Nichts geröstet, das wartet. Erst den Rösttag bestätigen.</p>`}
    ${R.length?`<h2 style="font-size:15px;margin-top:4px">Fehlt diese Woche noch</h2>${ms.length?`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""} · ${f1(mkg)} kg</b>${ready.length?` · davon jetzt abpackbar: ${ready.length}`:""}</p>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`}`:`<p class="hint">Im Röstplan einen Wochenbericht laden, dann steht hier der Bedarf.</p>`}`;
@@ -1104,7 +1122,7 @@ function undoLog(id){AN();const l=A.log.find(x=>x.id===id);if(!l)return;
 function kwEnd(y,w){const j=new Date(y,0,4,12),d=(j.getDay()+6)%7;j.setDate(j.getDate()-d+(w-1)*7+6);return iso(j)}
 // Wochen mit Tüten-Zahlen im Verkaufsbericht (aufsteigend)
 function ckWeeks(K){const vs=K&&Array.isArray(K.sorts)?K.sorts:[];if(!K||!K.weeks)return[];return Object.keys(K.weeks).map(Number).filter(w=>vs.some(s=>s.u&&s.u[w])).sort((a,b)=>a-b)}
-function ckLatest(){const K=rLoad("verkauf.v1"),ws=ckWeeks(K);if(!ws.length)return null;const y=+(K.year||new Date().getFullYear()),w=ws[ws.length-1];return{K,y,w,key:y+"-"+w,ws}}
+function ckLatest(){const K=rLoad("verkauf.v1"),ws=ckWeeks(K);if(!ws.length)return null;const y=+(K.year||new Date().getFullYear()),w=ws[ws.length-1];return{K,y,w,kl:kL(w,y),key:y+"-"+w,ws}}
 const ckDue=L=>{AN();return !!L&&(!A.chk||A.chk.key!==L.key)&&!(A.chk&&A.chk.y===L.y&&A.chk.w>L.w)};
 // zuletzt gezählt: Wochen-Check oder Inventur im Regal
 function lastCount(n){AN();let d=(A.regD||{})[n]||"";A.log.forEach(l=>{if(l.t==="reg"&&l.n===n&&l.d>d)d=l.d});return d||null}
@@ -1124,9 +1142,9 @@ const kgR=r=>r.p1+r.p2*.25;
 function ckRes(){const off=CK.rows.filter(r=>r.ist.p1!==r.soll.p1||r.ist.p2!==r.soll.p2),dk=off.reduce((a,r)=>a+kgR(r.ist)-kgR(r.soll),0);
   const eig=CK.sil.reduce((a,s)=>a+Math.max(0,s.app-s.ist),0),mehr=CK.sil.reduce((a,s)=>a+Math.max(0,s.ist-s.app),0);return{off,dk,eig,mehr}}
 function ckBanner(id){const el=$(id);if(!el)return;const L=ckLatest();AN();
-  if(id==="ckR"&&FROMR&&L&&!ckDue(L)){el.className="card ck-b";el.hidden=false;el.innerHTML=`<div class="hrow"><h2>Wochen-Check KW ${A.chk?A.chk.w:L.w} erledigt ✓</h2></div><p class="hint" style="margin-top:-6px">Die Röstwoche rechnet jetzt mit dem gezählten Bestand.</p><a class="primary big" href="roestplan.html#chargen" style="display:flex;align-items:center;justify-content:center;text-decoration:none;border-radius:12px;font-weight:600;background:var(--accent);color:var(--accent-ink)">Zurück zur Röstwoche</a>`;return}
-  if(L&&ckDue(L)){el.className="card ck-b";el.hidden=false;el.innerHTML=`<div class="hrow"><h2>Wochen-Check KW ${L.w}</h2><span class="hint">ca. 5 Min.</span></div><p class="hint" style="margin-top:-6px">Der Bericht ist da. Regal und Kisten kurz zählen, dann stimmt der Bestand für Röstwoche und Zahlen.</p><button type="button" class="primary big" data-ckgo="1">Jetzt zählen</button>`;return}
-  if(id==="ckR"&&A.chk){el.className="ck-l";el.hidden=false;el.innerHTML=`<span class="hint">Letzter Wochen-Check: KW ${A.chk.w} am ${esc(dFmt(A.chk.d))}</span><button type="button" class="lk" data-ckgo="1">Nochmal zählen</button>`;return}
+  if(id==="ckR"&&FROMR&&L&&!ckDue(L)){el.className="card ck-b";el.hidden=false;el.innerHTML=`<div class="hrow"><h2>Wochen-Check KW ${A.chk?kL(A.chk.w,A.chk.y):L.kl} erledigt ✓</h2></div><p class="hint" style="margin-top:-6px">Die Röstwoche rechnet jetzt mit dem gezählten Bestand.</p><a class="primary big" href="roestplan.html#chargen" style="display:flex;align-items:center;justify-content:center;text-decoration:none;border-radius:12px;font-weight:600;background:var(--accent);color:var(--accent-ink)">Zurück zur Röstwoche</a>`;return}
+  if(L&&ckDue(L)){el.className="card ck-b";el.hidden=false;el.innerHTML=`<div class="hrow"><h2>Wochen-Check KW ${L.kl}</h2><span class="hint">ca. 5 Min.</span></div><p class="hint" style="margin-top:-6px">Der Bericht ist da. Regal und Kisten kurz zählen, dann stimmt der Bestand für Röstwoche und Zahlen.</p><button type="button" class="primary big" data-ckgo="1">Jetzt zählen</button>`;return}
+  if(id==="ckR"&&A.chk){el.className="ck-l";el.hidden=false;el.innerHTML=`<span class="hint">Letzter Wochen-Check: KW ${kL(A.chk.w,A.chk.y)} am ${esc(dFmt(A.chk.d))}</span><button type="button" class="lk" data-ckgo="1">Nochmal zählen</button>`;return}
   if(id==="ckR"&&L){el.className="ck-l";el.hidden=false;el.innerHTML=`<button type="button" class="lk" data-ckgo="1">Wochen-Check machen</button>`;return}
   el.hidden=true;el.innerHTML=""}
 function ckShow(on){["W","R","S","K","V"].forEach(p=>$("pg"+p).hidden=on||page!==p);$("pgC").hidden=!on;scrollTo(0,0)}
@@ -1135,10 +1153,10 @@ function ckStart(){CK=ckBuild();if(!CK){$("rmsg").textContent="Erst in Zahlen ei
 function ckTag(r){const d1=r.ist.p2-r.soll.p2,d2=r.ist.p1-r.soll.p1;if(!d1&&!d2)return`<span class="ckt ok">stimmt</span>`;
   const p=[];if(d1)p.push((d1>0?"+":"−")+Math.abs(d1)+" × 250 g");if(d2)p.push((d2>0?"+":"−")+Math.abs(d2)+" × 1 kg");return`<span class="ckt w">${p.join(" · ")}</span>`}
 function renderC(){if(!CK)return;const L=CK.L,res=ckRes();
-  $("ckSub").textContent=`KW ${L.w} · Bericht von Lightspeed`;
-  $("ckSteps").innerHTML=[["Bericht KW "+L.w+" ist geladen",1],["Regal zählen",CK.step>1],["Kisten und Tonnen ablesen",CK.step>2]].map(([t,d],i)=>`<div class="cks${d?" d":""}"><i>${d?"✓":i+1}</i>${esc(t)}</div>`).join("");
+  $("ckSub").textContent=`KW ${L.kl} · Bericht von Lightspeed`;
+  $("ckSteps").innerHTML=[["Bericht KW "+L.kl+" ist geladen",1],["Regal zählen",CK.step>1],["Kisten und Tonnen ablesen",CK.step>2]].map(([t,d],i)=>`<div class="cks${d?" d":""}"><i>${d?"✓":i+1}</i>${esc(t)}</div>`).join("");
   const vis=CK.rows.map((r,i)=>[r,i]).filter(([r,i])=>CK.more||ckOpen===i||r.app.p1+r.app.p2+r.s1+r.s2+r.ist.p1+r.ist.p2>0),hid=CK.rows.length-vis.length;
-  $("ckReg").innerHTML=vis.length||hid?vis.map(([r,i])=>{const o=ckOpen===i,src=r.used.length?`verkauft ${r.s2} × 250 g · ${r.s1} × 1 kg (KW ${r.used.join(", ")})`:"nichts abgezogen, seit dem Bericht schon gezählt";
+  $("ckReg").innerHTML=vis.length||hid?vis.map(([r,i])=>{const o=ckOpen===i,src=r.used.length?`verkauft ${r.s2} × 250 g · ${r.s1} × 1 kg (KW ${r.used.map(w=>kL(w)).join(", ")})`:"nichts abgezogen, seit dem Bericht schon gezählt";
     return `<div class="rr2${o?" o":""}"><button type="button" class="krow" data-ckr="${i}" aria-expanded="${o}"><span class="t"><b>${esc(r.n)}</b><small>${esc(src)}</small></span><span class="tc${r.ist.p2?"":" z"}"><b>${r.ist.p2}</b><span>250 g</span></span><span class="tc${r.ist.p1?"":" z"}"><b>${r.ist.p1}</b><span>1 kg</span></span></button>
       <div class="ckrow">${r.neg&&r.ist.p1===r.soll.p1&&r.ist.p2===r.soll.p2?"":ckTag(r)}${r.neg?`<span class="ckt w" title="Laut App waren weniger Tüten im Regal als verkauft">${r.known?"bitte zählen":"noch nie gezählt"}</span>`:""}</div>
       ${o?`<div class="ri"><p class="hint" style="margin:0">Laut App müssten ${r.soll.p2} × 250 g und ${r.soll.p1} × 1 kg da sein. Gezählt:</p>
@@ -1156,10 +1174,10 @@ function ckSave(){if(!CK)return;AN();const L=CK.L,res=ckRes(),prev={},prevD={},b
   if(ch.length)commit(x=>ch.forEach(s=>{const id=uid();bids.push(id);x.buch.push({id,n:Date.now()+bids.length,silo:s.id,d,t:"stand",kg:Math.round(s.ist*1000)/1000,note:"Wochen-Check"})}));
   const off={};res.off.forEach(r=>{off[r.n]=Math.round((kgR(r.ist)-kgR(r.soll))*100)/100});
   const rec={id:uid(),key:L.key,y:L.y,w:L.w,d,dk:Math.round(res.dk*100)/100,eig:Math.round(res.eig*100)/100,off,regKg:Math.round(CK.rows.reduce((a,r)=>a+kgR(r.ist),0)*100)/100};
-  A.log.unshift({id:uid(),d,t:"chk",prev,prevD,prevChk:A.chk||null,cid:rec.id,bids,txt:"Wochen-Check KW "+L.w,sub:(res.off.length?res.off.length+(res.off.length===1?" Sorte weicht ab":" Sorten weichen ab"):"Regal stimmt")+(res.eig>.04?" · "+f1(res.eig)+" kg Eigenbedarf":"")});
+  A.log.unshift({id:uid(),d,t:"chk",prev,prevD,prevChk:A.chk||null,cid:rec.id,bids,txt:"Wochen-Check KW "+L.kl,sub:(res.off.length?res.off.length+(res.off.length===1?" Sorte weicht ab":" Sorten weichen ab"):"Regal stimmt")+(res.eig>.04?" · "+f1(res.eig)+" kg Eigenbedarf":"")});
   A.chk=rec;A.chkH=[rec].concat((A.chkH||[]).filter(x=>x.key!==rec.key)).slice(0,30);
   if(!aSave()){$("ckMsg").textContent="Speichern hat nicht geklappt, der Speicher ist voll.";return}
-  CK=null;ckShow(false);render();renderR();$("rmsg").textContent=`Wochen-Check KW ${L.w} gespeichert.`}
+  CK=null;ckShow(false);render();renderR();$("rmsg").textContent=`Wochen-Check KW ${L.kl} gespeichert.`}
 $("pgC").addEventListener("click",e=>{if(!CK)return;
   const r=e.target.closest("[data-ckr]");if(r){const i=+r.dataset.ckr;ckOpen=ckOpen===i?null:i;CK.step=Math.max(CK.step,2);renderC();return}
   const b=e.target.closest("[data-cki]");if(b&&ckOpen!=null){const x=CK.rows[ckOpen].ist;x[b.dataset.cki]=Math.max(0,Math.min(500,x[b.dataset.cki]+ +b.dataset.v));renderC();return}
