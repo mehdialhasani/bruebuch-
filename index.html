@@ -13,7 +13,7 @@
 <meta name="theme-color" content="#F3EEE7" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
 <style>
-/* Startseite: Bildkacheln Rezepte, Kasse, Röstwoche, Lager, Zahlen, Wartung + Röstlabor (bald) im Farbschema Crema, ganz in Helvetica Neue */
+/* Startseite: Bildkacheln Rezepte, Kasse, Röstwoche, Lager, Zahlen, Wartung (v48: drei groß, drei klein, Röstlabor als Zeile) im Farbschema Crema, ganz in Helvetica Neue */
 :root{
   --bg:#F3EEE7; --paper:#FBF8F3; --ink:#2B211B; --muted:#7A6A5D; --line:#E3D9CC;
   --accent:#8A5A3B; --shadow:rgba(60,40,25,.13);
@@ -159,6 +159,37 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 .wbadge{position:absolute;top:10px;right:12px;z-index:2;min-width:28px;height:28px;padding:0 9px;border-radius:99px;background:var(--accent);color:var(--paper);font:700 15px/28px var(--f);text-align:center;box-shadow:0 2px 8px var(--shadow)}
 .wbadge.soft{background:color-mix(in srgb,var(--paper) 80%,transparent);color:var(--ink);font-weight:600;font-size:12px}
 @media (prefers-reduced-motion:no-preference){.tile.wt{animation-delay:.45s}.tile.lab{animation-delay:.54s}.tick.t2{animation-delay:1.6s}}
+/* laden-v48: Startseite ruhiger. Groß: Kasse, Röstwoche, Lager. Klein in einer Reihe: Rezepte, Zahlen, Wartung (Bild oben, Text darunter). Röstlabor als leise Zeile */
+.tile.lab{display:none}
+.soonl{margin:12px 4px 0;color:var(--muted);font-size:13px;text-align:center}
+.soonl b{font-weight:600;color:var(--ink);opacity:.75}
+.tile .sh{display:none}
+@media (max-width:899px){
+  .tiles{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:1fr 1fr 1fr auto;gap:10px}
+  .tile{grid-column:1/-1}
+  .tile.k1{order:1}.tile.k2{order:2}.tile.k5{order:3}.tile.sm{order:4}
+  .tile.sm{grid-column:auto;grid-row:4;flex:none;height:auto;display:flex;flex-direction:column;border-radius:20px}
+  .tile.sm .art{flex:none;height:62px;min-height:0;aspect-ratio:auto}
+  .tile.sm .meta{position:static;background:none;padding:7px 10px 9px 11px;display:block}
+  .tile.sm .meta h2{font-size:15.5px;text-shadow:none}
+  .tile.sm .meta p{display:none}
+  .tile.sm .meta p.sh{display:block;margin-top:1px;font-size:12.5px;line-height:1.3;color:var(--muted);opacity:1;text-shadow:none;white-space:normal;overflow:hidden;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;min-height:2.6em}
+  .tile.sm .meta p.sh b{color:var(--accent);font-weight:600}
+  .tile.sm .go{display:none}
+  .tile.sm .wbadge{top:6px;right:6px;min-width:24px;height:24px;font-size:13px;line-height:24px;padding:0 7px}
+  .tile.sm .wbadge.soft{font-size:11px}
+  .soonl{margin-top:10px}
+}
+@media (min-width:900px){.tile.sm .meta p{display:block}}
+@media (prefers-reduced-motion:no-preference){.tile.k1{animation-delay:0s}.tile.k2{animation-delay:.09s}.tile.k5{animation-delay:.18s}.tile.k3{animation-delay:.27s}.tile.k4{animation-delay:.33s}.tile.wt{animation-delay:.39s}}
+/* laden-v48: hell: Verlauf hinter den Titeln dezenter (kürzer, durchsichtiger, weicher Schein) */
+@media (prefers-color-scheme:light){
+  .tile .meta{padding-top:18px;background:linear-gradient(to bottom,color-mix(in srgb,var(--paper) 0%,transparent),color-mix(in srgb,var(--paper) 30%,transparent) 45%,color-mix(in srgb,var(--paper) 52%,transparent))}
+  .tile .meta h2{text-shadow:0 0 12px color-mix(in srgb,var(--paper) 85%,transparent),0 0 3px color-mix(in srgb,var(--paper) 70%,transparent)}
+  .tile .meta p{opacity:.85;text-shadow:0 0 10px color-mix(in srgb,var(--paper) 85%,transparent),0 0 2px color-mix(in srgb,var(--paper) 70%,transparent)}
+  .tile.sm .meta{background:none;padding-top:7px}
+  .tile.sm .meta h2,.tile.sm .meta p.sh{text-shadow:none}
+}
 /* ---------- Glasleiste unten wie im Brühbuch/Atlas v139 (fester Hintergrund, kein Filter) ---------- */
 :root{--lgx-solid:rgba(250,247,243,.92);--lgx-hl:rgba(255,255,255,.95);--lgx-edge:rgba(60,40,20,.08);--lgx-thumb-sh:inset 0 1px 0 #fff,inset 0 -1px 1px rgba(255,255,255,.5),0 0 0 .5px rgba(60,40,20,.08),0 3px 10px -2px rgba(60,40,20,.28)}
 @media (prefers-color-scheme:dark){:root:not([data-theme=light]){--lgx-solid:rgba(34,31,28,.92);--lgx-hl:rgba(255,255,255,.13);--lgx-edge:rgba(255,255,255,.08);--lgx-thumb-sh:inset 0 1px 0 rgba(255,255,255,.25),0 0 0 .5px rgba(255,255,255,.08),0 3px 10px -2px rgba(0,0,0,.5)}}
@@ -219,7 +250,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
   <a class="week" id="week" href="roestplan.html" hidden aria-label="Diese Woche"><div class="wk-h"><b id="wkT">Diese Woche</b><span id="wkN"></span></div><div class="wk-s" id="wkS" aria-hidden="true"></div><p class="wk-x"><span id="wkX"></span><b id="wkG">›</b></p></a>
 
   <div class="tiles">
-    <a class="tile" href="bruehbuch.html" aria-labelledby="t3">
+    <a class="tile sm k3" href="bruehbuch.html" aria-labelledby="t3">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c3a)"/><stop offset="1" stop-color="var(--c3b)"/></linearGradient>
@@ -258,9 +289,9 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
           <circle cx="263" cy="116" r="4" fill="#4D6FA8"/><rect x="273" y="112" width="8" height="8" rx="1.5" fill="#D9822B"/><path d="M291 111l5 5-5 5-5-5z" fill="#8A63B0"/>
         </g>
       </svg>
-      <div class="meta"><div><h2 id="t3">Rezepte</h2><p id="s3">Brühhilfe · Rezeptkarten · Tagebuch</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t3">Rezepte</h2><p class="sh" id="q3">Brühhilfe</p><p id="s3">Brühhilfe · Rezeptkarten · Tagebuch</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-    <a class="tile" href="tagesabschluss.html" aria-labelledby="t1">
+    <a class="tile k1" href="tagesabschluss.html" aria-labelledby="t1">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g1" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c1a)"/><stop offset="1" stop-color="var(--c1b)"/></linearGradient>
@@ -300,7 +331,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       </svg>
       <div class="meta"><div><h2 id="t1">Kasse</h2><p id="s1">Tagesabschluss · Trinkgeld verteilen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-    <a class="tile" href="roestplan.html" aria-labelledby="t2">
+    <a class="tile k2" href="roestplan.html" aria-labelledby="t2">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c2a)"/><stop offset="1" stop-color="var(--c2b)"/></linearGradient>
@@ -343,7 +374,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       </svg>
       <div class="meta"><div><h2 id="t2">Röstwoche</h2><p id="s2">Verkauf rein · Chargen planen</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-    <a class="tile" href="abpackhilfe.html" aria-labelledby="t5">
+    <a class="tile k5" href="abpackhilfe.html" aria-labelledby="t5">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g5" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c5a)"/><stop offset="1" stop-color="var(--c5b)"/></linearGradient>
@@ -391,7 +422,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       </svg>
       <div class="meta"><div><h2 id="t5">Lager</h2><p id="s5">Silos · Regal · Abpacken</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-    <a class="tile" href="verkauf.html" aria-labelledby="t4">
+    <a class="tile sm k4" href="verkauf.html" aria-labelledby="t4">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs>
           <linearGradient id="g4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c4a)"/><stop offset="1" stop-color="var(--c4b)"/></linearGradient>
@@ -423,9 +454,9 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
           <rect x="282" y="106" width="36" height="4" rx="2" fill="#DCCDBB"/>
         </g>
       </svg>
-      <div class="meta"><div><h2 id="t4">Zahlen</h2><p id="s4">Verkauf · Vergleich · Prognose</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t4">Zahlen</h2><p class="sh" id="q4">Verkauf</p><p id="s4">Verkauf · Vergleich · Prognose</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
-    <a class="tile wt" href="wartung.html" aria-labelledby="t7">
+    <a class="tile sm wt k7" href="wartung.html" aria-labelledby="t7">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
         <defs><linearGradient id="g7" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="var(--c7a)"/><stop offset="1" stop-color="var(--c7b)"/></linearGradient></defs>
         <rect width="340" height="170" fill="url(#g7)"/>
@@ -452,7 +483,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
         <g transform="translate(4 -40) rotate(6 76 96)"><rect x="46" y="66" width="60" height="62" rx="8" fill="#FBF6EE"/><path d="M46 74a8 8 0 0 1 8-8h44a8 8 0 0 1 8 8v8H46z" fill="#B5622E"/><text x="76" y="116" text-anchor="middle" font-family="Helvetica Neue,Helvetica,Arial" font-weight="700" font-size="26" fill="#2B211B">Di</text></g>
       </svg>
       <span class="wbadge" id="wB" hidden></span>
-      <div class="meta"><div><h2 id="t7">Wartung</h2><p id="s7">Abhaken · Erinnern</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
+      <div class="meta"><div><h2 id="t7">Wartung</h2><p class="sh" id="q7">Abhaken</p><p id="s7">Abhaken · Erinnern</p></div><span class="go"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></span></div>
     </a>
     <div class="tile lab" role="group" aria-labelledby="t6">
       <svg class="art" viewBox="0 0 340 170" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -490,6 +521,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     </div>
   </div>
 
+  <p class="soonl" id="soonl"><b>Röstlabor</b> · Kurven, Tasse, Wissen · kommt bald</p>
   <p class="foot">Alle Daten bleiben auf diesem Handy. <span class="bk"><button type="button" id="bkSave">Sichern</button>·<label>Laden<input type="file" id="bkIn" accept=".json,application/json"></label></span></p>
   <div class="bkask" id="bkAsk" hidden><p id="bkQ"></p><div class="bk"><button type="button" id="bkNo">Abbrechen</button><button type="button" class="main" id="bkYes">Laden</button></div></div>
   <p class="bkmsg" id="bkMsg" role="status"></p>
@@ -536,11 +568,15 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
       t = "Zuletzt <b>" + esc(l.name || "gebrüht") + "</b> · " + when;
     } else if (rz) t = rz + (rz === 1 ? " Rezept" : " Rezepte");
     if (t) document.getElementById("s3").innerHTML = t;
+    // laden-v48: Kurzzeile für die kleine Kachel
+    const q3 = l && l.at ? "<b>" + esc(l.name || "gebrüht") + "</b>" : rz ? rz + (rz === 1 ? " Rezept" : " Rezepte") : "";
+    if (q3) document.getElementById("q3").innerHTML = q3;
   }
 
   // Verkauf: letzte KW und Schnitt der letzten 4 Wochen
   const vk = get("verkauf.kurz");
   if (vk && vk.kw) document.getElementById("s4").innerHTML = "<b>KW " + (vk.kw | 0) + "</b> · Ø " + Number(vk.avg).toLocaleString("de-DE", {maximumFractionDigits: 1}) + " kg/Woche" + (vk.d == null ? "" : " · " + (vk.d >= 0 ? "▲ +" : "▼ −") + Math.abs(vk.d) + " %");
+  if (vk && vk.kw) document.getElementById("q4").innerHTML = "Ø&nbsp;<b>" + Math.round(+vk.avg || 0) + "&nbsp;kg</b>/Wo " + (vk.d == null ? "KW&nbsp;" + (vk.kw | 0) : (vk.d >= 0 ? "▲&nbsp;+" : "▼&nbsp;−") + Math.abs(vk.d) + "&nbsp;%");
   if (vk && vk.d != null) document.getElementById("vkp").textContent = (vk.d >= 0 ? "+" : "−") + Math.abs(vk.d) + " %";
   // Abpackhilfe: was aufs Abpacken wartet, Stand im Lager (Eigenbedarf)
   const ap = get("abpack.kurz"), fk = v => Number(v).toLocaleString("de-DE", {maximumFractionDigits: 1});
@@ -553,6 +589,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     const b = document.getElementById("wB");
     if (due.length) { document.getElementById("s7").innerHTML = "<b>" + esc(due[0].n) + "</b>" + (due.length > 1 ? " +" + (due.length - 1) : ""); b.textContent = due.length; b.hidden = false; }
     else if (L.length) { const n = dd(L[0].d); document.getElementById("s7").textContent = (n === 1 ? "Morgen: " : n < 7 ? new Date(L[0].d + "T12:00:00").toLocaleDateString("de-DE", {weekday: "short"}) + ": " : "Alles erledigt · ") + (n < 7 ? L[0].n : ""); if (plan.length) { b.textContent = "Einplanen"; b.className = "wbadge soft"; b.hidden = false; } }
+    document.getElementById("q7").innerHTML = document.getElementById("s7").innerHTML.replace(/ · $/, "");
   }
   // laden-v41: Diese Woche: Bericht → Wochen-Check → Röstliste → Rösttage → Abpacken. Jeder Schritt hakt sich an den Daten ab.
   try {
