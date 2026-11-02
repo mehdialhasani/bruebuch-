@@ -855,7 +855,7 @@ const isDone=r=>r.needKg>0&&(r.g?r.m1+r.m2===0:r.missKg<.01);
 function suggest(r){let a=r.w;const x={e:0,s1:0,s2:0};if(r.g){x.s1=Math.min(r.m1,nB(a));a-=x.s1;x.s2=Math.min(r.m2,nS(a))}PS[r.n]=x}
 function renderW(){
   WD=wData();const R=rowsW();
-  $("wSub").textContent=WD.wk?`${WD.wk} · Bedarf ${WD.vkW?"aus Lightspeed KW "+WD.vkW:"aus dem Röstplan (kg)"}`:"Noch kein Bericht im Röstplan";
+  $("wSub").textContent=WD.wk?`${WD.wk} · Bedarf ${WD.vkW?"aus Lightspeed KW "+WD.vkW:"aus dem Röstplan (kg)"}${WD.kw&&WD.vkW&&WD.kw>WD.vkW?` · Tütenzahlen für KW ${WD.kw} fehlen: PDF in der Röstwoche laden`:""}`:"Noch kein Bericht im Röstplan";
   const wk=R.reduce((x,r)=>x+r.w,0),ms=R.filter(r=>r.needKg>0&&!isDone(r)),bags=ms.reduce((x,r)=>x+(r.g?r.m1+r.m2:0),0),mkg=ms.reduce((x,r)=>x+r.missKg,0),ready=ms.filter(r=>r.w>0);
   $("missC").innerHTML=`<h2>Jetzt abpackbar</h2>${wk>0?`<div class="miss"><div class="big"><b>${f1(wk)}</b><span>kg geröstet</span></div><div><b>${nS(wk)}</b><span>× 250 g möglich</span></div><div><b>${nB(wk)}</b><span>× 1 kg möglich</span></div></div>`:`<p class="hint">Nichts geröstet, das wartet. Erst den Rösttag bestätigen.</p>`}
    ${R.length?`<h2 style="font-size:15px;margin-top:4px">Fehlt diese Woche noch</h2>${ms.length?`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""} · ${f1(mkg)} kg</b>${ready.length?` · davon jetzt abpackbar: ${ready.length}`:""}</p>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`}`:`<p class="hint">Im Röstplan einen Wochenbericht laden, dann steht hier der Bedarf.</p>`}`;

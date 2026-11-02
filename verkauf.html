@@ -375,8 +375,8 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
   </div>
 
   <div class="card">
-    <div class="up"><label for="files">Berichte hinzufügen<input type="file" id="files" accept="application/pdf" multiple></label>
-      <span class="hint">PDFs aus Lightspeed. Jede KW zählt nur einmal.</span></div>
+    <div class="up"><label for="files">Ältere Berichte nachladen<input type="file" id="files" accept="application/pdf" multiple></label>
+      <span class="hint">Den Wochenbericht lädst du in der Röstwoche, er kommt dann von selbst hierher und ins Lager. Hier nur fehlende alte Wochen nachtragen. Jede KW zählt nur einmal.</span></div>
     <div class="log" id="log" hidden></div>
     <details><summary>So sind die Wochen geordnet</summary>
       <div style="display:flex;flex-direction:column;gap:10px;margin-top:8px">
@@ -1010,7 +1010,7 @@ function head(){
   const rep=M.all.filter(M.has);
   $("cover").textContent=`KW ${M.first} bis KW ${M.last}/${D.year} · ${rep.length} Wochen mit Zahlen`;
   $("wl").innerHTML=M.all.map(w=>{const {mon}=thursday(D.year,w),sun=new Date(mon);sun.setUTCDate(mon.getUTCDate()+6);const src=M.has(w)?D.weeks[w].src:null;
-    return `<span class="${src==="vorwoche"?"v":src?"":"m"}">KW ${w} · ${dd(mon)}–${dd(sun)} · ${src==="bericht"?"Bericht":src==="vorwoche"?"aus Vorwoche":"fehlt"}</span>`}).join("");
+    return `<span class="${src==="vorwoche"?"v":src?"":"m"}">KW ${w} · ${dd(mon)}–${dd(sun)} · ${src==="bericht"?"Bericht":src==="vorwoche"?"aus Vorwoche":src==="roestwoche"?"aus der Röstwoche, nur kg":"fehlt"}</span>`}).join("");
   $("notes").innerHTML=(D.notes||[]).map(t=>`<li>${esc(t)}</li>`).join("")+`<li>„aus Vorwoche“: Für diese Wochen gab es keinen eigenen Bericht. Die Zahlen stammen aus der Spalte „Vorwoche KG“ des Folgeberichts. Kommt der eigene Bericht später dazu, ersetzt er sie.</li>`;
 }
 function kurz(){try{const rep=M.all.filter(M.has),t=w=>kgW(w,"__all"),a=avgL(rep.slice(-4).map(t)),p=avgL(rep.slice(-8,-4).map(t));
@@ -1045,7 +1045,8 @@ function renderU(){
     return{s,P,b,days:b&&perDay>0?b.kg/perDay:null}}).filter(r=>r.P>.05||(r.b&&r.b.kg>0));
   rows.sort((a,b)=>(a.days==null?1e9:a.days)-(b.days==null?1e9:b.days)||b.P-a.P);
   const chk=lg&&lg.chk&&lg.chk[0];
-  $("uCover").textContent=lg?`Bestand ${chk?"gezählt KW "+chk.w+" am "+dShort(chk.d)+", seitdem":"laut Lager"} mitgerechnet · Prognose KW ${M.last+1}`:`Prognose KW ${M.last+1}`;
+  const lw=D.weeks[M.last],srcT=lw&&lw.src==="roestwoche"?` · KW ${M.last} nur kg aus der Röstwoche, Tütenzahlen fehlen`:"";
+  $("uCover").textContent=`Neuester Bericht KW ${M.last}${srcT} · `+(lg?`Bestand ${chk?"gezählt KW "+chk.w+" am "+dShort(chk.d)+", seitdem":"laut Lager"} mitgerechnet · Prognose KW ${M.last+1}`:`Prognose KW ${M.last+1}`);
   const red=rows.filter(r=>r.days!=null&&r.days<3).length,yel=rows.filter(r=>r.days!=null&&r.days>=3&&r.days<OPEN_DAYS).length;
   const MX=12;
   $("uReach").innerHTML=(lg?"":`<p class="say w" style="margin:0">Noch kein Bestand aus dem Lager. Öffne einmal Lager oder mach dort den Wochen-Check, dann steht hier, wie lange jede Sorte reicht.</p>`)+

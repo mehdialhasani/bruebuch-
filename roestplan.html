@@ -213,6 +213,14 @@ section[hidden]{display:none!important}
 .lgx::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:3;background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.55) 48%,transparent 60%) no-repeat;background-size:250% 100%;background-position:var(--sx,150%) 0;mix-blend-mode:soft-light;opacity:.9}
 @media (prefers-color-scheme:dark){.lgx::after{opacity:.35}.lgx-th::before{opacity:calc(var(--ho,.55)*.5)}}
 @media (prefers-reduced-motion:reduce){.lgx::after{display:none}}
+/* laden-v42: wo ist der Bericht hinterlegt */
+.rep{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;font-size:14px}
+.rep b{display:block;font-size:15px;margin-bottom:6px}
+.rep ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rep li{display:flex;justify-content:space-between;gap:10px}
+.rep li span:last-child{font-weight:600;text-align:right}
+.rep .y{color:var(--d3)}.rep .n{color:var(--warn)}
+.rep p{margin:8px 0 0;color:var(--muted);font-size:13px}
 /* laden-v41: Zusammenspiel mit Lager und Zahlen */
 .note.sync .go{display:flex;gap:8px;margin-top:10px}
 .note.sync .go a{flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;font-size:15px}
@@ -254,6 +262,7 @@ section[hidden]{display:none!important}
     <p class="note" id="srcInfo"></p>
     <p class="note warn" id="warnBox"></p>
     <p class="note sync" id="syncBox"></p>
+    <div class="rep" id="repBox" hidden></div>
     <div class="lbl">Verkauf letzte Woche</div>
     <p class="cap">Je Sorte die verkaufte Menge in kg (Gesamt KG). Chargengröße und Röstverlust kommen aus dem Sortiment der Abpackhilfe.</p>
     <div class="card" id="zBody"></div>
@@ -564,6 +573,35 @@ function renderZahlen() {
   $("dSel").innerHTML = [0, 1, 2].map(d => `<select data-day="${d}" aria-label="Rösttag ${d + 1}"><option value="">Tag ${d + 1}</option>${WTAGE.map(w => `<option${S.days && S.days[d] === w ? " selected" : ""}>${w}</option>`).join("")}</select>`).join("");
   updTotals();
 }
+/* laden-v42: ein Ort zum Hochladen. Der Bericht der Röstwoche wird nachgereicht, falls er in Zahlen fehlt (z. B. als Foto/Excel geladen oder vor v40):
+   nur kg je Sorte, als „aus Röstwoche“ markiert; vorhandene Wochen werden nie überschrieben, ein späteres PDF ersetzt die Woche mit Tütenzahlen. */
+const wkNum = t => parseInt(String(t || "").replace(/[^0-9]+/g, " ").trim().split(" ")[0], 10) || null;
+function healSales() {
+  try {
+    const kw = wkNum(S.week); if (!kw || !["file", "photo"].includes(S.source)) return null;
+    if (!S.sorts.some(s => Core.soldGrams(s) > 0)) return null;
+    const D = JSON.parse(localStorage.getItem("verkauf.v1")); if (!D || !D.weeks || D.weeks[kw]) return null;
+    const ks = Object.keys(D.weeks).map(Number).filter(Boolean), last = ks.length ? Math.max(...ks) : kw;
+    if (kw < last - 10 || kw > last + 3) return null;
+    D.sorts = Array.isArray(D.sorts) ? D.sorts : [];
+    S.sorts.forEach(s => { const g = Core.soldGrams(s); if (g <= 0) return; const k = SALES.keyOf(s.name); if (!k) return;
+      let x = D.sorts.find(y => y.key === k); if (!x) { x = { key: k, name: s.name.trim(), kg: {}, u: {} }; D.sorts.push(x); }
+      x.kg[kw] = Math.round(((x.kg[kw] || 0) + g / 1000) * 1000) / 1000; });
+    D.weeks[kw] = { src: "roestwoche" };
+    localStorage.setItem("verkauf.v1", JSON.stringify(D)); FI = null; return kw;
+  } catch (_) { return null; }
+}
+// Übersicht: in welcher Kachel ist der Bericht dieser Woche hinterlegt
+function repBox() {
+  const el = $("repBox"), kw = wkNum(S.week);
+  if (!kw || !["file", "photo"].includes(S.source) || !S.sorts.some(s => Core.soldGrams(s) > 0)) { el.hidden = true; return; }
+  let D = null; try { D = JSON.parse(localStorage.getItem("verkauf.v1")); } catch (_) {}
+  const w = D && D.weeks ? D.weeks[kw] : null, bags = !!(D && Array.isArray(D.sorts) && D.sorts.some(s => s.u && s.u[kw] && Object.keys(s.u[kw]).length));
+  const li = (a, ok, t) => `<li><span>${a}</span><span class="${ok ? "y" : "n"}">${t}</span></li>`;
+  el.innerHTML = `<b>Bericht KW ${kw} ist hinterlegt in</b><ul>${li("Röstwoche", true, "✓ kg je Sorte")}${li("Zahlen", !!w, w ? (w.src === "roestwoche" ? "✓ nur kg" : "✓ ganzer Bericht") : "fehlt")}${li("Lager", bags, bags ? "✓ Tütenzahlen" : "Tütenzahlen fehlen")}</ul>`
+    + (!bags ? `<p>Für die Tütenzahlen (Lager, Wochen-Check) das Lightspeed-PDF von KW ${kw} hier oben über „Datei“ laden. Deine Verteilung auf die Rösttage bleibt dabei erhalten.</p>` : "");
+  el.hidden = false;
+}
 // laden-v41: nach dem Bericht direkt weiter zum Wochen-Check im Lager
 function syncBox() {
   const el = $("syncBox"); if (!S.sync) { el.innerHTML = ""; return; }
@@ -575,7 +613,7 @@ function updTotals() {
   $("zTot").textContent = kgFmt(S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), 2) + " kg";
   $("wk").textContent = S.week;
   $("warnBox").textContent = [S.warn, liveWarn()].filter(Boolean).join(" ");
-  syncBox();
+  syncBox(); repBox();
   updBadges();
 }
 $("zBody").addEventListener("input", e => {
@@ -1113,9 +1151,11 @@ function applyImport(res, source) {
   const clean = all.filter(r => !ignored(r.name));
   const byName = new Map(S.sorts.map(s => [s.name.toLowerCase(), s]));
   S.sorts = clean.map(r => { const o = byName.get(r.name.toLowerCase()); return { id: o?.id || newId(), size: o?.size === 3 ? 3 : 5, ...r }; });
-  S.assign = {}; S.adj = {}; S.source = source; S.vId = null; S.order = null;
-  S.week = res.woche ? String(res.woche).slice(0, 20) : "KW " + isoWeek(new Date(Date.now() - 6 * 864e5));
-  S.sync = ""; S.syncKw = null; FI = null;
+  // laden-v42: gleiche Woche nochmal geladen (z. B. PDF nach Foto): Verteilung, +/− und Verlaufseintrag bleiben
+  const nw = res.woche ? String(res.woche).slice(0, 20) : "KW " + isoWeek(new Date(Date.now() - 6 * 864e5)), same = wkNum(nw) && wkNum(nw) === wkNum(S.week) && S.sorts.length;
+  if (!same) { S.assign = {}; S.adj = {}; S.vId = null; S.order = null; }
+  S.source = source; S.week = nw;
+  S.sync = ""; S.syncKw = null; FI = null; healSales();
   S.warn = "";  // Hinweise zu Gesamtmenge und unsicheren Werten rechnet liveWarn() laufend neu
   S.rep = { g: typeof res.gesamt_kg === "number" ? Math.round(res.gesamt_kg * 1000) : null, ign: totAll - S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0) };
   save(); renderZahlen();
@@ -1333,6 +1373,7 @@ document.querySelector("nav").addEventListener("click", e => {
   if (b.dataset.tab === "chargen") renderChargen(); else if (b.dataset.tab === "liste") renderListe(); else if (b.dataset.tab === "verlauf") renderVerlauf(); else renderZahlen();
   window.scrollTo(0, 0);
 });
+healSales();
 renderZahlen();
 // laden-v41: Sprung von Start oder Lager direkt auf einen Reiter (roestplan.html#chargen)
 (() => { const h = (location.hash || "").slice(1); if (!h) return;
