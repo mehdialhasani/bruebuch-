@@ -1101,8 +1101,8 @@ $("pgW").addEventListener("touchend",e=>{if(wsx==null)return;const dx=e.changedT
 /* ---------- Hochladen: Berichte einlesen, nach KW einordnen, nichts doppelt ---------- */
 function merge(r,fname,log){
   const kw=r.kw;const had=D.weeks[kw];
-  D.sorts.forEach(s=>{delete s.kg[kw]});
-  r.products.forEach(p=>{let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.kg[kw]=p.kg;s.name=kw>=Math.max(0,...Object.keys(s.kg).map(Number))?p.name:s.name});
+  D.sorts.forEach(s=>{delete s.kg[kw];if(s.u)delete s.u[kw]});
+  r.products.forEach(p=>{let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.u=s.u||{};s.kg[kw]=p.kg;if(p.u&&Object.keys(p.u).length)s.u[kw]=p.u;else delete s.u[kw];s.name=kw>=Math.max(0,...Object.keys(s.kg).map(Number))?p.name:s.name});
   D.weeks[kw]={src:"bericht"};
   log.push(`KW ${kw}: ${had?had.src==="bericht"?"schon da, ersetzt":"ersetzt die Zahlen aus der Vorwoche":"neu"} (${fname})`);
   if(r.prevKw&&!D.weeks[r.prevKw]&&r.products.some(p=>p.prevKg!=null)){r.products.forEach(p=>{if(p.prevKg==null)return;let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.kg[r.prevKw]=p.prevKg});
@@ -1117,6 +1117,8 @@ $("files").addEventListener("change",async e=>{const fs=[...e.target.files];if(!
   parsed.sort((a,b)=>a[0].kw-b[0].kw).forEach(([r,n])=>merge(r,n,log));
   save();box.innerHTML=log.map(esc).join("<br>");e.target.value="";end=null;all()});
 
+// Berichte aus der Röstwoche, die ankamen, bevor Zahlen das erste Mal offen war (laden-v40)
+try{const Q=JSON.parse(localStorage.getItem("verkauf.neu"))||[];if(Q.length){const lg=[];Q.slice().sort((a,b)=>a.r.kw-b.r.kw).forEach(x=>{if(x&&x.r&&(!x.r.year||x.r.year===D.year))merge(x.r,x.f||"Röstwoche",lg)});save();localStorage.removeItem("verkauf.neu")}}catch(e){}
 all();
 })();
 </script>
