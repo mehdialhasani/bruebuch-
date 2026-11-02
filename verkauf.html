@@ -81,6 +81,23 @@
 #zS .wr .k{font-size:13px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;opacity:.8}
 #zS .wr .v{font-size:34px;font-weight:700;letter-spacing:-.03em;line-height:1.05;font-variant-numeric:tabular-nums}
 #zS .wr .d{font-size:15px;line-height:1.35}
+/* laden-v44 */
+#zS .seg2{display:flex;background:var(--bg);border-radius:11px;padding:3px;gap:2px;margin:0 8px}
+#zS .seg2 button{flex:1;border:0;background:transparent;font-weight:500;font-size:14px;min-height:36px;border-radius:9px;color:var(--muted)}
+#zS .seg2 button[aria-pressed="true"]{background:var(--paper);color:var(--ink);font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.12)}
+#zS .shp{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+#zS .shp div{background:var(--bg);border-radius:12px;padding:8px 10px;display:flex;flex-direction:column;gap:1px;min-width:0}
+#zS .shp b{font-size:20px;font-variant-numeric:tabular-nums}.shp span{font-size:12.5px;color:var(--muted)}
+#zS .shp i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px}
+#zS .lr{padding:12px 0;border-top:1px solid var(--grid);display:flex;flex-direction:column;gap:6px}.lr:first-child{border-top:0}
+.lcd>summary{cursor:pointer;font-weight:600;font-size:15px;padding:10px 0;border-top:1px solid var(--grid);color:var(--ink2)}
+#zS .lc{display:grid;grid-template-columns:minmax(0,1fr) 104px auto;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--grid)}
+#zS .lc:first-child{border-top:0}
+#zS .lc .n b{display:block;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.lc .n small{font-size:12px;color:var(--muted);line-height:1.25;display:block}
+#zS .lc svg{width:104px;height:38px;display:block}
+#zS .st{font-size:12px;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
+#zS .bt{display:flex;flex-wrap:wrap;gap:6px}.bt span{font-size:13px;padding:3px 10px;border-radius:99px;font-weight:600}
+
 #zS .wrg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 #zS .wrg .wr{padding:14px}#zS .wrg .wr .v{font-size:24px}
 details.zd>summary{list-style:none;display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:17px;min-height:30px}
@@ -343,7 +360,8 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
     <div class="chips one" role="group" aria-label="Zeitraum Überblick" id="aPer"></div>
     <div class="card" style="padding:12px 8px 8px">
       <svg class="sky" id="aSky" viewBox="0 0 380 210" role="img" aria-label="Verkaufte kg je Woche als Türme"></svg>
-      <div class="leg" id="aLeg" style="padding:0 8px"></div>
+      <div class="seg2" role="group" aria-label="Türme" id="aMode"><button data-m="all" aria-pressed="true">Gesamt</button><button data-m="shop" aria-pressed="false">Nach Laden</button></div>
+      <div class="leg" id="aLeg" style="padding:6px 8px 0"></div>
     </div>
     <div class="card" id="aWeek"></div>
     <div style="margin-top:8px"><h2 style="font-size:22px">Rückblick</h2><p class="sub">folgt dem Zeitraum oben</p></div>
@@ -596,6 +614,7 @@ const VK = (() => {
         continue;
       }
       if (unit != null) { const st = vals.stck != null ? vals.stck : unit === "unv" ? (vals.linden ?? vals.lister ?? null) : null; if (st != null) cur.u[unit] = (cur.u[unit] || 0) + st; }
+      if (unit != null && (vals.lister != null || vals.linden != null)) { const f = unit === "unv" ? 1 : unit / 1000; cur.sh = cur.sh || [0, 0]; cur.sh[0] = Math.round((cur.sh[0] + (vals.lister || 0) * f) * 1000) / 1000; cur.sh[1] = Math.round((cur.sh[1] + (vals.linden || 0) * f) * 1000) / 1000; }
       if (vals.kg != null && (unit == null || vals.stck == null || unit === 3000 || unit === 1000 || unit === "unv" || unit === 250)) { if (vals.kg !== vals.stck || unit == null) cur.kg = vals.kg; }
       if (vals.prev != null) cur.prevKg = vals.prev;
     }
@@ -1156,6 +1175,13 @@ const trendWord=(a,b)=>{const r=a/b-1;return r>.1?"deutlich mehr":r>.03?"etwas m
 function zchips(el,list,cur,cb){el.innerHTML=list.map(p=>`<button data-k="${p.k}" aria-pressed="${p.k===cur}">${p.n}</button>`).join("");el.onclick=e=>{const b=e.target.closest("[data-k]");if(b)cb(b.dataset.k)}}
 const legLv=()=>LV.map((l,i)=>`<span><i style="background:${lvC(i)}"></i>${["ruhig","weniger","normal","mehr","stark"][i]}</span>`).join("");
 const mix=(c,p,w)=>`color-mix(in srgb,${c} ${p}%,var(--${w}))`;
+/* Zwei Läden (laden-v44): sorts[].sh[kw]=[Lister Meile, Linden] kommt beim Hochladen dazu; KW 33–43 aus den bisherigen Berichten eingebaut (nur lesen, nie gespeichert) */
+const SHS={"panea":{"36":[15.75,21.3],"38":[17.5,24.01],"33":[11.75,41.18],"35":[12.5,24.8],"43":[16.75,30.18],"40":[13.25,39.68],"41":[7.0,23.3],"34":[11.5,36.53],"39":[12.0,26.08]},"mogiana":{"36":[2.0,6.5],"38":[2.75,5.0],"33":[2.0,6.0],"35":[4.0,5.75],"43":[6.5,2.75],"40":[3.5,8.0],"41":[6.0,4.75],"34":[4.0,7.5],"39":[3.5,7.45]},"chinennahally":{"36":[2.0,4.5],"38":[5.25,6.5],"33":[2.0,10.0],"35":[2.0,6.75],"43":[3.5,6.55],"40":[2.0,8.5],"41":[4.25,6.25],"34":[3.25,4.75],"39":[1.75,5.52]},"muteteli":{"36":[2.75,5.13],"38":[1.25,4.25],"33":[0.75,4.0],"35":[1.75,6.35],"43":[3.25,2.0],"40":[1.75,3.5],"41":[2.0,1.25],"34":[1.0,4.25],"39":[1.25,2.75]},"kinazi":{"36":[0.5,1.25],"38":[0.5,0.0],"33":[0.5,3.5],"35":[2.25,4.19],"43":[0.25,0.7],"40":[0.75,0.75],"41":[1.0,1.2],"34":[1.0,2.5],"39":[0.5,1.4]},"first roast":{"36":[0.0,1.0],"38":[0.0,0.5],"35":[0.0,6.25],"43":[0.0,2.75],"41":[0.0,3.75],"39":[0.0,1.5]},"igarape":{"36":[1.5,4.0],"38":[2.25,2.5],"33":[1.5,1.5],"35":[1.0,2.5],"43":[2.25,3.75],"40":[2.5,3.79],"41":[2.0,2.75],"34":[0.75,5.5],"39":[0.5,2.5]},"siguatepeque":{"36":[0.75,3.5],"38":[1.25,0.5],"33":[1.5,2.25],"35":[0.25,3.25],"43":[0.0,1.0],"40":[0.75,0.75],"41":[1.25,2.0],"34":[1.0,1.25],"39":[1.75,2.25]},"jaguar project":{"36":[0.5,2.25],"38":[0.25,1.5],"33":[1.25,3.25],"35":[1.5,2.0],"43":[0.5,1.25],"40":[0.75,1.5],"41":[0.75,1.75],"34":[0.5,1.75],"39":[1.5,1.5]},"tolima":{"36":[0.5,2.2],"38":[1.0,2.25],"33":[2.0,2.75],"35":[1.75,1.75],"43":[0.5,1.75],"40":[2.25,3.75],"41":[1.25,1.75],"34":[2.0,4.5],"39":[1.75,3.25]},"gamboa":{"36":[0.75,1.5],"38":[0.75,1.25],"33":[1.5,0.0],"35":[1.0,1.75],"43":[0.25,1.25],"40":[0.5,0.75],"41":[1.0,0.5],"34":[0.75,0.75],"39":[0.25,1.75]},"planadas":{"36":[0.25,1.0],"38":[2.0,1.25],"33":[0.25,0.75],"35":[0.75,1.25],"43":[0.75,1.25],"40":[0.25,1.0],"41":[1.0,1.5],"34":[0.25,1.75],"39":[0.75,1.5]},"mariscal":{"36":[1.0,2.5],"38":[0.75,2.0],"43":[1.0,1.25],"40":[1.0,1.25],"41":[1.5,0.5],"39":[2.25,1.25]},"kerinci":{"36":[1.25,0.75],"38":[0.5,0.25],"43":[0.25,0.5],"40":[0.5,0.75],"41":[0.5,0.5],"39":[0.25,1.25]},"huila":{"36":[0.5,1.25],"38":[1.25,2.75],"43":[1.25,2.0],"40":[0.5,3.3],"41":[1.25,3.0],"39":[2.25,2.25]},"mesgo":{"36":[0.25,1.0],"38":[0.5,1.25],"43":[0.25,0.75],"40":[0.5,1.25],"41":[1.0,1.0],"39":[0.25,1.75]},"san cristobal":{"36":[0.75,0.25],"38":[1.0,0.75],"43":[1.5,1.5],"40":[0.25,2.75],"41":[0.5,1.5],"39":[0.75,1.5]},"fazenda":{"38":[0.25,0.0],"40":[0.0,0.0],"41":[0.0,0.0],"39":[0.0,0.0]}};
+const shopOf=(s,w)=>(s.sh&&s.sh[w])||(D.weeks[w]&&D.weeks[w].src==="bericht"&&SHS[s.key]&&SHS[s.key][w])||null;
+const shopTot=w=>{if(!has(w))return null;let l=0,n=0,any=false;D.sorts.forEach(s=>{const v=shopOf(s,w);if(v){any=true;l+=v[0];n+=v[1]}});return any&&l+n>0?[l,n]:null};
+const SHC=["var(--fil)","var(--esp)"],SHN=["Lister Meile","Linden"];
+let aMode="all";
+function box(x,base,bw,h,dx,dy,c,topFace){const top=base-h;return`<polygon points="${x+bw},${top} ${x+bw+dx},${top-dy} ${x+bw+dx},${base-dy} ${x+bw},${base}" style="fill:${mix(c,72,"shade")}"/>`+(topFace?`<polygon points="${x},${top} ${x+dx},${top-dy} ${x+bw+dx},${top-dy} ${x+bw},${top}" style="fill:${mix(c,65,"shine")}"/>`:"")+`<rect class="fr" x="${x}" y="${top}" width="${bw}" height="${h}" style="fill:${c}"/>`}
 
 
 /* ========== A Skyline ========== */
@@ -1167,23 +1193,30 @@ function drawSky(){
   const tw=n*bw+gap*(n-1)+dx,x0=(W-tw)/2,mx=Math.max(...ws.map(w=>TOT[w]),1),hs=(base-34-dy)/mx;
   let g=`<polygon points="${x0-6},${base+2} ${x0+tw+6-dx},${base+2} ${x0+tw+6},${base+2-dy} ${x0-6+dx},${base+2-dy}" style="fill:var(--grid)"/>`;
   // Ø-Linie
-  const ay=base-AVG*hs;
+  const ay=base-AVG*hs,rw=ws.filter(has),hiW=rw.length>2?rw.reduce((a,b)=>TOT[b]>TOT[a]?b:a):null,loW=rw.length>2?rw.reduce((a,b)=>TOT[b]<TOT[a]?b:a):null;
   ws.forEach((w,i)=>{const x=x0+i*(bw+gap);
     if(!has(w)){g+=`<g><polygon points="${x},${base} ${x+dx},${base-dy} ${x+bw+dx},${base-dy} ${x+bw},${base}" style="fill:var(--hatch)"/></g>`;return}
-    const h=TOT[w]*hs,lv=lvOf(TOT[w]),c=lvC(lv),sel=w===aW,top=base-h;
-    g+=`<g class="tw" data-w="${w}" role="button" tabindex="0" aria-label="KW ${w}: ${f1(TOT[w])} kg">
-      <polygon points="${x+bw},${top} ${x+bw+dx},${top-dy} ${x+bw+dx},${base-dy} ${x+bw},${base}" style="fill:${mix(c,72,"shade")}"/>
-      <polygon points="${x},${top} ${x+dx},${top-dy} ${x+bw+dx},${top-dy} ${x+bw},${top}" style="fill:${mix(c,65,"shine")}"/>
-      <rect class="fr" x="${x}" y="${top}" width="${bw}" height="${h}" style="fill:${c}"/>
+    const h=TOT[w]*hs,lv=lvOf(TOT[w]),c=lvC(lv),sel=w===aW,top=base-h,st=aMode==="shop"?shopTot(w):null;
+    let body;
+    if(aMode!=="shop")body=box(x,base,bw,h,dx,dy,c,true);
+    else if(!st)body=box(x,base,bw,h,dx,dy,"var(--eq2)",true);
+    else{const h1=st[1]/(st[0]+st[1])*h;body=box(x,base,bw,h1,dx,dy,SHC[1],false)+box(x,base-h1,bw,h-h1,dx,dy,SHC[0],true)}
+    const mk=!sel&&(w===hiW||w===loW)?`<text x="${x+bw/2+dx/2}" y="${top-dy-4}" text-anchor="middle" style="fill:var(--ink2);font-size:${Math.max(9,Math.min(13,bw*1.2))}px;font-weight:700">${w===hiW?"★":"↓"}</text>`:"";
+    g+=`<g class="tw" data-w="${w}" role="button" tabindex="0" aria-label="KW ${w}: ${f1(TOT[w])} kg${w===hiW?", beste Woche im Zeitraum":w===loW?", ruhigste Woche im Zeitraum":""}">${body}${mk}
       ${sel?`<polygon points="${x},${top} ${x+dx},${top-dy} ${x+bw+dx},${top-dy} ${x+bw+dx},${base-dy} ${x+bw},${base} ${x},${base}" style="fill:none;stroke:var(--ink);stroke-width:2;stroke-linejoin:round"/>
       <text x="${x+bw/2+dx/2}" y="${top-dy-7}" text-anchor="middle" style="fill:var(--ink);font-size:13px;font-weight:700">${f0(TOT[w])} kg</text>`:""}</g>`;
     if(i%(n>20?4:n>8?2:1)===0||sel)g+=`<text x="${x+bw/2}" y="${base+18}" text-anchor="middle" style="fill:${sel?"var(--ink)":"var(--muted)"};font-size:11px;font-weight:${sel?700:400}">${w}</text>`});
   g+=`<line x1="${x0-4}" x2="${x0+tw}" y1="${ay}" y2="${ay}" style="stroke:var(--ink);stroke-opacity:.35;stroke-dasharray:3 4"/>`;
   g+=`<text x="${W/2}" y="${H-2}" text-anchor="middle" style="fill:var(--muted);font-size:11px">Kalenderwoche · Turm antippen</text>`;
-  $("aSky").innerHTML=g;$("aLeg").innerHTML=legLv()+`<span><i style="background:var(--hatch)"></i>Bericht fehlt</span><span>- - - Schnitt ${f0(AVG)} kg</span>`;
+  $("aSky").innerHTML=g;$("aLeg").innerHTML=(aMode==="shop"?`<span><i style="background:var(--esp)"></i>Linden</span><span><i style="background:var(--fil)"></i>Lister Meile</span><span><i style="background:var(--eq2)"></i>ohne Ladenaufteilung im Bericht</span>`:legLv())+`<span><i style="background:var(--hatch)"></i>Bericht fehlt</span><span>- - - Schnitt ${f0(AVG)} kg</span><span>★ beste · ↓ ruhigste Woche</span>`;
 }
+function shopWeek(w){const st=shopTot(w);if(!st)return"";const ws=RW.filter(x=>x<w&&shopTot(x)).slice(-8);
+  const us=k=>ws.length?ws.reduce((a,x)=>a+shopTot(x)[k],0)/ws.length:0;
+  const cell=k=>{const u=us(k),r=u?st[k]/u-1:0;return`<div><span><i style="background:${SHC[k]}"></i>${SHN[k]}</span><b>${f1(st[k])} kg</b><span>${u?(Math.abs(r)<.05?"wie üblich":(r>0?"+":"−")+Math.round(Math.abs(r)*100)+" % gegen üblich"):"–"}</span></div>`};
+  return`<div class="lbl" style="margin-top:4px">Läden</div><div class="shp">${cell(1)}${cell(0)}</div>`}
 function renderA(){
   prep();if(!RW.length||!$("aSky"))return;if(aW==null||!RW.includes(aW))aW=LAST;
+  document.querySelectorAll("#aMode button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.m===aMode));
   zchips($("aPer"),PER,aP,k=>{aP=k;const ws=range(PER.find(p=>p.k===aP)).filter(has);if(!ws.includes(aW))aW=ws[ws.length-1];renderA()});
   drawSky();
   const w=aW,lv=lvOf(TOT[w]),rep=RW,i=rep.indexOf(w);
@@ -1191,6 +1224,7 @@ function renderA(){
   $("aWeek").innerHTML=`<div class="znav"><button id="aPrev" aria-label="Woche davor" ${i<=0?"disabled":""}>‹</button><div class="t"><b>KW ${w}</b><small>${span(w)}</small></div><button id="aNext" aria-label="Woche danach" ${i>=rep.length-1?"disabled":""}>›</button></div>
     <div class="zrow" style="align-items:center"><div class="zbig">${f1(TOT[w])}<small>kg</small></div><span class="pill" style="background:${lvC(lv)};color:${lvO(lv)}">${LV[lv][1]}</span></div>
     <ul class="zfacts">${weekFacts(w).map(f=>`<li><i>${f[0]}</i><span>${f[1]}</span></li>`).join("")}</ul>
+    ${shopWeek(w)}
     <div class="lbl" style="margin-top:4px">Sorten · Farbe: gegen ihren üblichen Wert</div>
     <div style="display:flex;flex-direction:column;gap:6px">${ss.slice(0,7).map(x=>{const h=haOf(x.v,x.u);return`<div class="sb"><span>${esc(short(x.s.name))}</span><div class="bb"><i style="width:${x.v/mx*100}%;background:var(--${h[1]})"></i></div><b>${f1(x.v)} kg</b></div>`}).join("")}
     ${ss.length>7?`<div class="note">+ ${ss.length-7} weitere Sorten mit zusammen ${f1(ss.slice(7).reduce((a,x)=>a+x.v,0))} kg</div>`:""}</div>
@@ -1200,6 +1234,7 @@ function renderA(){
   if(!$("aWeek").dataset.sw){$("aWeek").dataset.sw=1;swipe($("aWeek"),d=>{const r=RW,k=r.indexOf(aW)+d;if(k>=0&&k<r.length){aW=r[k];ensureA();renderA()}})}
 }
 function ensureA(){if(!range(PER.find(p=>p.k===aP)).includes(aW))aP="all"}
+$("aMode").addEventListener("click",e=>{const b=e.target.closest("[data-m]");if(b){aMode=b.dataset.m;renderA()}});
 $("aSky").addEventListener("click",e=>{const g=e.target.closest("[data-w]");if(g){aW=+g.dataset.w;renderA()}});
 $("aSky").addEventListener("keydown",e=>{if(e.key==="Enter"){const g=e.target.closest("[data-w]");if(g){aW=+g.dataset.w;renderA()}}});
 
@@ -1220,26 +1255,60 @@ function ring(ty){const T=ty.esp+ty.fil+ty.dec+ty.oth,cx=120,cy=62,rx=104,ry=48,
   return `<svg viewBox="0 0 240 132" style="width:100%;max-width:300px;display:block;margin:0 auto" role="img" aria-label="Anteile Espresso, Filter, Decaf">${walls}${inner}${tops}</svg>
     <div class="leg" style="justify-content:center">${ks.map(k=>`<span><i style="background:var(--${k})"></i>${TYN[k]} <b style="color:var(--ink)">${Math.round(ty[k]/T*100)} %</b></span>`).join("")}</div>`}
 
+function col3(x,base,bw,h,dx,dy,c,l1,l2,v){const t=base-h;return box(x,base,bw,h,dx,dy,c,true)+`<text x="${x+bw/2+dx/2}" y="${t-dy-8}" text-anchor="middle" style="fill:var(--ink);font-size:16px;font-weight:700">${v}</text><text x="${x+bw/2}" y="${base+17}" text-anchor="middle" style="fill:var(--ink);font-size:12.5px;font-weight:600">${l1}</text><text x="${x+bw/2}" y="${base+31}" text-anchor="middle" style="fill:var(--muted);font-size:11px">${l2}</text>`}
+function shopCard(a){const ws=a.rep.filter(w=>shopTot(w));if(ws.length<2)return`<div class="card"><h2>Zwei Läden</h2><p class="note">Für diesen Zeitraum gibt es noch keine Berichte mit getrennten Läden (ab KW 33).</p></div>`;
+  const T=ws.map(shopTot),av=k=>T.reduce((s,x)=>s+x[k],0)/T.length,h=Math.ceil(ws.length/2),f=T.slice(0,h),l=T.slice(-h),avg=(arr,k)=>arr.reduce((s,x)=>s+x[k],0)/arr.length;
+  const W=320,base=128,bw=62,dx=24,dy=15,mx=Math.max(av(0),av(1)),hs=(base-44)/mx;
+  const tr=k=>{const r=avg(l,k)/avg(f,k)-1;return Math.abs(r)<.03?"gleich geblieben":(r>0?"+":"−")+Math.round(Math.abs(r)*100)+" % zuletzt"};
+  const svg=`<svg viewBox="0 0 ${W} 166" style="width:100%;height:auto;display:block" role="img" aria-label="kg pro Woche je Laden"><polygon points="24,${base+2} 278,${base+2} ${278+dx},${base+2-dy} ${24+dx},${base+2-dy}" style="fill:var(--grid)"/>${col3(60,base,bw,av(1)*hs,dx,dy,SHC[1],"Linden",tr(1),f0(av(1))+" kg")}${col3(186,base,bw,av(0)*hs,dx,dy,SHC[0],"Lister Meile",tr(0),f0(av(0))+" kg")}</svg>`;
+  const L=T.reduce((s,x)=>s+x[0],0),I=T.reduce((s,x)=>s+x[1],0);
+  const rows=D.sorts.filter(s=>!/panea/i.test(s.name)).map(s=>{let l=0,i=0;ws.forEach(w=>{const v=shopOf(s,w);if(v){l+=v[0];i+=v[1]}});return{n:s.name,l,i}}).filter(x=>x.l+x.i>=3).map(x=>({...x,ix:(x.l/L+1e-9)/(x.i/I+1e-9)}));
+  const li=rows.filter(x=>x.ix>=1.3).sort((a,b)=>b.ix-a.ix).slice(0,4),ln=rows.filter(x=>x.ix<=.77).sort((a,b)=>a.ix-b.ix).slice(0,4);
+  return`<div class="card"><div class="zrow"><h2>Zwei Läden</h2><span class="note">kg pro Woche · KW ${ws[0]}–${ws[ws.length-1]}</span></div>${svg}
+    <p style="margin:0;font-size:15px">Linden verkauft <b>${Math.round(I/(L+I)*100)} %</b>, die Lister Meile <b>${Math.round(L/(L+I)*100)} %</b>.</p>
+    ${li.length?`<div><div class="lbl" style="margin-bottom:6px">Läuft in der Lister Meile besser</div><div class="bt">${li.map(x=>`<span style="background:color-mix(in srgb,var(--fil) 30%,var(--paper))">${esc(short(x.n))}</span>`).join("")}</div></div>`:""}
+    ${ln.length?`<div><div class="lbl" style="margin-bottom:6px">Läuft in Linden besser</div><div class="bt">${ln.map(x=>`<span style="background:color-mix(in srgb,var(--esp) 25%,var(--paper))">${esc(short(x.n))}</span>`).join("")}</div></div>`:""}
+    <p class="note">Gemessen am Anteil der Sorte im jeweiligen Laden.</p></div>`}
+function lifeCard(nw,gone0){const SKIP=/^(panea|mogiana)/i;
+  const info=D.sorts.map(s=>{const sold=RW.filter(w=>kg(s,w)>0);if(!sold.length)return null;const f=sold[0],l=sold[sold.length-1];
+    const life=RW.filter(w=>w>=f&&w<=l),vals=life.map(w=>kg(s,w));if(vals.reduce((a,b)=>a+b,0)<3)return null;
+    let best=0;for(let i=0;i+4<=vals.length;i++)best=Math.max(best,vals.slice(i,i+4).reduce((a,b)=>a+b,0)/4);if(!best)best=Math.max(...vals);
+    const since=RW.filter(w=>w>=f),now=since.slice(-4).reduce((a,w)=>a+kg(s,w),0)/Math.min(4,since.length);
+    return{s,f,l,best,now,r:now/best,ended:l<=LAST-4,weeks:life.length}}).filter(Boolean);
+  const act=info.filter(x=>!x.ended&&!SKIP.test(x.s.name)).sort((a,b)=>a.r-b.r);
+  const ST=x=>x.r<.6?["lässt nach","dn1","odn1"]:x.r>.95&&x.weeks<=10?["wächst","up1","oup1"]:["stabil","eq2","oeq"];
+  const big=(x,st)=>{const ws=RW.filter(w=>w>=x.f),n=ws.length,W=340,base=78,top=14,lw=24,vals=ws.map(w=>kg(x.s,w)),mx=Math.max(...vals,x.best,.1),hs=(base-top-8)/mx;
+    const gap=n>20?2:3,bw=Math.min(18,(W-lw-12-gap*(n-1))/(n+.55)),dx=bw*.55,dy=bw*.38;let g=`<polygon points="${lw-4},${base+2} ${lw+n*(bw+gap)+2},${base+2} ${lw+n*(bw+gap)+2+dx},${base+2-dy} ${lw-4+dx},${base+2-dy}" style="fill:var(--grid)"/>`;
+    const hot=st[0]==="lässt nach"?"var(--dn2)":st[0]==="wächst"?"var(--up2)":"var(--accent)";
+    ws.forEach((w,i)=>{const v=kg(x.s,w),xx=lw+i*(bw+gap);if(!has(w)){g+=`<polygon points="${xx},${base} ${xx+dx},${base-dy} ${xx+bw+dx},${base-dy} ${xx+bw},${base}" style="fill:var(--hatch)"/>`;return}
+      g+=box(xx,base,bw,Math.max(1.5,v*hs),dx,dy,i>=n-4?hot:"var(--eq2)",true)});
+    const yb=base-x.best*hs,yn=base-x.now*hs,xe=lw+n*(bw+gap)+dx;
+    g+=`<line x1="${lw-4}" x2="${xe}" y1="${yb}" y2="${yb}" style="stroke:var(--ink);stroke-opacity:.55;stroke-dasharray:4 4"/><text x="${lw-6}" y="${yb+4}" text-anchor="end" style="fill:var(--ink2);font-size:10.5px;font-weight:600">${f1(x.best)}</text>`;
+    const x4=lw+(n-4)*(bw+gap)-2;g+=`<line x1="${x4}" x2="${xe}" y1="${yn}" y2="${yn}" style="stroke:${hot};stroke-width:2.5"/><text x="${lw-6}" y="${yn+4}" text-anchor="end" style="fill:${hot};font-size:10.5px;font-weight:700">${Math.abs(yn-yb)<10?"":f1(x.now)}</text>`;
+    g+=`<text x="${lw}" y="${base+16}" style="fill:var(--muted);font-size:10.5px">KW ${ws[0]}</text><text x="${xe}" y="${base+16}" text-anchor="end" style="fill:var(--muted);font-size:10.5px">KW ${ws[n-1]}</text>`;
+    return`<svg viewBox="0 0 ${W} 98" style="width:100%;display:block" aria-hidden="true">${g}</svg>`};
+  const say=x=>x.r<.6?`verkauft nur noch <b>${Math.round(x.r*100)} %</b> seiner besten Zeit`:x.r>.95?`ist gerade auf seinem Höchststand`:`liegt bei <b>${Math.round(x.r*100)} %</b> seiner besten Zeit`;
+  const row=x=>{const st=ST(x);return`<div class="lr"><div class="zrow row" style="align-items:center"><b style="font-size:17px">${esc(short(x.s.name))}</b><span class="st" style="background:var(--${st[1]});color:var(--${st[2]})">${st[0]}</span></div>${big(x,st)}<p class="note" style="font-size:13.5px;color:var(--ink2)">${f1(x.now)} kg pro Woche, ${say(x)} (${f1(x.best)} kg).</p></div>`};
+  const hotL=act.filter(x=>ST(x)[0]!=="stabil"),calm=act.filter(x=>ST(x)[0]==="stabil");
+  const gone=info.filter(x=>x.ended&&x.weeks>=4),avgLife=gone.length?gone.reduce((a,x)=>a+x.weeks,0)/gone.length:0,fall=act.filter(x=>x.r<.6);
+  return`<div class="card"><div class="zrow"><h2>Lebenslauf der Sorten</h2></div>
+    <p class="note" style="margin-top:-6px">Jede Woche ein Turm, die letzten 4 Wochen farbig. Panea und Mogiana laufen außer Konkurrenz.</p>
+    ${fall.length?`<p style="margin:0;font-size:15px"><b>${esc(short(fall[0].s.name))}</b> verkauft nur noch ${Math.round(fall[0].r*100)} % seiner besten Zeit. Zeit, den Nachfolger einzukaufen.</p>`:""}
+    <div class="leg"><span>- - - beste Zeit (Schnitt der 4 besten Wochen in Folge)</span><span><i style="background:var(--accent);height:3px;vertical-align:3px"></i>jetzt (letzte 4 Wochen)</span></div>
+    <div style="display:flex;flex-direction:column">${hotL.map(row).join("")}</div>
+    ${calm.length?`<details class="lcd"><summary>${calm.length} weitere Sorten laufen stabil</summary><div style="display:flex;flex-direction:column">${calm.map(row).join("")}</div></details>`:""}
+    ${nw&&nw.length?`<p class="note">Neu im Zeitraum: ${nw.map(s=>esc(short(s.name))).join(", ")}.</p>`:""}
+    ${gone.length?`<p class="note">Ausgelaufen: ${gone.map(x=>esc(short(x.s.name))).join(", ")}. Sie waren im Schnitt ${f0(avgLife)} Wochen im Regal.</p>`:""}</div>`}
 function renderWr(el,pk){
   const p=PER.find(x=>x.k===pk),c=compare(p),a=c.a,top=a.per.slice(0,3);
-  let up=null,dn=null;if(c.mv){const m=c.mv.filter(x=>x.o&&x.b>=1&&!x.gone);up=m.slice().sort((x,y)=>(y.a-y.b)-(x.a-x.b))[0];dn=m.slice().sort((x,y)=>(x.a-x.b)-(y.a-y.b))[0]}
   const real=s=>RW.reduce((q,w)=>q+kg(s,w),0)>=1,nw=D.sorts.filter(s=>real(s)&&firstW(s)>=a.ws[0]&&firstW(s)>FIRST),gone=D.sorts.filter(s=>real(s)&&lastW(s)>=a.ws[0]&&lastW(s)<=LAST-4);
   el.innerHTML=`
     <div class="wr" style="background:var(--ink);color:var(--paper)"><span class="k">${p.k==="all"?`Seit KW ${FIRST}`:`Letzte ${p.n}`} · KW ${a.ws[0]}–${a.ws[a.ws.length-1]}</span>
       <span class="v">${f0(a.sum)} kg verkauft</span><span class="d">Das sind ${f0(a.avg)} kg pro Woche${c.b?`, ${pctW(a.avg,c.b.avg)} in den ${p.n} davor`:""}.${a.repU.length?` Ungefähr ${f0(a.bags/a.repU.length)} kleine Tüten pro Woche.`:""}</span></div>
-    <div class="wrg">
-      <div class="wr" style="background:var(--h2);color:var(--o2)"><span class="k">Beste Woche</span><span class="v">KW ${a.best}</span><span class="d">${f0(TOT[a.best])} kg · ${span(a.best)}</span></div>
-      <div class="wr" style="background:var(--dn1);color:var(--odn1)"><span class="k">Ruhigste Woche</span><span class="v">KW ${a.low}</span><span class="d">${f0(TOT[a.low])} kg · ${span(a.low)}</span></div>
-    </div>
     <div class="card"><div class="lbl">Die drei Großen</div>${top.map((x,j)=>`<div class="sb" style="grid-template-columns:22px minmax(0,1fr) auto"><b style="text-align:left;min-width:0;color:var(--muted)">${j+1}</b><span style="font-size:16px;font-weight:600">${esc(x.s.name)}</span><b>${Math.round(x.v/a.sum*100)} %</b></div>`).join("")}
       <p class="note">Zusammen ${Math.round(top.reduce((s,x)=>s+x.v,0)/a.sum*100)} % von allem, was verkauft wurde.</p></div>
     <div class="card"><div class="lbl">Espresso, Filter, Decaf</div>${ring(a.ty)}</div>
-    ${up||dn||nw.length?`<div class="wrg">
-      ${up?`<div class="wr" style="background:var(--up1);color:var(--oup1)"><span class="k">Aufsteiger</span><span class="v" style="font-size:20px">${esc(short(up.s.name))}</span><span class="d">${f1(up.b)} → ${f1(up.a)} kg pro Woche</span></div>`:""}
-      ${dn&&dn.a<dn.b?`<div class="wr" style="background:var(--dn1);color:var(--odn1)"><span class="k">Lässt nach</span><span class="v" style="font-size:20px">${esc(short(dn.s.name))}</span><span class="d">${f1(dn.b)} → ${f1(dn.a)} kg pro Woche</span></div>`:""}
-      ${!c.mv&&nw.length?`<div class="wr" style="background:var(--accent-soft);color:var(--ink);grid-column:1/-1"><span class="k">Neu dazugekommen</span><span class="d" style="font-size:16px;font-weight:600">${nw.map(s=>esc(short(s.name))).join(", ")}</span>${gone.length?`<span class="d muted">Ausgelaufen: ${gone.map(s=>esc(short(s.name))).join(", ")}</span>`:""}</div>`:""}
-    </div>`:""}
-    ${!c.b?`<p class="note">Ein Vergleich mit dem Zeitraum davor geht erst, wenn ältere Berichte da sind (Daten starten KW ${FIRST}).</p>`:""}`;
+    ${!c.b?`<p class="note">Ein Vergleich mit dem Zeitraum davor geht erst, wenn ältere Berichte da sind (Daten starten KW ${FIRST}).</p>`:""}`+shopCard(a)+lifeCard(nw,gone);
 }
 
 function swipe(el,cb){let x0=null,y0=null;el.addEventListener("pointerdown",e=>{x0=e.clientX;y0=e.clientY},{passive:true});
@@ -1328,8 +1397,8 @@ $("pgW").addEventListener("touchend",e=>{if(wsx==null)return;const dx=e.changedT
 /* ---------- Hochladen: Berichte einlesen, nach KW einordnen, nichts doppelt ---------- */
 function merge(r,fname,log){
   const kw=r.kw;const had=D.weeks[kw];
-  D.sorts.forEach(s=>{delete s.kg[kw];if(s.u)delete s.u[kw]});
-  r.products.forEach(p=>{let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.u=s.u||{};s.kg[kw]=p.kg;if(p.u&&Object.keys(p.u).length)s.u[kw]=p.u;else delete s.u[kw];s.name=kw>=Math.max(0,...Object.keys(s.kg).map(Number))?p.name:s.name});
+  D.sorts.forEach(s=>{delete s.kg[kw];if(s.u)delete s.u[kw];if(s.sh)delete s.sh[kw]});
+  r.products.forEach(p=>{let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.u=s.u||{};s.kg[kw]=p.kg;if(p.sh){s.sh=s.sh||{};s.sh[kw]=p.sh}if(p.u&&Object.keys(p.u).length)s.u[kw]=p.u;else delete s.u[kw];s.name=kw>=Math.max(0,...Object.keys(s.kg).map(Number))?p.name:s.name});
   D.weeks[kw]={src:"bericht"};
   log.push(`KW ${kw}: ${had?had.src==="bericht"?"schon da, ersetzt":"ersetzt die Zahlen aus der Vorwoche":"neu"} (${fname})`);
   if(r.prevKw&&!D.weeks[r.prevKw]&&r.products.some(p=>p.prevKg!=null)){r.products.forEach(p=>{if(p.prevKg==null)return;let s=D.sorts.find(x=>x.key===p.key);if(!s){s={key:p.key,name:p.name,kg:{},u:{}};D.sorts.push(s)}s.kg[r.prevKw]=p.prevKg});

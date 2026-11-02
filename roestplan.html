@@ -1267,6 +1267,7 @@ const SALES = (() => {
         continue;
       }
       if (unit != null) { const st = vals.stck != null ? vals.stck : unit === "unv" ? (vals.linden ?? vals.lister ?? null) : null; if (st != null) cur.u[unit] = (cur.u[unit] || 0) + st; }
+      if (unit != null && (vals.lister != null || vals.linden != null)) { const f = unit === "unv" ? 1 : unit / 1000; cur.sh = cur.sh || [0, 0]; cur.sh[0] = Math.round((cur.sh[0] + (vals.lister || 0) * f) * 1000) / 1000; cur.sh[1] = Math.round((cur.sh[1] + (vals.linden || 0) * f) * 1000) / 1000; }
       if (vals.kg != null && (unit == null || vals.stck == null || unit === 3000 || unit === 1000 || unit === "unv" || unit === 250)) { if (vals.kg !== vals.stck || unit == null) cur.kg = vals.kg; }
       if (vals.prev != null) cur.prevKg = vals.prev;
     }
@@ -1279,9 +1280,9 @@ const SALES = (() => {
 })();
 function vkMerge(D, r) {
   const kw = r.kw, had = D.weeks[kw]; D.sorts = Array.isArray(D.sorts) ? D.sorts : [];
-  D.sorts.forEach(s => { delete s.kg[kw]; if (s.u) delete s.u[kw]; });
+  D.sorts.forEach(s => { delete s.kg[kw]; if (s.u) delete s.u[kw]; if (s.sh) delete s.sh[kw]; });
   r.products.forEach(p => { let s = D.sorts.find(x => x.key === p.key); if (!s) { s = { key: p.key, name: p.name, kg: {}, u: {} }; D.sorts.push(s); }
-    s.u = s.u || {}; s.kg[kw] = p.kg; if (p.u && Object.keys(p.u).length) s.u[kw] = p.u; if (kw >= Math.max(0, ...Object.keys(s.kg).map(Number))) s.name = p.name; });
+    s.u = s.u || {}; s.kg[kw] = p.kg; if (p.sh) { s.sh = s.sh || {}; s.sh[kw] = p.sh; } if (p.u && Object.keys(p.u).length) s.u[kw] = p.u; if (kw >= Math.max(0, ...Object.keys(s.kg).map(Number))) s.name = p.name; });
   D.weeks[kw] = { src: "bericht" };
   if (r.prevKw && !D.weeks[r.prevKw] && r.products.some(p => p.prevKg != null)) {
     r.products.forEach(p => { if (p.prevKg == null) return; let s = D.sorts.find(x => x.key === p.key); if (!s) { s = { key: p.key, name: p.name, kg: {}, u: {} }; D.sorts.push(s); } s.kg[r.prevKw] = p.prevKg; });
