@@ -166,6 +166,9 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .bar i{display:block;height:100%}
 .bar .p{background:var(--good)}.bar .w{background:var(--accent)}
 .so .r3{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tz{display:flex;gap:16px;flex-wrap:wrap}.tz .sz{white-space:nowrap}.tz i{font-style:normal;margin-right:2px}
+.tz s{text-decoration:none;opacity:.7}.tz em{font-style:normal;color:var(--accent);font-weight:600;margin-left:3px}.tz u{text-decoration:none;color:var(--good);margin-left:3px}
+.tbx{font-size:12.5px;margin:-2px 0 10px}.tbx b{color:var(--ink2);font-weight:600}
 .pk{border-top:1px solid var(--line);padding:14px;display:flex;flex-direction:column;gap:12px;background:var(--bg)}
 .pr{display:flex;align-items:center;gap:10px}
 .pr .t{flex:1;min-width:0;font-size:15px;font-weight:600}.pr .t small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
@@ -370,6 +373,7 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
     <div class="hrow"><h2>Freies Kontingent</h2><span class="hint" id="sCnt"></span></div>
     <p class="hint" style="margin-top:-8px">Geröstet und bestätigt, noch nicht abgepackt. Daraus kommen Tüten und Kisten.</p>
     <div class="legend"><span><i class="i-p"></i>abgepackt</span><span><i class="i-w"></i>geröstet, wartet</span><span><i class="i-m"></i>fehlt noch</span></div>
+    <p class="hint tbx">Tüten da / Ziel (Ø Verkauf der letzten 4 Wochen)</p>
     <div class="sl" id="sl"></div>
     <div id="caW"></div>
   </div>
@@ -881,6 +885,10 @@ function renderRoast(){
    <button class="primary" id="rOk">So geröstet</button>`;
 }
 function bar(r){const N=Math.max(r.needKg,r.pk+r.w,.01),p=r.pk/N*100,w=Math.min(r.w,Math.max(0,N-r.pk))/N*100;return `<span class="bar" aria-hidden="true"><i class="p" style="width:${p}%"></i><i class="w" style="width:${w}%"></i></span>`}
+// laden-v45: je Größe leise „da / Ziel“ + was noch fehlt, statt langer Textzeile
+function tbl(r){
+  const c1=!!(r.n1||r.rg1),seg=(l,da,so,m)=>`<span class="sz"><i>${l}</i> ${da}<s>/${so}</s>${m?` <em>noch ${m}</em>`:` <u>✓</u>`}</span>`;
+  return `<span class="r3 tz">${seg("250 g",r.rg2,r.n2,r.m2)}${c1?seg("1 kg",r.rg1,r.n1,r.m1):""}</span>`}
 function renderSorts(R){
   const rank=r=>isDone(r)&&r.w<=0?2:r.w>0?0:1,fill=r=>r.needKg>0?r.pk/r.needKg:1,L2=R.slice().sort((a,b)=>rank(a)-rank(b)||(rank(a)===1?fill(a)-fill(b):0));
   $("sCnt").textContent=R.length?R.filter(isDone).length+" von "+R.filter(r=>r.needKg>0).length+" fertig":"";
@@ -890,7 +898,7 @@ function renderSorts(R){
     const miss=r.g?[r.m1?r.m1+" × 1 kg":"",r.m2?r.m2+" × 250 g":""].filter(Boolean).join(" · "):f1(r.missKg)+" kg";
     return `<div class="so" data-open="${o?1:0}"><button class="h" data-s="${esc(r.n)}" aria-expanded="${o}">
       <span class="r1"><span class="nm">${esc(r.n)}${r.silo?`<small>+ ${r.silo.id==="panea"?"Tonnen":"Eigenbedarf"}</small>`:""}</span>${r.w>0&&r.d?ring(r.d):""}${st}</span>${bar(r)}
-      <span class="r3">${r.cnt?(done?"Regal reicht · ":`Fehlt: ${miss} · `)+`im Regal ${r.rg2} von ${r.n2} × 250 g${r.n1||r.rg1?` · ${r.rg1} von ${r.n1} × 1 kg`:""}`:done?`${r.p1} × 1 kg · ${r.p2} × 250 g abgepackt`:`Fehlt: ${miss}${r.p1+r.p2?` · schon ${r.p1+r.p2} Tüten`:""}`}</span></button>
+      ${r.g?tbl(r):`<span class="r3">${done?"Bedarf gedeckt":`Fehlt: ${miss}`}${r.pk>0?` · schon ${f1(r.pk)} kg abgepackt`:""}</span>`}</button>
       ${o?pack(r):""}</div>`}).join("");
 }
 // Bestand von Hand korrigieren: geröstetes Gewicht, das noch wartet (laden-v37)
