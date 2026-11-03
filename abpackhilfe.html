@@ -874,7 +874,8 @@ function rowsW(){
       m1:n1==null?null:Math.max(0,n1-r1),m2:n2==null?null:Math.max(0,n2-r2),missKg:Math.max(0,needKg-pk)}});
 }
 const isDone=r=>r.needKg>0&&(r.g?r.m1+r.m2===0:r.missKg<.01);
-function suggest(r){let a=r.w;const x={e:0,s1:0,s2:0};if(r.g){x.s1=Math.min(r.m1,nB(a));a-=x.s1;x.s2=Math.min(r.m2,nS(a))}PS[r.n]=x}
+// laden-v49: Abpacken startet leer, Mehdi trägt ein, was wirklich abgepackt wurde (Bedarf steht schon in der Sorten-Zeile)
+function suggest(r){PS[r.n]={e:0,s1:0,s2:0}}
 function renderW(){
   WD=wData();const R=rowsW();
   $("wSub").textContent=WD.wk?`${WD.wk} · Bedarf ${WD.vkW?"aus Lightspeed KW "+WD.vkL:"aus dem Röstplan (kg)"}${WD.kwOff?` · Tütenzahlen für KW ${WD.kw} fehlen: PDF in der Röstwoche laden`:""}`:"Noch kein Bericht im Röstplan";
@@ -932,20 +933,20 @@ const korrDf=(r,v,d)=>v==null?`<span style="color:var(--warn)">Bitte eine Zahl e
 function pack(r){
   if(!(r.w>0))return `<div class="pk"><p class="say">Davon ist nichts geröstet, das wartet. Sobald der Rösttag bestätigt ist, kannst du hier abpacken.</p>${KO&&KO.n===r.n?korr(r):`<div class="btns" style="justify-content:flex-end">${korr(r)}</div>`}</div>`;
   if(!PS[r.n])suggest(r);const x=PS[r.n],u=x.e+x.s1+x.s2*.25,rest=Math.round((r.w-u)*100)/100,fr=r.w-x.e,m1=nB(fr-x.s2*.25),m2=nS(fr-x.s1),ton=r.silo&&r.silo.id==="panea";
+  const nd=need=>need==null?"":need>0?"Bedarf "+need+" · ":"kein Bedarf · ";
   const row=(k,lab,v,sub)=>`<div class="pr"><span class="t">${lab}<small>${sub}</small></span><span class="step"><button data-st="${k}" data-v="-1" aria-label="${lab} weniger">−</button><output>${v}</output><button data-st="${k}" data-v="1" aria-label="${lab} mehr">+</button></span></div>`;
-  const nd=(need,v)=>need==null?"Bedarf unbekannt":need>0?(v>=need?`<span class="okk">Bedarf ${need} ✓</span>`:`Bedarf ${need}`):"kein Bedarf";
   return `<div class="pk">
    <div class="kgh"><div><b>${f1(r.w)} kg</b> geröstet</div><button class="lossb" data-lossopen="1" aria-expanded="${lossOpen===r.n}">${kgT(r.roh)} kg roh · −${r.loss} %</button></div>
    ${lossOpen===r.n?`<div class="pr"><span class="t" style="font-weight:500;font-size:14px">Röstverlust dieser Sorte</span><span class="step sm"><button data-loss="-1" aria-label="Röstverlust weniger">−</button><output>${r.loss} %</output><button data-loss="1" aria-label="Röstverlust mehr">+</button></span></div>`:""}
    <div class="rows">
     ${r.silo?(ton?row("e","Tonnen",Math.round(x.e/tonKg(r.loss)),"je 2 Chargen = "+kgT(tonKg(r.loss))+" kg · für die Mühlen"):row("e","Eigenbedarf-Kiste",kgT(x.e)+" kg","ins Regal · "+esc(r.silo.name))):""}
-    ${row("1","1-kg-Tüten",x.s1,nd(r.m1,x.s1)+" · max "+m1)}
-    ${row("2","250-g-Tüten",x.s2,nd(r.m2,x.s2)+" · max "+m2)}
+    ${row("1","1-kg-Tüten",x.s1,nd(r.m1)+"höchstens "+m1)}
+    ${row("2","250-g-Tüten",x.s2,nd(r.m2)+"höchstens "+m2)}
    </div>
    <div class="restl ${rest<-0.001?"w":""}"><span>${rest<-0.001?`${f1(-rest)} kg zu viel`:`Rest <b>${f1(rest)} kg</b>`}</span>${rest>=.25?`<button data-fill="1">+ ${nS(rest)} × 250 g</button>`:""}</div>
    ${rest>0.001&&rest<.25||rest>=.25?`<p class="hint" style="margin-top:-8px">Der Rest bleibt unverpackt im Regal und steht beim nächsten Mal wieder hier.</p>`:""}
    <button class="primary big" data-ok="1"${rest<-0.001||u<=0?" disabled":""}>Fertig abgepackt</button>
-   <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1">Zurück zum Vorschlag</button>${KO&&KO.n===r.n?"":korr(r)}<button class="link" data-drop="1">Nichts mehr da</button></div>${KO&&KO.n===r.n?korr(r):""}</div>`;
+   <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1"${u>0?"":" disabled"}>Alles auf 0</button>${KO&&KO.n===r.n?"":korr(r)}<button class="link" data-drop="1">Nichts mehr da</button></div>${KO&&KO.n===r.n?korr(r):""}</div>`;
 }
 const say2=t=>{$("wmsg").textContent=t;clearTimeout(say2.t);say2.t=setTimeout(()=>$("wmsg").textContent="",4000)};
 $("roastC").addEventListener("click",e=>{
