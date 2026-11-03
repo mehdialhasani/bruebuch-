@@ -106,6 +106,9 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .tk.due .when b{color:var(--accent)}
 .parts{display:flex;gap:8px;flex-wrap:wrap}
 .part{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:6px 14px 6px 10px;border-radius:999px;font-weight:600;font-size:15px}
+.part span{text-align:left;line-height:1.15}
+.part small{display:block;font-size:11px;font-weight:500;color:var(--muted)}
+.part[aria-pressed="true"] small{color:var(--good);opacity:.8}
 .part i{width:22px;height:22px;border-radius:99px;border:2px solid var(--line);display:grid;place-items:center;flex:none}
 .part[aria-pressed="true"]{background:var(--good-soft);border-color:transparent;color:var(--good)}
 .part[aria-pressed="true"] i{background:var(--good);border-color:var(--good)}
@@ -272,26 +275,38 @@ const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
 const nextTue=()=>{const d=new Date();d.setHours(12);d.setDate(d.getDate()+((9-d.getDay())%7));return iso(d)}; // heute, wenn Dienstag
 const SEED=()=>({v:1,tasks:[
   {id:"muell",n:"Mülltonnen rausstellen",teile:[],every:2,unit:"w",fix:true,start:nextTue(),vor:0},
-  {id:"muehlen",n:"Mühlen reinigen",teile:["Mühle 1","Mühle 2","Decaf"],every:1,unit:"w",fix:true,start:nextTue(),vor:0}],log:[]});
+  {id:"muehlen",n:"Mühlen reinigen",teile:["Mühle 1","Mühle 2","Decaf","EK43"],every:1,unit:"w",fix:false,start:nextTue(),vor:0}],log:[],mig:2});
 let W;
-function load(){try{W=JSON.parse(localStorage.getItem(K))}catch(e){W=null}if(!W||!Array.isArray(W.tasks)){W=SEED();save()}if(!Array.isArray(W.log))W.log=[]}
-function save(){try{localStorage.setItem(K,JSON.stringify(W));localStorage.setItem(KK,JSON.stringify(W.tasks.map(t=>({n:t.n,d:next(t),v:t.vor|0}))))}catch(e){}}
+function load(){try{W=JSON.parse(localStorage.getItem(K))}catch(e){W=null}if(!W||!Array.isArray(W.tasks)){W=SEED();save()}if(!Array.isArray(W.log))W.log=[];
+  // laden-v50: jede Mühle eigener Abstand ab ihrer letzten Reinigung (Mehdi 3.11.): Startaufgabe Mühlen einmalig auf „ab erledigt“
+  if(!W.mig){const m=W.tasks.find(t=>t.id==="muehlen");if(m)m.fix=false;W.mig=1;save()}
+  // laden-v50: vierte Mühle EK43 (Mehdi 3.11.)
+  if(W.mig<2){const m=W.tasks.find(t=>t.id==="muehlen");if(m&&Array.isArray(m.teile)&&!m.teile.some(x=>/ek\s*43/i.test(x)))m.teile.push("EK43");W.mig=2;save()}}
+function save(){try{localStorage.setItem(K,JSON.stringify(W));localStorage.setItem(KK,JSON.stringify(W.tasks.map(t=>{const d=next(t),dp=hasP(t)?t.teile.filter(p=>nextP(t,p)===d):[];return {n:t.n+(dp.length&&dp.length<t.teile.length?" ("+dp.join(", ")+")":""),d,v:t.vor|0}})))}catch(e){}}
 
 const UN={d:["Tag","Tage"],w:["Woche","Wochen"],m:["Monat","Monate"]};
 const WD=["Sonntag","Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag"];
 function rhythm(t){const n=t.every|0||1;let s=(n===1?{d:"täglich",w:"jede Woche",m:"jeden Monat"}[t.unit]:"alle "+n+" "+UN[t.unit][1]);
-  if(t.fix&&t.unit==="w")s+=" · "+WD[P(t.start).getDay()];else if(t.fix&&t.unit==="m")s+=" · am "+P(t.start).getDate()+".";else if(!t.fix)s+=" ab erledigt";
+  if(t.fix&&t.unit==="w")s+=" · "+WD[P(t.start).getDay()];else if(t.fix&&t.unit==="m")s+=" · am "+P(t.start).getDate()+".";else if(!t.fix)s+=hasP(t)?" · jedes einzeln":" ab erledigt";
   if(t.vor)s+=" · "+(t.vor>=14?"2 Wochen":"1 Woche")+" Vorlauf";return s}
 const stepDays=t=>(t.every||1)*(t.unit==="m"?30:t.unit==="w"?7:1);
 const logs=t=>W.log.filter(l=>l.t===t.id&&(!t.reset||l.ts>t.reset));
-function lastFull(t){const f=logs(t).filter(l=>!l.p);return f.length?f.reduce((a,b)=>b.d>a.d||(b.d===a.d&&b.ts>a.ts)?b:a):null}
-function next(t){const lf=lastFull(t);
+const hasP=t=>!!(t.teile&&t.teile.length);
+const newest=f=>f.length?f.reduce((a,b)=>b.d>a.d||(b.d===a.d&&b.ts>a.ts)?b:a):null;
+// letztes Mal: für ein Teil zählt sein eigener Eintrag oder ein Eintrag „alles erledigt“ (ältere Daten)
+const lastOf=(t,p)=>newest(logs(t).filter(l=>p==null?!l.p:(l.p===p||!l.p)));
+function nextFrom(t,lf){
   if(!t.fix)return lf?addU(lf.d,t.every||1,t.unit):t.start;
   if(!lf)return t.start;
   const lim=addU(lf.d,Math.floor(stepDays(t)/2),"d");let k=0,o=t.start;
   // erledigt deckt den Termin, der am nächsten liegt: nächster Termin = erster nach (erledigt + halber Rhythmus)
   while(o<=lim&&k<2000){k++;o=addU(t.start,k*(t.every||1),t.unit)}return o}
-function partsDone(t){if(!t.teile||!t.teile.length)return[];const lf=lastFull(t),ts=lf?lf.ts:0;return t.teile.filter(p=>logs(t).some(l=>l.p===p&&l.ts>ts))}
+// Teile (z. B. Mühlen) haben je einen eigenen nächsten Termin; die Aufgabe ist dran, sobald eines dran ist
+const nextP=(t,p)=>nextFrom(t,lastOf(t,p));
+const pMin=t=>t.teile.slice().sort((a,b)=>nextP(t,a)<nextP(t,b)?-1:1)[0];
+function lastFull(t){return hasP(t)?lastOf(t,pMin(t)):lastOf(t,null)}
+function next(t){return hasP(t)?nextP(t,pMin(t)):nextFrom(t,lastOf(t,null))}
+function partsDone(t){return hasP(t)?t.teile.filter(p=>nextP(t,p)>today()):[]}
 function rel(d){const n=dd(today(),d);return n===0?"heute":n===1?"morgen":n===-1?"gestern":n<0?"seit "+(-n)+" Tagen":n<7?"in "+n+" Tagen":n<14?"in 1 Woche":n<60?"in "+Math.round(n/7)+" Wochen":"in "+Math.round(n/30.4)+" Monaten"}
 const fmt=d=>P(d).toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
 
@@ -307,8 +322,9 @@ const ICS=[[/müll|tonne|abfall|papier|glas/i,"--good","--good-soft",'<path d="M
 const ico=(t,cl,st)=>{const m=ICS.find(x=>x[0].test(t.n));return `<span class="ic${cl?" "+cl:""}" style="--ic:var(${m[1]});--ic-bg:var(${m[2]});${st||""}" aria-hidden="true"><svg viewBox="0 0 24 24">${m[3]}</svg></span>`};
 const CHK='<svg viewBox="0 0 24 24"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg>';
 // Termine einer Aufgabe in den nächsten Tagen (fester Rhythmus wiederholt sich, „ab erledigt“ nur der nächste)
-function occ(t,from,to){const r=[];let d=next(t);if(d<from)d=from;let o=next(t),k=0;if(!t.fix)return o<=to?[o<from?from:o]:[];
-  r.push(o<from?from:o);while(k<60){k++;o=addU(next(t),k*(t.every||1),t.unit);if(o>to)break;r.push(o)}return r.filter(x=>x<=to)}
+function occ(t,from,to){if(hasP(t)){const r=new Set();t.teile.forEach(p=>occ1(t,nextP(t,p),from,to).forEach(x=>r.add(x)));return [...r].sort()}return occ1(t,next(t),from,to)}
+function occ1(t,n0,from,to){const r=[];let o=n0,k=0;if(!t.fix)return o<=to?[o<from?from:o]:[];
+  r.push(o<from?from:o);while(k<60){k++;o=addU(n0,k*(t.every||1),t.unit);if(o>to)break;r.push(o)}return r.filter(x=>x<=to)}
 // Anteil der Zeit vom letzten bis zum nächsten Mal
 function prog(t){const d=next(t),lf=lastFull(t);const prev=lf&&!t.fix?lf.d:addU(d,-(t.every||1),t.unit);const all=dd(prev,d)||1;return Math.max(0,Math.min(1,dd(prev,today())/all))}
 function renderHero(L){const T=today(),now=L.filter(x=>x.d<=T),late=now.some(x=>x.d<T);
@@ -322,7 +338,7 @@ function renderHero(L){const T=today(),now=L.filter(x=>x.d<=T),late=now.some(x=>
 
 let open=null; // Aufgabe mit offenem Datumsfeld
 function card(t,cls){const d=next(t),n=dd(today(),d),pd=partsDone(t);
-  const parts=t.teile&&t.teile.length?`<div class="parts">${t.teile.map(p=>`<button type="button" class="part" data-part="${esc(t.id)}" data-p="${esc(p)}" aria-pressed="${pd.includes(p)}"><i></i>${esc(p)}</button>`).join("")}</div>`:"";
+  const parts=t.teile&&t.teile.length?`<div class="parts">${t.teile.map(p=>`<button type="button" class="part" data-part="${esc(t.id)}" data-p="${esc(p)}" aria-pressed="${pd.includes(p)}"><i></i><span>${esc(p)}<small>${pd.includes(p)?esc(fmt(nextP(t,p))):esc(rel(nextP(t,p)))}</small></span></button>`).join("")}</div>`:"";
   const plan=n>6&&t.vor&&n<=t.vor?`<p class="plan">In ${n} Tagen dran: jetzt im Dienstplan einplanen.</p>`:"";
   const lbl=t.teile&&t.teile.length?(pd.length?"Rest erledigt":"Alle erledigt"):"Erledigt";
   const pc=t.teile&&t.teile.length?`<span class="pc">${pd.length} von ${t.teile.length}</span>`:"";
@@ -343,15 +359,17 @@ function renderF(){const T=today(),L=W.tasks.map(t=>({t,d:next(t)})).sort((a,b)=
 let undoT=null;
 function toast(msg,ids){const u=$("undo");u.querySelector("span").textContent=msg;u.hidden=false;clearTimeout(undoT);
   u.querySelector("button").onclick=()=>{W.log=W.log.filter(l=>!ids.includes(l.id));save();u.hidden=true;renderAll()};undoT=setTimeout(()=>u.hidden=true,6000)}
-function done(t,d,part){const ids=[],ts=Date.now();
-  if(part){const e={id:uid(),t:t.id,d,p:part,ts};W.log.push(e);ids.push(e.id);
-    if(partsDone(t).length===t.teile.length){const f={id:uid(),t:t.id,d,p:null,ts:ts+1};W.log.push(f);ids.push(f.id)}}
-  else{const pd=partsDone(t);(t.teile||[]).filter(p=>!pd.includes(p)).forEach((p,i)=>{const e={id:uid(),t:t.id,d,p,ts:ts+i};W.log.push(e);ids.push(e.id)});
-    const f={id:uid(),t:t.id,d,p:null,ts:ts+50};W.log.push(f);ids.push(f.id)}
-  save();open=null;const full=W.log.some(l=>l.id===ids[ids.length-1]&&!l.p);
-  toast(full?t.n+" erledigt · nächstes Mal "+fmt(next(t)):part+" abgehakt",ids);renderAll();
+function done(t,d,part){const ids=[],ts=Date.now(),T=today();
+  const add=(p,i)=>{const e={id:uid(),t:t.id,d,p,ts:ts+i};W.log.push(e);ids.push(e.id)};
+  if(part)add(part,0);
+  else if(hasP(t)){let due=t.teile.filter(p=>nextP(t,p)<=T);if(!due.length)due=t.teile;due.forEach(add)}
+  else add(null,0);
+  save();open=null;
+  toast((part?part:t.n)+" erledigt · nächstes Mal "+fmt(part?nextP(t,part):next(t)),ids);renderAll();
   const c=document.querySelector(`.tk[data-id="${CSS.escape(t.id)}"]`);if(c){c.classList.add("pop")}}
-function unpart(t,p){const pd=logs(t).filter(l=>l.p===p),lf=lastFull(t),e=pd.filter(l=>l.ts>(lf?lf.ts:0)).pop();if(e){W.log=W.log.filter(l=>l.id!==e.id);save();renderAll()}}
+// Haken bei einem Teil wieder weg: dessen letzten Eintrag löschen; war es ein „alles erledigt“ (alte Daten), die anderen Teile einzeln behalten
+function unpart(t,p){const e=newest(logs(t).filter(l=>l.p===p||!l.p));if(!e)return;W.log=W.log.filter(l=>l.id!==e.id);
+  if(!e.p)t.teile.filter(x=>x!==p).forEach((x,i)=>W.log.push({id:uid(),t:t.id,d:e.d,p:x,ts:e.ts+i}));save();renderAll()}
 const byId=id=>W.tasks.find(t=>t.id===id);
 document.addEventListener("click",e=>{const b=e.target.closest("button");if(!b)return;
   if(b.dataset.done){done(byId(b.dataset.done),today());return}
@@ -372,7 +390,7 @@ function renderEd(){const c=$("edCard");if(!E){c.hidden=true;c.innerHTML="";retu
   c.innerHTML=`<div class="ed"><h2>${E._new?"Neue Aufgabe":"Aufgabe ändern"}</h2>
   ${E._new?`<div class="sugg">${SUG.map((s,i)=>`<button type="button" data-sug="${i}">${esc(s[0])}</button>`).join("")}</div>`:""}
   <label class="f">Name<input type="text" id="eN" value="${esc(E.n)}" placeholder="z. B. Mühlen reinigen" autocomplete="off"></label>
-  <label class="f">Einzeln abhaken (optional)<input type="text" id="eT" value="${esc(E.teile.join(", "))}" placeholder="z. B. Mühle 1, Mühle 2, Decaf" autocomplete="off"><span class="hint">Mit Komma trennen. Fertig ist die Aufgabe, wenn alle abgehakt sind.</span></label>
+  <label class="f">Einzeln abhaken (optional)<input type="text" id="eT" value="${esc(E.teile.join(", "))}" placeholder="z. B. Mühle 1, Mühle 2, Decaf, EK43" autocomplete="off"><span class="hint">Mit Komma trennen. Jedes bekommt seinen eigenen nächsten Termin.</span></label>
   <div class="f"><span class="lbl">Rhythmus</span><div class="stp"><button type="button" data-st="-1" aria-label="weniger">−</button><output>${E.every}</output><button type="button" data-st="1" aria-label="mehr">+</button>${seg("unit",[["d",E.every===1?"Tag":"Tage"],["w",E.every===1?"Woche":"Wochen"],["m",E.every===1?"Monat":"Monate"]])}</div></div>
   <div class="f"><span class="lbl">Zählt ab</span>${seg("fix",[["true","Festem Tag","z. B. Müll dienstags"],["false","Erledigt","z. B. Filter, Entkalken"]])}</div>
   <label class="f">Nächster Termin<input type="date" id="eS" value="${esc(E._next)}"><span class="hint">${E.fix?"Ab diesem Tag im Rhythmus weiter.":"Danach zählt der Rhythmus ab dem Tag, an dem es erledigt wurde."}</span></label>
