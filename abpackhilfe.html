@@ -227,6 +227,49 @@ details summary{cursor:pointer;font-weight:600;font-size:15px;min-height:28px}
 .korr .kin span{font-size:15px;color:var(--ink2)}
 .korr .df{font-size:13.5px;color:var(--ink2);margin:0;font-variant-numeric:tabular-nums}
 .restl button{min-height:40px;font-size:14px;color:var(--accent)}
+/* laden-v52: Vorschlag aus Verkauf + Cropster */
+.cvs{display:flex;justify-content:space-between;align-items:center;gap:10px;width:100%;text-align:left;padding:10px 12px;border-radius:12px;border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));background:color-mix(in srgb,var(--accent) 9%,var(--paper));color:var(--ink);font-size:14px;font-weight:500;min-height:44px}
+.cvs small{display:block;color:var(--muted);font-size:12.5px;margin-top:2px}
+.cvs u{text-decoration:none;font-weight:700;color:var(--accent);white-space:nowrap}
+.crl{font-size:13px;color:var(--muted);margin:-4px 0 0}
+.crl b{color:var(--ink)}
+.leer{display:block;font-size:12.5px;color:var(--muted);margin-top:1px}
+.leer.w{color:var(--warn);font-weight:600}
+.rwarn{font-size:14px;border-radius:12px;padding:10px 12px;background:var(--warn-soft);color:var(--ink);margin:8px 0 0}
+.rwarn b{color:var(--warn)}
+.rok{font-size:14px;color:var(--good);font-weight:600;margin:8px 0 0}
+/* laden-v52: Chargen einzeln */
+#chC{--c-o:#E2CDB9;--c-t2:#5B7A3E;--c-t1:#3F6E58;--c-mix:#7C8F3A;--c-ton:#8A5A3B;--c-kiste:#4F6F88;--c-lose:#C98A12}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #chC{--c-o:#5A4232;--c-t2:#A9C88A;--c-t1:#86C3A6;--c-mix:#C9D27E;--c-ton:#D3A27C;--c-kiste:#8FB0CF;--c-lose:#E5B35A}}
+:root[data-theme="dark"] #chC{--c-o:#5A4232;--c-t2:#A9C88A;--c-t1:#86C3A6;--c-mix:#C9D27E;--c-ton:#D3A27C;--c-kiste:#8FB0CF;--c-lose:#E5B35A}
+.cgbar{display:flex;height:12px;border-radius:6px;overflow:hidden;background:var(--grid);margin:2px 0 6px}
+.cgbar i{display:block;height:100%}
+.cgleg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px;color:var(--ink2);margin:0 0 4px}
+.cgleg span{display:inline-flex;align-items:center;gap:5px}.cgleg i{width:10px;height:10px;border-radius:3px;display:inline-block}
+.cgleg b{color:var(--ink)}
+.cgday{display:flex;justify-content:space-between;align-items:baseline;margin:14px 0 6px;font-size:14px}
+.cgday b{font-size:15px}.cgday span{color:var(--muted);font-size:13px}
+.cgg{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.ch2{position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:1px;min-width:0;padding:7px 7px 6px;font-weight:500;border-radius:12px;border:1.5px solid var(--line);background:var(--paper);text-align:left;font-size:12px;line-height:1.25;color:var(--ink);min-height:72px}
+.ch2 .no{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.ch2 b{font-size:13px;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ch2 .kg{font-variant-numeric:tabular-nums;color:var(--ink2)}
+.ch2 .cgt{margin-top:auto;font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;background:var(--grid);color:var(--ink2)}
+.ch2.o{border-color:var(--accent);border-style:dashed}
+.ch2.o .cgt{background:var(--accent-soft);color:var(--accent)}
+.ch2[data-s] .cgt{background:var(--cc);color:var(--paper)}
+.ch2[data-s]{border-color:color-mix(in srgb,var(--cc) 45%,var(--line));background:color-mix(in srgb,var(--cc) 10%,var(--paper))}
+.ch2[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:1px}
+.ch2[aria-pressed="true"]::after{content:"✓";position:absolute;top:4px;right:6px;font-size:12px;font-weight:800;color:var(--accent)}
+.cgact{position:sticky;bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:5;margin-top:12px;background:var(--paper);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:0 8px 24px var(--shadow);display:flex;flex-direction:column;gap:10px}
+.cgact .hd{display:flex;justify-content:space-between;gap:8px;align-items:baseline;font-size:14px}
+.cgact .hd b{font-size:15px}
+.cgbtns{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
+.cgbtns button{min-height:44px;border-radius:12px;border:1px solid var(--line);background:var(--bg);font-size:14px;font-weight:600;color:var(--ink)}
+.cgbtns button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.cgbtns button:disabled{opacity:.4}
+.cginfo{font-size:13px;color:var(--ink2);margin:0}
+.cgx{display:flex;justify-content:space-between;gap:8px}
 .kgh{display:flex;justify-content:space-between;align-items:center;gap:10px}
 .kgh b{font:700 26px/1 var(--f);letter-spacing:-.02em}.kgh div{font-size:14px;color:var(--muted)}
 .lossb{white-space:nowrap;min-height:34px;padding:4px 10px;font-size:13px;font-weight:500;color:var(--ink2);border-radius:99px}
@@ -395,30 +438,212 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
 .xr svg{display:block;width:100%;height:auto;overflow:visible}
 .xr text{font:11px var(--f);fill:var(--muted)}
 .xr .bs{font-size:14px;color:var(--ink2);background:var(--bg);border-radius:10px;padding:8px 10px}
+
+/* laden-v54: Lager neu geordnet (Abpacken · Bestand · Zählen · Mehr) */
+details.fk>summary{display:flex;justify-content:space-between;align-items:baseline;gap:10px;font-size:17px;font-weight:700;list-style:none}
+details.fk>summary::-webkit-details-marker{display:none}
+details.fk>summary::after{content:"›";color:var(--muted);transform:rotate(90deg);transition:transform .2s}
+details.fk[open]>summary::after{transform:rotate(-90deg)}
+.fl{display:flex;flex-direction:column}
+.fl .r{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:8px 0;border-top:1px solid var(--grid);font-variant-numeric:tabular-nums}
+.fl .r:first-child{border-top:0}.fl .r b{font-weight:600}.fl .r span{color:var(--ink2);text-align:right}
+.cmpt{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;font-size:14px}
+.cmpt th{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-weight:600;text-align:right;padding:4px}
+.cmpt td{padding:7px 4px;border-top:1px solid var(--grid);text-align:right}
+.cmpt th:first-child,.cmpt td:first-child{text-align:left}
+.cmpt .dw{color:var(--warn);font-weight:700}
+.ebg{display:flex;flex-direction:column;gap:6px}
+.ebg+.ebg{margin-top:12px}
+.ebh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ebh b{font-size:16px}.ebh span{font-size:13px;color:var(--muted)}
+.ebi{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:8px 10px}
+.ebi.now{background:var(--accent-soft)}
+.ebi .n{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:700;background:var(--grid);color:var(--ink2);flex:none}
+.ebi.now .n{background:var(--accent);color:var(--paper)}
+.ebi .t{flex:1;min-width:0}.ebi .t b{font-variant-numeric:tabular-nums}.ebi .t small{display:block;color:var(--muted);font-size:12px}
+.ebi button{min-height:36px;padding:2px 12px;font-size:14px}
+.gas{height:5px;border-radius:3px;background:var(--grid);overflow:hidden;margin-top:4px}.gas i{display:block;height:100%;background:var(--good)}
+.ebe{font-size:13px;color:var(--muted)}
+.rgl .r em{font-style:normal;display:inline-block;min-width:3.6em;text-align:right}
 </style>
 </head><body>
+<script>
+/* laden-v52: Röstungen aus Cropster (Schlüssel cropster.v1). Röstwoche liest den Excel-Export ein, Röstwoche, Lager und Zahlen rechnen damit.
+   r: [ID, "2026-11-03T12:33", Name in Cropster, roh kg, geröstet kg, Dauer s]  ·  map: {Cropster-Name normalisiert: Sortenname | "-" (keine Sorte)} */
+window.CROP = (() => {
+  const K = "cropster.v1";
+  const nb = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  let C = null, ST = null;
+  const reset = () => { C = null; ST = null; };
+  function load() {
+    if (C) return C;
+    try { C = JSON.parse(localStorage.getItem(K)); } catch (e) { C = null; }
+    if (!C || !Array.isArray(C.r)) C = { v: 1, r: [], map: {} };
+    C.map = C.map && typeof C.map === "object" ? C.map : {};
+    return C;
+  }
+  function save() { try { localStorage.setItem(K, JSON.stringify(C)); ST = null; return true; } catch (e) { return false; } }
+  addEventListener("storage", e => { if (e.key === K || e.key === null || e.key === "abpack.v1" || e.key === "verkauf.v1") reset(); });
+  addEventListener("pageshow", reset);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) reset(); });
+
+  /* ---------- Excel-Export aus Cropster lesen ---------- */
+  function parse(aoa) {
+    const hi = aoa.findIndex(r => r.some(c => /^ID-Tag$/i.test(String(c).trim())) && r.some(c => /Startgewicht/i.test(String(c))));
+    if (hi < 0) return null;
+    const H = aoa[hi].map(c => String(c).trim().toLowerCase()), ix = n => H.indexOf(n.toLowerCase());
+    const iI = ix("ID-Tag"), iN = ix("Name Röstung"), iD = ix("Röstdatum"), iS = ix("Startgewicht"), iSu = ix("Einheit Startgewicht"), iE = ix("Endgewicht"), iEu = ix("Einheit Endgewicht"), iDu = ix("Dauer"), iP = ix("Profil"), iL = ix("Rohkaffeechargen");
+    const num = v => { const x = parseFloat(String(v == null ? "" : v).replace(/\s/g, "").replace(",", ".")); return isNaN(x) ? null : x; };
+    const unit = (v, u) => v == null ? null : /^g$/i.test(String(u || "").trim()) ? v / 1000 : v;
+    const out = [];
+    aoa.slice(hi + 1).forEach(r => {
+      const id = String(r[iI] || "").trim(); if (!id) return;
+      const m = String(r[iD] || "").match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\D+(\d{1,2}):(\d{2})/); if (!m) return;
+      const d = m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0") + "T" + m[4].padStart(2, "0") + ":" + m[5];
+      const g = unit(num(r[iS]), r[iSu]), e = unit(num(r[iE]), r[iEu]); if (!(g > 0)) return;
+      const du = String(r[iDu] || "").match(/(\d+):(\d{2})/);
+      out.push([id, d, (String(r[iN] || "").trim() || String(iP >= 0 ? r[iP] || "" : "").trim()), Math.round(g * 1000) / 1000, e > 0 ? Math.round(e * 1000) / 1000 : null, du ? +du[1] * 60 + +du[2] : null, iL >= 0 ? String(r[iL] || "").trim().slice(0, 160) : ""]);
+    });
+    return out;
+  }
+  function merge(rows) {
+    load(); const have = new Set(C.r.map(x => x[0])); let neu = 0;
+    rows.forEach(x => { if (!have.has(x[0])) { C.r.push(x); have.add(x[0]); neu++; } });
+    C.r.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); C.at = new Date().toISOString();
+    return { neu, total: C.r.length, last: C.r.length ? C.r[C.r.length - 1][1].slice(0, 10) : null, ok: save() };
+  }
+
+  /* ---------- Name in Cropster -> Sorte im Sortiment ---------- */
+  function sortNames() {
+    let A = {}, V = {}; try { A = JSON.parse(localStorage.getItem("abpack.v1")) || {}; } catch (e) {} try { V = JSON.parse(localStorage.getItem("verkauf.v1")) || {}; } catch (e) {}
+    const out = [], seen = new Set(), add = n => { const k = nb(n); if (k && !seen.has(k)) { seen.add(k); out.push(n); } };
+    const L = Array.isArray(A.sort) ? A.sort : [];
+    L.filter(x => !x.aus).forEach(x => add(x.name)); L.filter(x => x.aus).forEach(x => add(x.name));
+    (Array.isArray(V.sorts) ? V.sorts : []).forEach(x => add(x.name));
+    return out;
+  }
+  function sortOf(cn, L) {
+    const k = nb(cn), m = load().map[k]; if (m != null) return m === "-" ? null : m;
+    const f = k.split(" ")[0]; if (f.length < 3) return null;
+    return (L || sortNames()).find(n => nb(n).split(" ")[0] === f) || null;
+  }
+  function setMap(cn, sorte) { load(); C.map[nb(cn)] = sorte || "-"; return save(); }
+  // Röstung mit plausiblem Gewicht (Ausreißer wie 49 % Verlust bleiben draußen)
+  const lossOf = x => x[4] > 0 ? (1 - x[4] / x[3]) * 100 : null;
+  /* Röstverlust über 40 % = sicher falsch eingetragen (z. B. PR-4738, PR-4994 mit 2,544 kg). Diese Röstungen zählen nirgends mit, bis sie in Cropster korrigiert sind. */
+  const bad = x => { const l = lossOf(x); return l != null && l > 40; };
+  const okRow = x => { const l = lossOf(x); return l != null && l >= 8 && l <= 25; };
+
+  /* ---------- Wochen wie in Zahlen (fortlaufend ab verkauf.v1 year) ---------- */
+  const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+  function isoW(ds) { const t = new Date(Date.UTC(+ds.slice(0, 4), +ds.slice(5, 7) - 1, +ds.slice(8, 10))), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d);
+    const y = t.getUTCFullYear(); return { y, kw: Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7) }; }
+  function wIdx(ds, base) { const k = isoW(ds); let o = 0; for (let i = base; i < k.y; i++) o += wks(i); for (let i = k.y; i < base; i++) o -= wks(i); return k.kw + o; }
+  function verkauf() { try { return JSON.parse(localStorage.getItem("verkauf.v1")); } catch (e) { return null; } }
+
+  /* ---------- Auswertung (einmal je Seitenaufruf) ---------- */
+  function stats() {
+    if (ST) return ST;
+    const D = verkauf(), base = +(D && D.year) || new Date().getFullYear(), L = sortNames(), so = {}, unk = {}, wk = {}, days = {}, wd = [0, 0, 0, 0, 0, 0, 0];
+    const cache = new Map(), sOf = n => { if (!cache.has(n)) cache.set(n, sortOf(n, L)); return cache.get(n); };
+    const skip = [];
+    load().r.forEach(x => {
+      if (bad(x)) { skip.push(x[0]); const d0 = x[1].slice(0, 10); (days[d0] || (days[d0] = [])).push({ id: x[0], t: x[1].slice(11, 16), cn: x[2], n: sOf(x[2]), g: x[3], e: null, dur: x[5], bad: 1 }); return; }
+      const n = sOf(x[2]), date = x[1].slice(0, 10), w = wIdx(date, base), e = okRow(x) ? x[4] : null;
+      if (!n) { const u = unk[x[2]] || (unk[x[2]] = { n: 0, roh: 0 }); u.n++; u.roh += x[3]; }
+      const s = n ? (so[n] || (so[n] = { name: n, n: 0, roh: 0, e: 0, L: [], G: [], last: null, wk: {} })) : null;
+      if (s) { s.n++; s.roh += x[3]; s.e += e != null ? e : x[3] * .85; if (e != null) s.L.push(lossOf(x)); s.G.push(x[3]); s.last = date;
+        const q = s.wk[w] || (s.wk[w] = { n: 0, roh: 0, e: 0 }); q.n++; q.roh += x[3]; q.e += e != null ? e : x[3] * .85; }
+      const t = wk[w] || (wk[w] = { n: 0, roh: 0, e: 0, dur: 0, d: {} }); t.n++; t.roh += x[3]; t.e += e != null ? e : x[3] * .85; t.dur += x[5] || 0; t.d[date] = 1;
+      (days[date] || (days[date] = [])).push({ id: x[0], t: x[1].slice(11, 16), cn: x[2], n, g: x[3], e, dur: x[5] });
+      wd[(new Date(date + "T12:00:00").getDay() + 6) % 7]++;
+    });
+    const med = a => { if (!a.length) return null; const b = a.slice().sort((p, q) => p - q), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+    Object.values(so).forEach(s => {
+      const l = s.L.slice(-12); s.loss = l.length >= 3 ? Math.round(med(l) * 10) / 10 : null;
+      const g = s.G.slice(-10).map(v => Math.round(v)), cnt = {}; g.forEach(v => cnt[v] = (cnt[v] || 0) + 1);
+      const top = +Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0]; s.size = top === 3 ? 3 : top === 5 ? 5 : null;
+      s.lossMin = l.length ? Math.round(Math.min(...l) * 10) / 10 : null; s.lossMax = l.length ? Math.round(Math.max(...l) * 10) / 10 : null;
+    });
+    const all = load().r, first = all.length ? all[0][1].slice(0, 10) : null, last = all.length ? all[all.length - 1][1].slice(0, 10) : null;
+    return ST = { so, unk, wk, days, wd, skip, n: all.length, first, last, w0: first ? wIdx(first, base) : null, w1: last ? wIdx(last, base) : null, base, D };
+  }
+  const find = (n, obj) => { const k = nb(n), ks = Object.keys(obj); return ks.find(x => nb(x) === k) || ks.find(x => nb(x).split(" ")[0] === k.split(" ")[0]) || null; };
+  function sort(n) { const S = stats(), k = find(n, S.so); return k ? S.so[k] : null; }
+  function vkSort(D, n) { const vs = D && Array.isArray(D.sorts) ? D.sorts : [], k = nb(n); return vs.find(x => nb(x.name) === k) || vs.find(x => nb(x.name).split(" ")[0] === k.split(" ")[0]) || null; }
+
+  /* Eigenbedarf (Tonnen, Mühlen, Kisten) = geröstet laut Cropster − verkauft laut Lightspeed, Schnitt der letzten 8 Berichtswochen.
+     Regal-Schwankungen gleichen sich über 8 Wochen aus. Nur für Sorten mit Kiste/Silo sinnvoll. */
+  function eig(n, nW) {
+    const S = stats(), s = sort(n), D = S.D; if (!s || !D || !D.weeks || S.w0 == null) return null;
+    const v = vkSort(D, n), rep = Object.keys(D.weeks).map(Number).filter(w => w > S.w0 && w <= S.w1).sort((a, b) => a - b).slice(-(nW || 8));
+    if (rep.length < 4) return null;
+    const rows = rep.map(w => { const r = s.wk[w] ? s.wk[w].e : 0, vk = v && v.kg ? +v.kg[w] || 0 : 0; return { w, r, vk, d: r - vk }; });
+    const kg = Math.max(0, rows.reduce((a, x) => a + x.d, 0) / rows.length), sold = rows.reduce((a, x) => a + x.vk, 0) / rows.length, roast = rows.reduce((a, x) => a + x.r, 0) / rows.length;
+    return { kg: Math.round(kg * 10) / 10, sold, roast, n: rows.length, rows };
+  }
+
+  /* Rohkaffee der letzten Röstung einer Sorte: [{n: Bohne, share}] aus „[PG-0037] Cerrado Lua Roxa Brazil (4 kg), …“ */
+  function lot(n) { const L = sortNames(), k = nb(n), r = load().r.slice().reverse().find(x => x[6] && (sortOf(x[2], L) && nb(sortOf(x[2], L)) === k));
+    if (!r) return null; const parts = []; r[6].split(/,\s*(?=\[)/).forEach(p => { const m = p.match(/^\s*(?:\[([^\]]+)\])?\s*(.*?)\s*\(([\d.,]+)\s*kg\)\s*$/); if (m) parts.push({ id: m[1] || "", n: m[2].trim(), kg: +m[3].replace(",", ".") }); });
+    const t = parts.reduce((a, x) => a + x.kg, 0); return t > 0 ? parts.map(x => ({ id: x.id, n: x.n, share: x.kg / t })) : null; }
+  /* Röstungen eines Tages je Sorte (für „Geröstet ✓“) */
+  function day(date) { const S = stats(), L = S.days[date] || [], m = new Map();
+    L.forEach(x => { const k = x.n || ("? " + x.cn), q = m.get(k) || { n: x.n, cn: x.cn, c: 0, roh: 0, e: 0, sizes: {} }; q.c++; q.roh += x.g; q.e += x.e != null ? x.e : x.g * .85; const z = Math.round(x.g); q.sizes[z] = (q.sizes[z] || 0) + 1; m.set(k, q); });
+    return [...m.values()].map(q => ({ ...q, size: +Object.keys(q.sizes).sort((a, b) => q.sizes[b] - q.sizes[a])[0] === 3 ? 3 : 5 })); }
+  /* Welcher Cropster-Tag gehört zu Rösttag d der Liste? Gleicher Wochentag ab dem Tag der Liste, sonst der k-te noch freie Rösttag. */
+  const WT = ["montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag"];
+  function dateFor(from, dayName, k, used) {
+    const S = stats(), ds = Object.keys(S.days).filter(d => d >= from && !(used || []).includes(d)).sort();
+    if (!ds.length) return null; const i = WT.indexOf(nb(dayName));
+    if (i >= 0) return ds.find(d => (new Date(d + "T12:00:00").getDay() + 6) % 7 === i) || null;
+    return ds[k] || null;
+  }
+
+  /* Prognose wie in Röstwoche/Zahlen (gewichteter Schnitt 6 Wochen + gedämpfter Trend) */
+  function fc2(vals) { const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if (pts.length < 4) return null;
+    const l6 = pts.slice(-6), ws = l6.reduce((a, _, i) => a + i + 1, 0), base = l6.reduce((a, p, i) => a + p[1] * (i + 1), 0) / ws, r = pts.slice(-10), n = r.length,
+      mx = r.reduce((a, p) => a + p[0], 0) / n, my = r.reduce((a, p) => a + p[1], 0) / n, sl = r.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / (r.reduce((a, p) => a + (p[0] - mx) ** 2, 0) || 1);
+    const gap = vals.length - 1 - l6[l6.length - 1][0]; return Math.max(0, base + sl * .5 * (gap + .9)); }
+
+  /* Prognose kg/Woche einer Sorte aus verkauf.v1 (wie Röstwoche) */
+  function fcOf(n) { const D = verkauf(), v = D ? vkSort(D, n) : null; if (!v || !D.weeks) return null;
+    const ks = Object.keys(D.weeks).map(Number).sort((a, b) => a - b); if (!ks.length) return null; const vals = [];
+    for (let w = ks[0]; w <= ks[ks.length - 1]; w++) vals.push(D.weeks[w] ? (+(v.kg || {})[w] || 0) : null);
+    const last = vals.map((x, i) => x > 0 ? i : -1).filter(i => i >= 0).pop(); if (last == null || last < vals.length - 4) return null; return fc2(vals); }
+  /* nächster Rösttag: erster eingestellter Rösttag der Röstwoche nach heute (sonst Montag) */
+  function nextRoast(from) { let R = {}; try { R = JSON.parse(localStorage.getItem("roestplan.v4")) || {}; } catch (e) {}
+    const ix = (Array.isArray(R.days) ? R.days : []).map(d => WT.indexOf(nb(d))).filter(i => i >= 0), want = ix.length ? Math.min(...ix) : 0;
+    const d = from ? new Date(from) : new Date(); d.setHours(12, 0, 0, 0); for (let i = 1; i <= 7; i++) { d.setDate(d.getDate() + 1); if ((d.getDay() + 6) % 7 === want) return d; } return d; }
+  /* Ladentage (Mo–Sa) bis zu einem Datum, und Datum nach n Ladentagen */
+  function shopDays(to) { const d = new Date(); d.setHours(12, 0, 0, 0); let n = 0; while (d < to) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d <= to) n++; } return n; }
+  function afterShopDays(n) { const d = new Date(); d.setHours(12, 0, 0, 0); let k = Math.floor(n); while (k > 0) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0) k--; } return d; }
+  const pc = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset };
+})();
+</script>
 
 <div class="wrap" id="pgW">
-  <div><h1>Abpackhilfe</h1><p class="sub" id="wSub"></p></div>
+  <div><h1>Abpacken</h1><p class="sub" id="wSub"></p></div>
   <div id="ckW" hidden></div>
-  <div class="card" id="missC"></div>
   <div class="card roast" id="roastC" hidden></div>
-  <div class="card">
-    <div class="hrow"><h2>Freies Kontingent</h2><span class="hint" id="sCnt"></span></div>
-    <p class="hint" style="margin-top:-8px">Geröstet und bestätigt, noch nicht abgepackt. Daraus kommen Tüten und Kisten.</p>
+  <div class="card" id="cmpC" hidden></div>
+  <div class="card" id="chC" hidden></div>
+  <div class="card" id="missC"></div>
+  <details class="card fk" id="fkD">
+    <summary><span>Je Sorte abpacken</span><span class="hint" id="sCnt"></span></summary>
+    <p class="hint">Ohne Chargen-Nummer, wie bisher: abgepackt eintragen, Bestand korrigieren, Charge nachtragen.</p>
     <div class="legend"><span><i class="i-p"></i>abgepackt</span><span><i class="i-w"></i>geröstet, wartet</span><span><i class="i-m"></i>fehlt noch</span></div>
-    <p class="hint tbx">Tüten da / Ziel (Ø Verkauf der letzten 4 Wochen)</p>
     <div class="sl" id="sl"></div>
     <div id="caW"></div>
-  </div>
+  </details>
   <p class="msg" id="wmsg" role="status"></p>
 </div>
 
 <div class="wrap" id="pgR" hidden>
-  <div><h1>Regal</h1><p class="sub">Abgepackte Tüten · was fertig zum Verkauf steht</p></div>
+  <div><h1>Zählen</h1><p class="sub">Einmal pro Woche · hier wird der Bestand korrigiert</p></div>
   <div id="ckR" hidden></div>
-  <div class="card" id="rSum"></div>
-  <div class="card"><div class="hrow"><h2>Je Sorte</h2><span class="hint">antippen zum Zählen</span></div><div class="rl" id="rl"></div></div>
+  <div class="card"><div class="hrow"><h2>Regal je Sorte</h2><span class="hint">antippen zum Zählen</span></div><div class="rl" id="rl"></div></div>
   <p class="msg" id="rmsg" role="status"></p>
 </div>
 
@@ -437,8 +662,10 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
 </div>
 
 <div class="wrap" id="pgS" hidden>
-  <div><h1>Lager</h1><p class="sub">Eigenbedarf im Regal · Ist genug da?</p></div>
+  <div><h1>Bestand</h1><p class="sub">Wo dein gerösteter Kaffee gerade ist</p></div>
   <div id="lst"></div>
+  <div class="card" id="ebC"></div>
+  <div class="card" id="rSum"></div>
   <div class="card">
     <div class="hrow"><h2>Kisten und Tonnen</h2></div>
     <p class="hint" style="margin-top:-6px">Kreis = Tage seit dem Rösten, grün ab 2 Wochen. Balken = wie lange es reicht.</p>
@@ -448,7 +675,7 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
   <div class="card" id="det" hidden></div>
   <p class="msg" id="msg" role="status"></p>
   <div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Eigenbedarf</h2><span class="hint" id="eCap"></span></div>
+    <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><h2>Eigenbedarf-Verlauf</h2><span class="hint" id="eCap"></span></div>
     <div class="chart" id="eChart"></div>
     <div id="eTab"></div>
     <p class="hint">Eigenbedarf entsteht aus dem Stand: Was seit dem letzten Stand weniger geworden ist und nicht in Tüten abgefüllt wurde, ist verbraucht. Leere Tonnen und direkt gebuchter Eigenbedarf zählen dazu.</p>
@@ -487,9 +714,9 @@ select.sosel{width:100%;font:inherit;font-size:17px;min-height:48px;border:1px s
 <div id="undo" class="undo" role="status" hidden><span></span><button type="button">Rückgängig</button></div>
 <nav class="lgx" aria-label="Bereiche"><div class="in" role="tablist">
   <button type="button" class="lgx-home" onclick="if(!window.lgxHomeOk||lgxHomeOk())location.href='./'" aria-label="Start: zur Übersicht"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5 5.5 4h13L20 9.5"/><path d="M4 9.5c0 1.4 1.1 2.5 2.7 2.5s2.6-1.1 2.6-2.5c0 1.4 1.2 2.5 2.7 2.5s2.7-1.1 2.7-2.5c0 1.4 1.1 2.5 2.6 2.5S20 10.9 20 9.5"/><path d="M5.5 12v8h13v-8"/><path d="M10 20v-4.5h4V20"/></svg>Start</button>
-  <button role="tab" data-pg="W" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Woche</button>
-  <button role="tab" data-pg="R" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M3 12h18M4 4v16M20 4v16"/><path d="M7 12V8h3v4M13 12V7h3v5M7 20v-4h4v4"/></svg>Regal</button>
-  <button role="tab" data-pg="S" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M3 12h18M3 19h18"/><path d="M6 5v14M18 5v14"/><path d="M9 9h4v3H9zM12 16h4v3h-4z"/></svg>Lager</button>
+  <button role="tab" data-pg="W" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8h12l-1 12H7z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/></svg>Abpacken</button>
+  <button role="tab" data-pg="S" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 5h18M3 12h18M3 19h18"/><path d="M6 5v14M18 5v14"/><path d="M9 9h4v3H9zM12 16h4v3h-4z"/></svg>Bestand</button>
+  <button role="tab" data-pg="R" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 20h18M3 12h18M4 4v16M20 4v16"/><path d="M7 12V8h3v4M13 12V7h3v5M7 20v-4h4v4"/></svg>Zählen</button>
   <button role="tab" data-pg="M" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Mehr</button>
 </div></nav>
 <script>
@@ -718,11 +945,11 @@ function render(){
     return `<button class="silo" data-id="${esc(s.id)}" aria-expanded="${open===s.id}" aria-label="${esc(s.name)}: ${f1(c.st)} kg">
       <span class="r1"><span class="nm">${esc(s.name)}${s.sorte?`<small>${esc(s.sorte)}</small>`:""}</span>${ring(rdOf(s))}<span class="kg">${f1(c.st)}<small>kg</small></span></span>
       ${dd!=null?`<span class="reach"><i class="${dd<7?"y":"g"}" style="width:${Math.min(100,dd/MX*100)}%"></i><em style="left:${7/MX*100}%"></em><em style="left:${14/MX*100}%"></em></span>`:""}
-      <span class="ln${c.raw<0||(dd!=null&&dd<7)?" w":""}">${!c.n?"Noch kein Stand · antippen und eintragen":c.raw<0?"Stand prüfen":c.perWeek==null?"Ø ab 7 Tagen Daten":(r?"reicht bis "+esc(dFmt(r))+" · ":"")+"Ø "+f1(c.perWeek)+" kg/Woche"}</span>
+      <span class="ln${c.raw<0||(dd!=null&&dd<7)?" w":""}">${!c.n?(cropEig(s)?"Cropster: Ø "+f1(cropEig(s).kg)+" kg/Woche · Stand antippen":"Noch kein Stand · antippen und eintragen"):c.raw<0?"Stand prüfen":c.perWeek==null?"Ø ab 7 Tagen Daten":(r?"reicht bis "+esc(dFmt(r))+" · ":"")+"Ø "+f1(c.perWeek)+" kg/Woche"}</span>
       ${nt?`<span class="ln">${nt} ${nt===1?"Tonne":"Tonnen"}${ripe<nt?` · ${nt-ripe} jünger als 2 Wochen`:""}</span>`:""}
       ${c.plan.length?`<span class="ln">${c.plan.length} ${c.plan.length===1?"Charge":"Chargen"} geplant · ${f1(c.planKg)} kg</span>`:""}
     </button>`}).join("")+`<button class="silo add" data-add="1"><span class="nm">+ Kiste</span><span class="ln">z. B. für eine Gastsorte</span></button>`;
-  renderDet();renderE();
+  renderDet();renderE();renderEB();try{renderR()}catch(e){}
 }
 function renderDet(){
   const d=$("det"),s=open&&silo(open);if(!s){d.hidden=true;return}
@@ -752,6 +979,7 @@ function renderDet(){
   }
   d.hidden=false;
   d.innerHTML=`<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px"><h2>${esc(s.name)}${s.sorte?` <span class="hint">· ${esc(s.sorte)}</span>`:""}</h2><button type="button" id="dX" aria-label="Schließen" style="min-height:36px;padding:2px 12px">×</button></div>
+    ${cropSiloL(s)}
     <p class="hint" style="margin-top:-6px">Stand ${f1(c.st)} kg${c.perWeek!=null?` · Ø ${f1(c.perWeek)} kg/Woche`:""}${r?` · reicht bis ${esc(dFmt(r))}`:""}${c.planKg&&r2?` · mit Geplantem bis ${esc(dFmt(r2))}`:""}</p>
     ${soFld(s)?`<div class="drin"><span class="lb">Gerade drin</span><span class="now">${s.sorte?esc(s.sorte):"Noch keine Sorte eingetragen"}</span>
       <label class="f" style="margin:0">Wechseln zu${soSel("curS",s.sorte,soList(s),"Noch keine Sorte")}</label></div>`:""}
@@ -766,6 +994,10 @@ function renderDet(){
   if($("chB")){const i=$("bKg")||$("pKg");if(i)i.value=kgT(chKg())}
   const k=$("swN")||$("bKg")||$("pKg")||$("sNm");if(k&&mode!=="set"&&mode!=="plan"&&mode!=="rein")k.focus({preventScroll:true});
 }
+/* laden-v52: Eigenbedarf je Kiste aus Cropster (geröstet − verkauft, Ø 8 Berichtswochen), für Panea auch wie lange eine Tonne hält */
+function cropEig(s){if(!window.CROP)return null;const n=s.sorte||s.name;if(norm(s.name)==="muhle 2"&&!s.sorte)return null;const E=CROP.eig(n);return E&&E.kg>0?E:null}
+function cropSiloL(s){const E=cropEig(s);if(!E)return"";const pd=E.kg/6;
+  return `<p class="crl">Cropster: Eigenbedarf <b>Ø ${f1(E.kg)} kg pro Woche</b> (${f1(E.roast)} geröstet − ${f1(E.sold)} verkauft, Ø ${E.n} Wochen)${s.id==="panea"?` · eine Tonne (${kgT(tonKg())} kg) hält <b>${f1(tonKg()/pd)} Ladentage</b> · ${f1(E.kg/tonKg())} Tonnen pro Woche`:""}</p>`}
 function weekKey(s){const k=kwOf(s);return k.y*100+k.w}
 function renderE(){
   const L=S().list,C=L.map(s=>({s,c:calc(s.id)})),any=C.some(x=>x.c.ev.length);
@@ -928,32 +1160,40 @@ const isDone=r=>r.needKg>0&&(r.g?r.m1+r.m2===0:r.missKg<.01);
 // laden-v49: Abpacken startet leer, Mehdi trägt ein, was wirklich abgepackt wurde (Bedarf steht schon in der Sorten-Zeile)
 function suggest(r){PS[r.n]={e:0,s1:0,s2:0}}
 function renderW(){
-  WD=wData();const R=rowsW();
-  $("wSub").textContent=WD.wk?`${WD.wk} · Bedarf ${WD.vkW?"aus Lightspeed KW "+WD.vkL:"aus dem Röstplan (kg)"}${WD.kwOff?` · Tütenzahlen für KW ${WD.kw} fehlen: PDF in der Röstwoche laden`:""}`:"Noch kein Bericht im Röstplan";
+  cgImport();WD=wData();const R=rowsW();
+  $("wSub").textContent=WD.wk?`${WD.wk} · was geröstet ist und verteilt werden muss`:"Was geröstet ist und verteilt werden muss";
   const wk=R.reduce((x,r)=>x+r.w,0),ms=R.filter(r=>r.needKg>0&&!isDone(r)),bags=ms.reduce((x,r)=>x+(r.g?r.m1+r.m2:0),0),mkg=ms.reduce((x,r)=>x+r.missKg,0),ready=ms.filter(r=>r.w>0);
-  $("missC").innerHTML=`<h2>Jetzt abpackbar</h2>${wk>0?`<div class="miss"><div class="big"><b>${f1(wk)}</b><span>kg geröstet</span></div><div><b>${nS(wk)}</b><span>× 250 g möglich</span></div><div><b>${nB(wk)}</b><span>× 1 kg möglich</span></div></div>`:`<p class="hint">Nichts geröstet, das wartet. Erst den Rösttag bestätigen.</p>`}
-   ${R.length?`<h2 style="font-size:15px;margin-top:4px">Fehlt diese Woche noch</h2>${ms.length?`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""} · ${f1(mkg)} kg</b>${ready.length?` · davon jetzt abpackbar: ${ready.length}`:""}</p>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`}`:`<p class="hint">Im Röstplan einen Wochenbericht laden, dann steht hier der Bedarf.</p>`}`;
-  renderRoast();renderSorts(R);renderCA();kurz();ckBanner("ckW");
+  $("missC").innerHTML=`<div class="hrow"><h2>Fehlt diese Woche noch</h2>${ms.length?`<span class="hint">${ms.length} ${ms.length===1?"Sorte":"Sorten"}${bags?" · "+bags+" Tüten":""}</span>`:""}</div>
+   ${R.length?ms.length?`<div class="fl">${ms.slice().sort((a,b)=>b.missKg-a.missKg).map(r=>`<div class="r"><b>${esc(r.n)}</b><span>${r.g?[r.m2?r.m2+" × 250 g":"",r.m1?r.m1+" × 1 kg":""].filter(Boolean).join(" · "):f1(r.missKg)+" kg"}</span></div>`).join("")}</div>`:`<p class="ok-line">Alles für diese Woche abgepackt.</p>`:`<p class="hint">Sobald ein Wochenbericht geladen ist, steht hier, was fehlt.</p>`}`;
+  renderRoast();renderCmp();renderCh();renderSorts(R);renderCA();kurz();ckBanner("ckW");
 }
 function renderRoast(){
   const c=$("roastC"),e=WD.e;
   if(!e){c.hidden=!WD.sorts.length;c.innerHTML=`<h2>Rösttag bestätigen</h2><p class="hint">Sobald in der Röstwoche alle Chargen einen Tag haben, erscheinen die Rösttage hier. Bestätigen geht auch direkt dort unter „Liste“ mit „Geröstet ✓“.</p>`;return}
   const days=[0,1,2].map(d=>({d,l:(e.days||[])[d]||[],nm:(e.dn||[])[d]||"Tag "+(d+1)})).concat([{d:3,l:e.open||[],nm:"Ohne Tag"}]).filter(x=>x.l.length);
+  // laden-v54: Rösttage werden nur von Hand bestätigt (Mehdi), Cropster kommt danach als Vergleich
   const open=days.filter(x=>!A.conf[e.id+"#"+x.d]);
   if(!open.length){c.hidden=false;c.className="card";c.innerHTML=`<div class="hrow"><h2>Rösttage ${esc(e.week||"")}</h2><span class="okk">alle bestätigt ✓</span></div>`;return}
   c.hidden=false;c.className="card roast";
   if(rcDay==null||!open.some(x=>x.d===rcDay))rcDay=open[0].d;
   const cur=open.find(x=>x.d===rcDay),key=e.id+"#"+rcDay;
-  if(!RC[key])RC[key]=cur.l.map(x=>({n:x.name,size:(x.kgs||[])[0]||5,c:(x.kgs||[]).length}));
+  if(!RC[key]){const plan=cur.l.map(x=>({n:x.name,size:(x.kgs||[])[0]||5,c:(x.kgs||[]).length})),cd=cropDateL(e,rcDay,open);RC[key]=plan;
+    // laden-v52: Rösttag steht schon in Cropster: echte Chargen übernehmen (auch spontan dazugekommene Sorten)
+    if(cd){const cq=CROP.day(cd);RCD[key]=cd;RC[key]=plan.map(r=>{const q=cq.find(y=>y.n&&norm(y.n)===norm(r.n));return{n:r.n,size:q?q.size:r.size,c:q?q.c:0,plan:r.c}})
+      .concat(cq.filter(q=>q.n&&!plan.some(r=>norm(r.n)===norm(q.n))).map(q=>({n:q.n,size:q.size,c:q.c,plan:0})))}}
   const rows=RC[key],n=rows.reduce((a,r)=>a+r.c,0),roh=rows.reduce((a,r)=>a+r.c*r.size,0);
   const lossOf=nm=>A.loss[nm]!=null?A.loss[nm]:WD.loss;
-  c.innerHTML=`<div class="hrow"><h2>Rösttag bestätigen</h2><span class="hint">aus dem Röstplan</span></div>
+  c.innerHTML=`<div class="hrow"><h2>Geplant · nach dem Rösten bestätigen</h2><span class="hint">aus deiner Liste</span></div>
    ${open.length>1?`<div class="chips">${open.map(x=>`<button data-rday="${x.d}" aria-pressed="${x.d===rcDay}">${esc(x.nm)}</button>`).join("")}</div>`:`<p class="hint" style="margin-top:-6px"><b style="color:var(--ink)">${esc(cur.nm)}</b></p>`}
+   ${RCD[key]?`<p class="crl">Aus Cropster vom <b>${esc(dFmt(RCD[key]))}</b>. Abweichungen vom Plan stehen klein darunter.</p>`:""}
    <p class="hint" style="margin-top:-4px">${n} Chargen · ${kgT(roh)} kg roh. Anders geröstet? Mit − und + ändern.</p>
-   <div class="rl">${rows.map((r,i)=>{const g=r.c*r.size*(1-lossOf(r.n)/100);return `<div class="rr"><span class="t"><b>${esc(r.n)}</b><small>${r.c} × ${kgT(r.size)} kg roh = ${f1(g)} kg geröstet</small></span><span class="step sm"><button data-rc="${i}" data-v="-1" aria-label="Eine Charge weniger">−</button><output>${r.c}</output><button data-rc="${i}" data-v="1" aria-label="Eine Charge mehr">+</button></span></div>`}).join("")}</div>
-   <div class="row2"><label class="f">Geröstet am<input id="rDate" type="date" value="${today()}" max="${today()}"></label></div>
-   <button class="primary" id="rOk">So geröstet</button>`;
+   <div class="rl">${rows.map((r,i)=>{const g=r.c*r.size*(1-lossOf(r.n)/100);return `<div class="rr"><span class="t"><b>${esc(r.n)}</b><small>${r.c} × ${kgT(r.size)} kg roh = ${f1(g)} kg geröstet${r.plan!=null&&r.plan!==r.c?` · geplant ${r.plan}`:""}</small></span><span class="step sm"><button data-rc="${i}" data-v="-1" aria-label="Eine Charge weniger">−</button><output>${r.c}</output><button data-rc="${i}" data-v="1" aria-label="Eine Charge mehr">+</button></span></div>`}).join("")}</div>
+   <div class="row2"><label class="f">Geröstet am<input id="rDate" type="date" value="${RCD[key]||today()}" max="${today()}"></label></div>
+   <button class="primary" id="rOk">Geröstet ✓</button>`;
 }
+let RCD={};
+function cropDateL(e,d,open){if(!window.CROP||!CROP.stats().n||!e)return null;const used=Object.keys(A.conf).filter(k=>k.startsWith(e.id+"#")).map(k=>A.conf[k]);
+  const nm=[0,1,2].includes(d)?((e.dn||[])[d]||""):"";return CROP.dateFor(String(e.at||"").slice(0,10),nm,Math.max(0,open.findIndex(x=>x.d===d)),used)}
 function bar(r){const N=Math.max(r.needKg,r.pk+r.w,.01),p=r.pk/N*100,w=Math.min(r.w,Math.max(0,N-r.pk))/N*100;return `<span class="bar" aria-hidden="true"><i class="p" style="width:${p}%"></i><i class="w" style="width:${w}%"></i></span>`}
 // laden-v45: je Größe leise „da / Ziel“ + was noch fehlt, statt langer Textzeile
 function tbl(r){
@@ -987,8 +1227,9 @@ function pack(r){
   const nd=need=>need==null?"":need>0?"Bedarf "+need+" · ":"kein Bedarf · ";
   const row=(k,lab,v,sub)=>`<div class="pr"><span class="t">${lab}<small>${sub}</small></span><span class="step"><button data-st="${k}" data-v="-1" aria-label="${lab} weniger">−</button><output>${v}</output><button data-st="${k}" data-v="1" aria-label="${lab} mehr">+</button></span></div>`;
   return `<div class="pk">
-   <div class="kgh"><div><b>${f1(r.w)} kg</b> geröstet</div><button class="lossb" data-lossopen="1" aria-expanded="${lossOpen===r.n}">${kgT(r.roh)} kg roh · −${r.loss} %</button></div>
-   ${lossOpen===r.n?`<div class="pr"><span class="t" style="font-weight:500;font-size:14px">Röstverlust dieser Sorte</span><span class="step sm"><button data-loss="-1" aria-label="Röstverlust weniger">−</button><output>${r.loss} %</output><button data-loss="1" aria-label="Röstverlust mehr">+</button></span></div>`:""}
+   <div class="kgh"><div><b>${f1(r.w)} kg</b> geröstet</div><button class="lossb" data-lossopen="1" aria-expanded="${lossOpen===r.n}">${kgT(r.roh)} kg roh · −${pcL(r.loss)} %</button></div>
+   ${lossOpen===r.n?`<div class="pr"><span class="t" style="font-weight:500;font-size:14px">Röstverlust dieser Sorte</span><span class="step sm"><button data-loss="-1" aria-label="Röstverlust weniger">−</button><output>${pcL(r.loss)} %</output><button data-loss="1" aria-label="Röstverlust mehr">+</button></span></div>`:""}
+   ${(()=>{const v=cvSug(r);return v&&v.txt?`<button type="button" class="cvs" data-cv="1"><span>Vorschlag: ${esc(v.txt)}<small>${TB?`Bis ${esc(dFmt(iso(TB.NR)))} (${TB.sd} Ladentage) brauchst du ${TB.need} Tonnen, ${TB.have} ${TB.have===1?"ist":"sind"} da. `:v.e&&r.silo?"Eigenbedarf aus Cropster. ":""}${v.m?"Tüten wie verkauft (Ø "+v.m.n+" Wochen)":""}</small></span><u>Übernehmen</u></button>`:""})()}
    <div class="rows">
     ${r.silo?(ton?row("e","Tonnen",Math.round(x.e/tonKg(r.loss)),"je 2 Chargen = "+kgT(tonKg(r.loss))+" kg · für die Mühlen"):row("e","Eigenbedarf-Kiste",kgT(x.e)+" kg","ins Regal · "+esc(r.silo.name))):""}
     ${row("1","1-kg-Tüten",x.s1,nd(r.m1)+"höchstens "+m1)}
@@ -999,6 +1240,178 @@ function pack(r){
    <button class="primary big" data-ok="1"${rest<-0.001||u<=0?" disabled":""}>Fertig abgepackt</button>
    <div class="btns" style="justify-content:space-between"><button class="link" data-sg="1"${u>0?"":" disabled"}>Alles auf 0</button>${KO&&KO.n===r.n?"":korr(r)}<button class="link" data-drop="1">Nichts mehr da</button></div>${KO&&KO.n===r.n?korr(r):""}</div>`;
 }
+const pcL=v=>String(Math.round((+v||0)*10)/10).replace(".",",");
+/* laden-v52: Abfüll-Vorschlag. Tonnen/Kiste nach echtem Eigenbedarf (Cropster), den Rest nach dem Tüten-Mix der letzten 8 Berichtswochen. */
+function mixOf(n){const K=rLoad("verkauf.v1"),v=window.CROP&&K?CROP.vkSort(K,n):null;if(!v||!v.u)return null;
+  const ws=Object.keys(v.u).map(Number).sort((a,b)=>a-b).slice(-8);let k1=0,k2=0,ku=0;ws.forEach(w=>{const u=v.u[w]||{};k1+=(u["1000"]|0);k2+=(u["250"]|0)*.25;ku+=+u.unv||0});
+  const T=k1+k2+ku;return T>0?{k1:k1/T,k2:k2/T,ku:ku/T,n:ws.length}:null}
+/* ---------- laden-v52: Chargen einzeln verfolgen (Schlüssel chargen.v1) ----------
+   Jede Cropster-Röstung (PR-Nummer) ist eine Charge mit echtem Röstgewicht. Röstungen kommen automatisch ins Lager (wartet).
+   Verteilen: 250 g · 1 kg · gemischt · Tonne (2 Chargen = 1 Tonne) · Kiste · lose ins Regal. Gebucht wird über dieselben Wege wie „Fertig abgepackt“. */
+const CGK="chargen.v1";
+let CG=rLoad(CGK);if(!CG||typeof CG!=="object")CG={v:1,b:{},days:{}};CG.b=CG.b||{};CG.days=CG.days||{};
+const cgSave=()=>{try{localStorage.setItem(CGK,JSON.stringify(CG));return true}catch(e){return false}};
+addEventListener("storage",e=>{if(e.key===CGK){CG=rLoad(CGK)||{v:1,b:{},days:{}};CG.b=CG.b||{};CG.days=CG.days||{}}});
+const CGS={t2:["250 g","--c-t2"],t1:["1 kg","--c-t1"],mix:["gemischt","--c-mix"],ton:["Tonne","--c-ton"],kiste:["Eigenbedarf","--c-kiste"],m2:["Mühle 2","--c-kiste"],lose:["lose im Regal","--c-lose"]};
+let SEL=new Set(),CGA=null,cgAll=false,cgInfo=null;
+function cgPR(){if(!window.CROP||!CROP.stats().n)return[];AN();
+  if(!CG.start){const ds=Object.values(A.conf).filter(Boolean).sort(),L=CROP.load().r;CG.start=ds.length?ds[ds.length-1]:(L.length?L[L.length-1][1].slice(0,10):today());cgSave()}
+  const names=CROP.sortNames();return CROP.load().r.filter(x=>x[1].slice(0,10)>=CG.start).map(x=>{const n=CROP.sortOf(x[2],names),e=x[4]>0&&x[4]/x[3]>.7?x[4]:Math.round(x[3]*(1-chLoss(n||"?")/100)*1000)/1000;
+    const st=CG.b[x[0]],ok=st&&(st.s==="lose"||A.log.some(l=>l.id===st.log));return{id:x[0],d:x[1].slice(0,10),t:x[1].slice(11,16),cn:x[2],n,g:x[3],e,st:ok?st:null}})}
+// Röstungen aus Cropster als „geröstet, wartet“ ins Lager, je Rösttag einmal; schon bestätigte Tage (Röstwoche/Lager) zählen nicht doppelt
+function cgImport(){return; // laden-v54: nichts mehr automatisch einbuchen, siehe renderCmp()
+  if(!window.CROP||!CROP.stats().n)return;AN();const L=cgList(),conf=new Set(Object.values(A.conf));let ch=false;
+  [...new Set(L.map(x=>x.d))].sort().forEach(d=>{if(CG.days[d])return;CG.days[d]=1;ch=true;if(conf.has(d))return;
+    const add={};L.filter(x=>x.d===d&&x.n).forEach(x=>{const k=wKey(x.n)||x.n,w=A.wait[k]||(A.wait[k]={roh:0});w.roh=Math.round((w.roh+x.g)*1000)/1000;w.d=d;add[k]=Math.round(((add[k]||0)+x.g)*1000)/1000});
+    if(!Object.keys(add).length)return;const key="crop#"+d;A.conf[key]=d;
+    A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key,add,txt:"Röstung aus Cropster übernommen",sub:Object.keys(add).map(n=>n.split(" ")[0]+" "+L.filter(x=>x.d===d&&x.n&&(wKey(x.n)||x.n)===n).length+"×").join(" · ")});aSave()});
+  if(ch)cgSave()}
+function cgPill(x){const s=x.st?CGS[x.st.s]:null;return `<button type="button" class="ch2${s?"":" o"}"${s?` data-s="${x.st.s}" style="--cc:var(${s[1]})"`:""} data-ch="${esc(x.id)}" aria-pressed="${SEL.has(x.id)}" aria-label="${esc(x.id)} ${esc(x.n||x.cn)} ${kgT(x.e)} kg, ${s?s[0]:"offen"}">
+  <span class="no">${esc(x.id.replace(/^PR-/,""))} · ${esc(x.t)}</span><b>${esc((x.n||x.cn).split(" ")[0])}</b><span class="kg">${kgT(x.e)} kg</span><span class="cgt">${s?s[0]:x.n?"offen":"? Sorte"}</span></button>`}
+function renderCh(){const c=$("chC"),L=cgList();if(!L.length){c.hidden=true;return}c.hidden=false;
+  const open=L.filter(x=>!x.st),kgO=open.reduce((a,x)=>a+x.e,0),tot=L.reduce((a,x)=>a+x.e,0),by={};L.forEach(x=>{const k=x.st?x.st.s:"o";by[k]=(by[k]||0)+x.e});
+  const seg=[["o","offen","--c-o"]].concat(Object.keys(CGS).map(k=>[k,CGS[k][0],CGS[k][1]]));
+  const vis=cgAll?L:L.filter(x=>!x.st||SEL.has(x.id)),days=[...new Set(vis.map(x=>x.d))].sort().reverse();
+  c.innerHTML=`<div class="hrow"><h2>Chargen</h2><span class="hint">${L.length} seit ${esc(dFmt(CG.start))}</span></div>
+   <p class="hint" style="margin-top:-8px">Jede Röstung aus Cropster mit echtem Röstgewicht. Antippen, dann sagen, wohin sie geht.</p>
+   <div class="cgbar" role="img" aria-label="Wohin die Chargen gegangen sind">${seg.filter(x=>by[x[0]]).map(x=>`<i style="width:${by[x[0]]/tot*100}%;background:var(${x[2]})"></i>`).join("")}</div>
+   <div class="cgleg">${seg.filter(x=>by[x[0]]).map(x=>`<span><i style="background:var(${x[2]})"></i>${x[1]} <b>${L.filter(y=>(y.st?y.st.s:"o")===x[0]).length}</b> · ${f1(by[x[0]])} kg</span>`).join("")}</div>
+   <p class="hint"><b style="color:var(--ink)">${open.length} ${open.length===1?"Charge":"Chargen"} offen · ${f1(kgO)} kg geröstet</b>${open.length?` · älteste ${esc(dFmt(open.map(x=>x.d).sort()[0]))}`:""}</p>
+   <div class="chips" style="margin-top:6px"><button type="button" data-cgf="0" aria-pressed="${!cgAll}">Offen</button><button type="button" data-cgf="1" aria-pressed="${cgAll}">Alle</button>${open.length?`<button type="button" data-cgsel="1">Alle offenen wählen</button>`:""}</div>
+   ${days.length?days.map(d=>{const D=vis.filter(x=>x.d===d),all=L.filter(x=>x.d===d);return `<div class="cgday"><b>${esc(dFmt(d))}</b><span>${all.length} Chargen · ${all.filter(x=>!x.st).length} offen</span></div><div class="cgg">${D.map(cgPill).join("")}</div>`}).join(""):`<p class="ok-line" style="margin-top:10px">✓ Alle Chargen sind verteilt.</p>`}
+   ${cgInfo?cgInfoHtml(L):""}${SEL.size?cgActHtml(L):""}`;}
+function cgInfoHtml(L){const x=L.find(y=>y.id===cgInfo);if(!x||!x.st)return"";const l=A.log.find(y=>y.id===x.st.log),mates=l?L.filter(y=>y.st&&y.st.log===l.id):[x];
+  return `<div class="cgact"><div class="hd"><b>${esc(x.id)} · ${esc(x.n||x.cn)}</b><span>${kgT(x.e)} kg · ${esc(x.t)}</span></div>
+   <p class="cginfo">${esc(CGS[x.st.s][0])} am ${esc(dFmt(x.st.d))}${l?" · "+esc(l.sub||""):""}${mates.length>1?` · zusammen mit ${mates.filter(y=>y!==x).map(y=>esc(y.id.replace(/^PR-/,""))).join(", ")}`:""}</p>
+   <div class="cgx"><button type="button" class="link" data-cgundo="${esc(x.id)}">Rückgängig</button><button type="button" class="link" data-cgx="1">Schließen</button></div></div>`}
+function cgSel(L){const S=L.filter(x=>SEL.has(x.id)),ns=[...new Set(S.map(x=>x.n))],kg=S.reduce((a,x)=>a+x.e,0),g=S.reduce((a,x)=>a+x.g,0);return{S,ns,kg,g,one:ns.length===1&&ns[0]?ns[0]:null}}
+function cgActHtml(L){const q=cgSel(L),si=q.one?siloFor(q.one):null,pan=si&&si.id==="panea";
+  const b=(k,t,dis)=>`<button type="button" data-cga="${k}" aria-pressed="${CGA&&CGA.k===k}"${dis?" disabled":""}>${t}</button>`;
+  let f="";
+  if(CGA&&["t2","t1","mix"].includes(CGA.k)){const u=CGA.s1+CGA.s2*.25,rest=Math.round((q.kg-u)*100)/100;
+    f=`<div class="pr"><span class="t">1-kg-Tüten<small>höchstens ${Math.floor(q.kg-CGA.s2*.25+1e-9)}</small></span><span class="step"><button type="button" data-cgs="s1" data-v="-1" aria-label="1 kg weniger">−</button><output>${CGA.s1}</output><button type="button" data-cgs="s1" data-v="1" aria-label="1 kg mehr">+</button></span></div>
+     <div class="pr"><span class="t">250-g-Tüten<small>höchstens ${Math.floor((q.kg-CGA.s1)/.25+1e-9)}</small></span><span class="step"><button type="button" data-cgs="s2" data-v="-1" aria-label="250 g weniger">−</button><output>${CGA.s2}</output><button type="button" data-cgs="s2" data-v="1" aria-label="250 g mehr">+</button></span></div>
+     <p class="cginfo ${rest<-.001?"w":""}">${rest<-.001?`${f1(-rest)} kg zu viel`:`Rest <b>${kgT(rest)} kg</b> bleibt lose im Regal und wartet weiter.`}</p>
+     <button type="button" class="primary" data-cgok="1"${rest<-.001||u<=0?" disabled":""}>Buchen</button>`}
+  else if(CGA&&CGA.k==="ton")f=`<div class="pr"><span class="t">Tonnen<small>${q.S.length} Chargen · ${kgT(q.kg)} kg · 2 Chargen = 1 Tonne</small></span><span class="step"><button type="button" data-cgs="nt" data-v="-1" aria-label="Eine Tonne weniger">−</button><output>${CGA.nt}</output><button type="button" data-cgs="nt" data-v="1" aria-label="Eine Tonne mehr">+</button></span></div><button type="button" class="primary" data-cgok="1"${CGA.nt<1?" disabled":""}>In ${CGA.nt} ${CGA.nt===1?"Tonne":"Tonnen"} buchen</button>`;
+  else if(CGA&&CGA.k==="kiste")f=`<p class="cginfo">${kgT(q.kg)} kg als Eigenbedarf ${esc(si.name)} markiert. Daraus wird nur für die Mühlen genommen.</p><button type="button" class="primary" data-cgok="1">Als Eigenbedarf markieren</button>`;
+  else if(CGA&&CGA.k==="m2")f=`<p class="cginfo">${kgT(q.kg)} kg für Mühle 2 vormerken. Die Reihenfolge änderst du unter Bestand.</p><button type="button" class="primary" data-cgok="1">Für Mühle 2 vormerken</button>`;
+  else if(CGA&&CGA.k==="lose")f=`<p class="cginfo">Bleibt geröstet und unverpackt im Regal, du siehst die Chargen nur als „lose“ markiert. Abpacken kannst du sie später.</p><button type="button" class="primary" data-cgok="1">Als lose markieren</button>`;
+  return `<div class="cgact" id="cgAct"><div class="hd"><b>${q.S.length} ${q.S.length===1?"Charge":"Chargen"} · ${esc(q.one?q.one:q.ns.length>1?q.ns.length+" Sorten":"Sorte unbekannt")}</b><span>${kgT(q.kg)} kg geröstet</span></div>
+   <div class="cgbtns">${b("t2","250 g",!q.one)}${b("t1","1 kg",!q.one)}${b("mix","Gemischt",!q.one)}${pan?b("ton","Tonne (Eigenbedarf)",false):b("kiste","Eigenbedarf",!si)}${b("m2","Mühle 2",!m2Silo())}${b("lose","Lose ins Regal",false)}</div>
+   ${!q.one&&q.ns.length>1?`<p class="cginfo">Tüten gehen nur mit einer Sorte. Wähle Chargen einer Sorte.</p>`:""}${f}
+   <div class="cgx"><span></span><button type="button" class="link" data-cgclr="1">Auswahl aufheben</button></div></div>`}
+function cgBook(L){const q=cgSel(L),k=CGA.k,d=today();AN();
+  if(k==="lose"){q.S.forEach(x=>CG.b[x.id]={s:"lose",d});cgSave();return q.S.length+" Chargen als lose im Regal markiert."}
+  if(k==="m2"&&!q.one&&q.S.length){let msg="";q.ns.forEach(nn=>{const sub=q.S.filter(x=>x.n===nn);SEL.clear();sub.forEach(x=>SEL.add(x.id));msg=cgBook(L)});return msg}
+  const n=q.one,wk=wKey(n)||n,w=A.wait[wk]||(A.wait[wk]={roh:0}),si=k==="m2"?m2Silo():siloFor(n);
+  let s1=0,s2=0,e=0,packed;if(k==="ton"||k==="kiste"||k==="m2"){e=Math.round(q.kg*100)/100;packed=e}else{s1=CGA.s1;s2=CGA.s2;packed=s1+s2*.25}
+  const used=Math.round(q.g*packed/q.kg*1000)/1000;if(w.roh<used-.01)w.roh=used; // Röstung fehlte im Lager: aus Cropster nachgetragen
+  const en={id:uid(),n:Date.now(),d,t:"pack",n:wk,wk:WD.wk,s1,s2,e,roh:used,rg:1,ch:q.S.map(x=>x.id)};
+  if(e>0&&si){const bid=uid();en.silo=si.id;en.bid=bid;en.tids=[];const rd=q.S.map(x=>x.d).sort()[0];
+    commit(z=>{z.buch.push({id:bid,n:Date.now(),silo:si.id,d:rd,t:"rein",kg:e,note:"Chargen "+q.S.map(x=>x.id.replace(/^PR-/,"")).join(", ")});if(k==="ton"){const t=z.list.find(y=>y.id==="panea");t.ton=t.ton||[];for(let i=0;i<CGA.nt;i++){const tid=uid()+i;en.tids.push(tid);t.ton.push({id:tid,kg:Math.round(e/CGA.nt*100)/100,d:rd,b:bid})}}})}
+  w.roh=Math.round((w.roh-used)*1000)/1000;if(w.roh<.01)delete A.wait[wk];
+  if(s1||s2){const p=A.pw.p[wk]||(A.pw.p[wk]={p1:0,p2:0});p.p1+=s1;p.p2+=s2;const rg=A.reg[wk]||(A.reg[wk]={p1:0,p2:0});rg.p1+=s1;rg.p2+=s2}
+  en.txt=wk+" abgepackt";en.sub=[s1?s1+" × 1 kg":"",s2?s2+" × 250 g":"",k==="ton"?CGA.nt+" × Tonne":k==="kiste"?kgT(e)+" kg Eigenbedarf":k==="m2"?kgT(e)+" kg für Mühle 2":"","Chargen "+q.S.map(x=>x.id.replace(/^PR-/,"")).join(", ")].filter(Boolean).join(" · ");
+  A.log.unshift(en);if(!aSave())return"Speichern hat nicht geklappt.";const o0=Date.now();q.S.forEach((x,i)=>CG.b[x.id]=k==="m2"?{s:k,d,log:en.id,o:o0+i}:{s:k,d,log:en.id});cgSave();
+  return `${q.S.length} ${q.S.length===1?"Charge":"Chargen"} gebucht: ${en.sub}.`}
+$("chC").addEventListener("click",e=>{const L=cgList();
+  const f=e.target.closest("[data-cgf]");if(f){cgAll=f.dataset.cgf==="1";renderCh();return}
+  if(e.target.closest("[data-cgsel]")){L.filter(x=>!x.st&&x.n).forEach(x=>SEL.add(x.id));CGA=null;cgInfo=null;renderCh();return}
+  const t=e.target.closest("[data-ch]");if(t){const x=L.find(y=>y.id===t.dataset.ch);if(!x)return;
+    if(x.st){cgInfo=cgInfo===x.id?null:x.id;SEL.clear();CGA=null}else{cgInfo=null;SEL.has(x.id)?SEL.delete(x.id):SEL.add(x.id);CGA=null}renderCh();return}
+  if(e.target.closest("[data-cgclr]")){SEL.clear();CGA=null;renderCh();return}
+  if(e.target.closest("[data-cgx]")){cgInfo=null;renderCh();return}
+  const u=e.target.closest("[data-cgundo]");if(u){const x=L.find(y=>y.id===u.dataset.cgundo);if(x&&x.st){if(x.st.log)undoLog(x.st.log);L.filter(y=>y.st&&(y.id===x.id||(x.st.log&&y.st.log===x.st.log))).forEach(y=>delete CG.b[y.id]);cgSave()}cgInfo=null;say2("Zurückgenommen.");renderW();return}
+  const a=e.target.closest("[data-cga]");if(a){const q=cgSel(L),k=a.dataset.cga;
+    if(k==="t2")CGA={k,s1:0,s2:Math.floor(q.kg/.25+1e-9)};else if(k==="t1")CGA={k,s1:Math.floor(q.kg+1e-9),s2:0};
+    else if(k==="mix"){const v=cvSug({n:q.one,w:q.kg,silo:null,loss:chLoss(q.one)});CGA={k,s1:v?v.s1:0,s2:v?v.s2:Math.floor(q.kg/.25)}}
+    else if(k==="ton")CGA={k,nt:Math.max(1,Math.round(q.S.length/2))};else CGA={k};renderCh();return}
+  const st=e.target.closest("[data-cgs]");if(st&&CGA){const v=+st.dataset.v;CGA[st.dataset.cgs]=Math.max(0,(CGA[st.dataset.cgs]||0)+v);renderCh();return}
+  if(e.target.closest("[data-cgok]")&&CGA){const m=cgBook(L);SEL.clear();CGA=null;say2(m);renderW()}});
+
+/* ---------- laden-v54: Chargen = Cropster-Chargen bestätigter Tage + Platzhalter „Nr. folgt“ ---------- */
+const GAS=7; // Tage Ausgasen vor Mühle 2 (Annahme, Mehdi prüft)
+function m2Silo(){return S().list.find(x=>norm(x.name)==="muhle 2")||null}
+// Abgleich mit Cropster: eigener Log mit Schlüssel <Rösttag-Schlüssel>~cmp, so zählt Zahlen (istOf) die Korrektur mit
+const CMPK=l=>String(l.key||("log#"+l.id))+"~cmp";
+const isRoastLog=l=>l.t==="roast"&&!String(l.key||"").startsWith("crop#")&&!String(l.key||"").endsWith("~cmp");
+// Tage, deren Cropster-Chargen im Lager gelten: Cropster-Tag übernommen oder Vergleich abgehakt
+function cgDays(){AN();const D=new Set();Object.keys(A.conf).forEach(k=>{if(k.startsWith("crop#")||k.endsWith("~cmp"))D.add(A.conf[k])});return D}
+function plCount(l,n){const c=(l.cnt||{})[n];if(c!=null)return c;const sz=(l.sz||{})[n]||sizeOf(n);return Math.max(0,Math.round((l.add[n]||0)/sz))}
+function cgPH(){AN();if(!CG.start)return[];const out=[];
+  A.log.filter(l=>isRoastLog(l)&&l.d>=CG.start&&!A.conf[CMPK(l)]).forEach(l=>Object.keys(l.add||{}).forEach(n=>{const c=plCount(l,n),sz=(l.sz||{})[n]||sizeOf(n);
+    for(let i=0;i<c;i++){const id="P-"+l.id+"-"+norm(n).replace(/\s+/g,"_")+"-"+i,st=CG.b[id],ok=st&&(st.s==="lose"||A.log.some(y=>y.id===st.log));
+      out.push({id,ph:1,lid:l.id,d:l.d,t:"",cn:n,n,g:sz,e:Math.round(sz*(1-chLoss(n)/100)*1000)/1000,st:ok?st:null})}}));return out}
+function cgList(){const D=cgDays();return cgPR().filter(x=>D.has(x.d)).concat(cgPH())}
+// Vergleich: bestätigter Rösttag gegen Cropster, und Cropster-Tage ohne Bestätigung
+function cmpData(){if(!window.CROP||!CROP.stats().n)return[];AN();if(!CG.start)cgPR();const days=CROP.stats().days,D=cgDays(),out=[];
+  const logs=A.log.filter(l=>isRoastLog(l)&&!A.conf[CMPK(l)]&&days[l.d]&&l.d>=(CG.start||"9999"));
+  logs.forEach(l=>{const cq=CROP.day(l.d),rows=[];const names=[...new Set(Object.keys(l.add||{}).concat(cq.filter(q=>q.n).map(q=>q.n)))];
+    names.forEach(n=>{const q=cq.find(y=>y.n&&norm(y.n)===norm(n)),pc=Object.keys(l.add||{}).find(x=>norm(x)===norm(n));
+      if(pc==null&&rows.some(r=>norm(r.n)===norm(n)))return;rows.push({n:pc||n,plan:pc!=null?plCount(l,pc):0,planRoh:pc!=null?(l.add[pc]||0):0,ist:q?q.c:0,istRoh:q?Math.round(q.roh*1000)/1000:0})});
+    out.push({kind:"log",l,d:l.d,rows})});
+  const logD=new Set(A.log.filter(isRoastLog).map(l=>l.d)),confD=new Set(Object.values(A.conf));
+  Object.keys(days).filter(d=>d>=(CG.start||"9999")&&!D.has(d)&&!logD.has(d)&&!confD.has(d)).sort().forEach(d=>{const cq=CROP.day(d).filter(q=>q.n);if(cq.length)out.push({kind:"crop",d,rows:cq.map(q=>({n:q.n,plan:0,planRoh:0,ist:q.c,istRoh:Math.round(q.roh*1000)/1000}))})});
+  return out}
+function renderCmp(){const c=$("cmpC"),L=cmpData();if(!L.length){c.hidden=true;return}c.hidden=false;const x=L[0];
+  const dif=x.rows.filter(r=>r.plan!==r.ist).length;
+  c.innerHTML=x.kind==="log"?`<div class="hrow"><h2>Plan gegen Cropster · ${esc(dFmt(x.d))}</h2><span class="hint">${dif?dif+(dif===1?" Abweichung":" Abweichungen"):"passt"}</span></div>
+    <table class="cmpt"><tr><th>Sorte</th><th>Plan</th><th>Cropster</th><th>kg roh</th></tr>${x.rows.map(r=>`<tr><td>${esc(r.n)}</td><td>${r.plan}</td><td class="${r.plan!==r.ist?"dw":""}">${r.ist}</td><td>${r.ist?kgT(r.istRoh):"–"}</td></tr>`).join("")}</table>
+    <p class="hint">Mit „Übernehmen“ zählt das Lager mit den Cropster-Zahlen weiter. Die Chargen bekommen ihre PR-Nummer, schon Verteiltes bleibt verteilt.</p>
+    <button type="button" class="primary" data-cmpok="${esc(x.l.id)}">Stimmt so, übernehmen</button>`
+   :`<div class="hrow"><h2>Cropster · ${esc(dFmt(x.d))}</h2><span class="hint">nicht bestätigt</span></div>
+    <p class="hint">An diesem Tag hast du laut Cropster geröstet, im Lager ist der Tag aber nicht bestätigt.</p>
+    <div class="fl">${x.rows.map(r=>`<div class="r"><b>${esc(r.n)}</b><span>${r.ist} ${r.ist===1?"Charge":"Chargen"} · ${kgT(r.istRoh)} kg roh</span></div>`).join("")}</div>
+    <button type="button" class="primary" data-cmpday="${esc(x.d)}">Geröstet ✓ übernehmen</button>`}
+$("cmpC").addEventListener("click",e=>{const b=e.target.closest("[data-cmpok]"),bd=e.target.closest("[data-cmpday]");if(!b&&!bd)return;AN();
+  const x=cmpData().find(y=>b?y.kind==="log"&&y.l.id===b.dataset.cmpok:y.kind==="crop"&&y.d===bd.dataset.cmpday);if(!x)return;
+  const PH=b?cgPH().filter(y=>y.lid===x.l.id):[];
+  const add={};x.rows.forEach(r=>{const k=wKey(r.n)||r.n,dv=Math.round((r.istRoh-r.planRoh)*1000)/1000;if(Math.abs(dv)<.001)return;const w=A.wait[k]||(A.wait[k]={roh:0});
+    const nv=Math.max(0,Math.round((w.roh+dv)*1000)/1000);add[k]=Math.round((nv-w.roh)*1000)/1000;w.roh=nv;w.d=x.d;if(w.roh<.01)delete A.wait[k]});
+  const key=b?CMPK(x.l):"crop#"+x.d;A.conf[key]=x.d;
+  // Platzhalter-Chargen an die PR-Nummern weitergeben (gleiche Sorte, der Reihe nach)
+  if(b){const pr=cgPR().filter(y=>y.d===x.d);Object.keys(CG.b).filter(id=>id.startsWith("P-"+x.l.id+"-")).forEach(id=>{const ph=PH.find(y=>y.id===id);const st=CG.b[id];
+    const n=ph?ph.n:null,t=pr.find(y=>!CG.b[y.id]&&y.n&&n&&norm(y.n)===norm(n));if(t){CG.b[t.id]=st;const lg=A.log.find(y=>y.id===st.log);if(lg&&lg.ch)lg.ch=lg.ch.map(c=>c===id?t.id:c)}delete CG.b[id]})}
+  CG.days[x.d]=1;cgSave();
+  A.log.unshift({id:uid(),n:Date.now(),d:x.d,t:"roast",key,add,txt:b?"Cropster mit Plan abgeglichen":"Röstung aus Cropster übernommen",sub:x.rows.map(r=>r.n.split(" ")[0]+" "+r.ist+"×").join(" · ")});
+  if(!aSave()){say2("Speichern hat nicht geklappt.");return}say2(b?"Cropster übernommen.":"Rösttag übernommen.");renderW()});
+/* Bestand: Eigenbedarf als Chargen-Listen je Kiste/Tonne, Mühle 2 mit Reihenfolge */
+function ebData(){const L=cgList(),out=[];AN();const lg=id=>A.log.find(y=>y.id===id);
+  S().list.forEach(s=>{let items=[];
+    if(s.id==="panea"||(s.ton&&s.ton.length)){(s.ton||[]).slice().sort((a,b)=>a.d<b.d?-1:a.d>b.d?1:0).forEach(t=>{const l=A.log.find(y=>y.bid&&y.bid===t.b),ch=l?L.filter(x=>x.st&&x.st.log===l.id).sort((a,b)=>a.id<b.id?-1:1):[];
+      const sib=(s.ton||[]).filter(z=>z.b&&z.b===t.b).sort((a,b)=>a.id<b.id?-1:1),j=sib.indexOf(t),mine=ch.length&&sib.length?ch.slice(j*2,j*2+2):[];
+      items.push({kind:"ton",id:t.id,lab:mine.length?mine.map((x,i)=>i?x.id.replace(/^PR-/,""):x.ph?"Nr. folgt":x.id).join(" + "):"Tonne",d:t.d,kg:t.kg})})}
+    else if(norm(s.name)==="muhle 2"){items=L.filter(x=>x.st&&x.st.s==="m2"&&!x.st.leer).sort((a,b)=>(a.st.o||0)-(b.st.o||0)).map(x=>({kind:"m2",id:x.id,lab:x.ph?"Nr. folgt":x.id,so:x.n,d:x.d,kg:x.e}))}
+    else items=L.filter(x=>x.st&&x.st.s==="kiste"&&!x.st.leer&&(lg(x.st.log)||{}).silo===s.id).sort((a,b)=>a.d<b.d?-1:1).map(x=>({kind:"ch",id:x.id,lab:x.ph?"Nr. folgt":x.id,d:x.d,kg:x.e}));
+    out.push({s,items})});
+  const leer=L.filter(x=>x.st&&x.st.leer).sort((a,b)=>a.st.leer<b.st.leer?1:-1).slice(0,3);return{out,leer}}
+function renderEB(){const c=$("ebC");if(!c)return;const{out,leer}=ebData(),m2=out.find(g=>norm(g.s.name)==="muhle 2");
+  c.innerHTML=`<div class="hrow"><h2>Eigenbedarf</h2><span class="hint">nur für die Mühlen</span></div>
+   <p class="hint" style="margin-top:-6px">Welche Chargen als Eigenbedarf markiert sind. Markieren unter Abpacken › Chargen. Panea: 2 Chargen = 1 Tonne.</p>
+   ${out.map(g=>{const isM=g===m2,its=g.items;return `<div class="ebg"><div class="ebh"><b>${esc(g.s.name)}</b><span>${its.length?its.length+(isM?" vorgemerkt":g.s.id==="panea"?(its.length===1?" Tonne":" Tonnen"):(its.length===1?" Charge":" Chargen"))+" · "+f1(its.reduce((a,x)=>a+x.kg,0))+" kg":"nichts markiert"}</span></div>
+     ${its.map((x,i)=>{const a=ddays(x.d,today()),first=isM&&i===0;return `<div class="ebi${first?" now":""}"><span class="n">${isM?i+1:"✓"}</span><span class="t"><b>${esc(x.lab)}</b>${x.so?` · ${esc(x.so)}`:""}<small>${isM?(first?"in der Mühle · ":"vorgemerkt · "):""}${kgT(x.kg)} kg · geröstet ${esc(dFmt(x.d))} (${a} ${a===1?"Tag":"Tage"})</small>
+       ${isM&&!first?`<span class="gas"><i style="width:${Math.min(100,a/GAS*100)}%"></i></span><small>${a>=GAS?"ausgegast":"ausgegast in "+(GAS-a)+(GAS-a===1?" Tag":" Tagen")}</small>`:""}</span>
+       ${isM&&i>0?`<button type="button" data-ebup="${esc(x.id)}" aria-label="nach vorne"${i===1?" disabled":""}>↑</button>`:""}${!isM||first?`<button type="button" data-ebleer="${x.kind}:${esc(x.id)}">Leer</button>`:""}</div>`}).join("")}</div>`}).join("")}
+   ${leer.length?`<p class="ebe" style="margin-top:10px">Zuletzt leer: ${leer.map(x=>`${esc(x.ph?"Nr. folgt":x.id)} (${esc(dFmt(x.st.leer))}) <button type="button" class="link" data-ebback="${esc(x.id)}">zurück</button>`).join(" · ")}</p>`:""}
+   <p class="ebe">Mühle 2: ausgegast nach ${GAS} Tagen.</p>`}
+$("ebC").addEventListener("click",e=>{const up=e.target.closest("[data-ebup]"),le=e.target.closest("[data-ebleer]"),bk=e.target.closest("[data-ebback]");
+  if(up){const m=ebData().out.find(g=>norm(g.s.name)==="muhle 2"),i=m.items.findIndex(x=>x.id===up.dataset.ebup);if(i>0){const a=CG.b[m.items[i].id],b=CG.b[m.items[i-1].id],t=a.o;a.o=b.o;b.o=t;if(a.o===b.o)a.o=b.o-1;cgSave();renderEB()}return}
+  if(bk){const st=CG.b[bk.dataset.ebback];if(st){delete st.leer;cgSave();say("Wieder in der Liste.");renderEB()}return}
+  if(le){const[k,id]=le.dataset.ebleer.split(/:(.+)/);
+    if(k==="ton"){const s0=S().list.find(x=>(x.ton||[]).some(t=>t.id===id)),t=s0&&s0.ton.find(x=>x.id===id);if(!t)return;
+      commit(s=>{const z=s.list.find(y=>y.id===s0.id);z.ton=z.ton.filter(x=>x.id!==t.id);s.buch.push({id:uid(),n:Date.now(),silo:s0.id,d:today(),t:"eigen",kg:t.kg,note:"Tonne leer (geröstet "+dFmt(t.d)+")"})});say("Tonne leer, "+f1(t.kg)+" kg als Eigenbedarf gebucht.");render();return}
+    const st=CG.b[id];if(st){st.leer=today();cgSave();say(id.startsWith("P-")?"Charge leer.":id+" leer.");render()}}});
+let TB=null;
+function cvSug(r){const m=mixOf(r.n);let e=0,eT="";TB=null;
+  if(r.silo){const E=window.CROP?CROP.eig(r.n):null;if(E&&E.kg>0){const sh=E.kg/(E.kg+E.sold);
+    if(r.silo.id==="panea"){const t=tonKg(r.loss),NR=CROP.nextRoast(),sd=CROP.shopDays(NR)+1,have=(r.silo.ton||[]).length,needT=Math.max(0,Math.ceil(E.kg/6*sd/t-1e-9)-have);
+      // bis zum nächsten Rösttag (plus 1 Tag Puffer) so viele Tonnen, wie fehlen; sonst nach Anteil
+      const n=Math.min(Math.floor(r.w/t),NR?needT:Math.round(r.w*sh/t));e=Math.round(n*t*100)/100;eT=n?n+(n===1?" Tonne":" Tonnen"):"";TB={need:Math.ceil(E.kg/6*sd/t-1e-9),have,sd,NR}}
+    else{e=Math.min(r.w,Math.round(r.w*sh*2)/2);eT=e?kgT(e)+" kg Kiste":""}}}
+  const rest=Math.max(0,r.w-e);if(!m&&!e)return null;
+  const s1=m?Math.min(Math.floor(rest),Math.round(rest*m.k1)):0,s2=m?Math.floor(Math.max(0,rest-s1)*(m.k2/((m.k2+m.ku)||1))/.25+1e-9):0,lose=Math.round((rest-s1-s2*.25)*100)/100;
+  return{e,s1,s2,lose,txt:[eT,s1?s1+" × 1 kg":"",s2?s2+" × 250 g":"",lose>=.05?kgT(lose)+" kg lose":""].filter(Boolean).join(" · "),m}}
 const say2=t=>{$("wmsg").textContent=t;clearTimeout(say2.t);say2.t=setTimeout(()=>$("wmsg").textContent="",4000)};
 $("roastC").addEventListener("click",e=>{
   const dy=e.target.closest("[data-rday]");if(dy){rcDay=+dy.dataset.rday;renderRoast();return}
@@ -1006,7 +1419,7 @@ $("roastC").addEventListener("click",e=>{
   if(e.target.closest("#rOk")){const key=WD.e.id+"#"+rcDay,rows=RC[key].filter(r=>r.c>0),d=$("rDate").value||today();AN();const add={};
     rows.forEach(r=>{const w=A.wait[r.n]||(A.wait[r.n]={roh:0});w.roh=Math.round((w.roh+r.c*r.size)*1000)/1000;w.d=d;add[r.n]=r.c*r.size});
     const dnm=[0,1,2].includes(rcDay)?((WD.e.dn||[])[rcDay]||"Tag "+(rcDay+1)):"ohne Tag";
-    A.conf[key]=d;A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key,add,txt:"Rösttag "+dnm+" bestätigt",sub:rows.map(r=>r.n.split(" ")[0]+" "+r.c+"×").join(" · ")});
+    A.conf[key]=d;A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key,add,cnt:Object.fromEntries(rows.map(r=>[r.n,r.c])),sz:Object.fromEntries(rows.map(r=>[r.n,r.size])),txt:"Rösttag "+dnm+" bestätigt",sub:rows.map(r=>r.n.split(" ")[0]+" "+r.c+"×").join(" · ")});
     if(!aSave()){say2("Speichern hat nicht geklappt.");return}delete RC[key];rcDay=null;say2(rows.reduce((a,r)=>a+r.c,0)+" Chargen übernommen.");renderW()}});
 /* Charge von Hand ins freie Kontingent nachtragen (laden-v30), ohne Röstplan-Bericht */
 let CA=null;
@@ -1042,8 +1455,9 @@ $("sl").addEventListener("click",e=>{
     A.log.unshift({id:uid(),n:Date.now(),d:today(),t:"korr",n:r.n,prev,roh:Math.round((roh-(prev?prev.roh:0))*1000)/1000,kg:v,txt:r.n+": Bestand korrigiert",sub:`vorher ${kgT(r.w)} kg · jetzt ${kgT(v)} kg geröstet`});
     if(!aSave()){say2("Speichern hat nicht geklappt.");return}KO=null;delete PS[r.n];say2(r.n+": Bestand jetzt "+kgT(v)+" kg.");renderW();return}
   if(e.target.closest("[data-lossopen]")){lossOpen=lossOpen===r.n?null:r.n;renderSorts(R);return}
-  const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,r.loss+ +lo.dataset.loss));aSave();renderW();return}
+  const lo=e.target.closest("[data-loss]");if(lo){A.loss[r.n]=Math.min(30,Math.max(5,Math.round((r.loss+ +lo.dataset.loss)*10)/10));aSave();renderW();return}
   const b=e.target.closest("[data-st]");if(b){const v=+b.dataset.v,k=b.dataset.st;if(k==="1")x.s1=Math.max(0,Math.min(200,x.s1+v));else if(k==="2")x.s2=Math.max(0,Math.min(400,x.s2+v));else x.e=r.silo.id==="panea"?Math.max(0,Math.round((Math.round(x.e/tonKg(r.loss))+v)*tonKg(r.loss)*100)/100):Math.max(0,Math.round((x.e+.5*v)*10)/10);renderSorts(R);return}
+  if(e.target.closest("[data-cv]")){const v=cvSug(r);if(v){x.e=r.silo?v.e:0;x.s1=v.s1;x.s2=v.s2}renderSorts(R);return}
   if(e.target.closest("[data-fill]")){x.s2+=nS(r.w-x.e-x.s1-x.s2*.25);renderSorts(R);return}
   if(e.target.closest("[data-sg]")){suggest(r);renderSorts(R);return}
   if(e.target.closest("[data-drop]")){const w=A.wait[r.n];A.log.unshift({id:uid(),n:Date.now(),d:today(),t:"drop",n:r.n,roh:w.roh,wd:w.d,txt:r.n+": Rest ausgebucht",sub:f1(r.w)+" kg geröstet nicht mehr da"});delete A.wait[r.n];aSave();openS=null;renderW();return}
@@ -1112,7 +1526,7 @@ function kForm(x){if(!KD||KD.id!==(x?x.id:"new"))KD={id:x?x.id:"new",loss:x&&A.l
    <div class="row2"><label class="f">Herkunft<input id="kL" maxlength="40" autocomplete="off" value="${v("land")}" placeholder="Land, Region"></label><label class="f">Produzent / Farm<input id="kFa" maxlength="40" autocomplete="off" value="${v("farm")}"></label></div>
    <div class="row2"><label class="f">Varietät<input id="kV" maxlength="40" autocomplete="off" value="${v("vari")}"></label><label class="f">Aufbereitung${sel("kP",PROZ,x?x.proz:"")}</label></div>
    <label class="f">Für${sel("kT",TYP,x?x.typ:"")}</label>
-   <div class="pr"><span class="t">Röstverlust<small>rechnet roh → geröstet, überall in der App</small></span><span class="step sm"><button type="button" data-kl="-1" aria-label="Röstverlust weniger">−</button><output id="kLo">${KD.loss} %</output><button type="button" data-kl="1" aria-label="Röstverlust mehr">+</button></span></div>
+   <div class="pr"><span class="t">Röstverlust<small>rechnet roh → geröstet, überall in der App</small></span><span class="step sm"><button type="button" data-kl="-1" aria-label="Röstverlust weniger">−</button><output id="kLo">${pcL(KD.loss)} %</output><button type="button" data-kl="1" aria-label="Röstverlust mehr">+</button></span></div>
    <div class="pr"><span class="t">Chargengröße<small>so rechnet der Röstplan</small></span><span class="seg ksz" role="group" aria-label="Chargengröße">${[3,5].map(v=>`<button type="button" data-ksz="${v}" aria-pressed="${KD.size===v}">${v} kg</button>`).join("")}</span></div>
    <label class="f">Notizen<textarea id="kNo" rows="3" maxlength="400" placeholder="Geschmack, Röstprofil, Lieferant …">${v("notiz")}</textarea></label>
    ${x?`<label class="tg"><input type="checkbox" id="kAus"${KD.aus?" checked":""}> Ausgelaufen (nicht mehr in den Auswahllisten)</label>`:""}
@@ -1126,7 +1540,7 @@ $("pgK").addEventListener("click",e=>{AN();
   const r=e.target.closest("[data-kid]");if(r){kOpen=r.dataset.kid;KD=null;renderK();return}
   if(e.target.closest("[data-kx]")){kOpen=null;KD=null;renderK();return}
   const kz=e.target.closest("[data-ksz]");if(kz&&KD){KD.size=+kz.dataset.ksz;document.querySelectorAll("[data-ksz]").forEach(b=>b.setAttribute("aria-pressed",b===kz));return}
-  const kl=e.target.closest("[data-kl]");if(kl&&KD){KD.loss=Math.min(30,Math.max(5,KD.loss+ +kl.dataset.kl));$("kLo").textContent=KD.loss+" %";return}
+  const kl=e.target.closest("[data-kl]");if(kl&&KD){KD.loss=Math.min(30,Math.max(5,Math.round((KD.loss+ +kl.dataset.kl)*10)/10));$("kLo").textContent=pcL(KD.loss)+" %";return}
   if(e.target.closest("[data-kdel]")){const x=A.sort.find(y=>y.id===kOpen);if(!x)return;if(!confirm(x.name+" aus dem Sortiment entfernen? Lager und Verlauf bleiben."))return;A.sort=A.sort.filter(y=>y!==x);aSave();kOpen=null;renderK();return}});
 $("pgK").addEventListener("change",e=>{if(e.target.id==="kAus"&&KD)KD.aus=e.target.checked;
   const a=e.target.closest&&e.target.closest("[data-aka]");if(a&&a.value){AN();const n=a.dataset.aka;
@@ -1139,11 +1553,20 @@ $("pgK").addEventListener("submit",e=>{e.preventDefault();AN();const n=$("kN").v
   A.loss[n]=KD.loss;aSave();kOpen=null;KD=null;renderK();$("kmsg").textContent=n+" gespeichert."});
 /* ---------- Regal: abgepackte Tüten je Sorte, Inventur (laden-v27) ---------- */
 let rOpen=null,RI=null;
+/* laden-v52: wann ist die Sorte leer? Regal + geröstet wartend, geteilt durch Prognose pro Ladentag (6 Ladentage). Frische aus Cropster. */
+function leerAm(n,NR){if(!window.CROP)return null;const P=CROP.fcOf(n);if(!(P>0))return null;const g=A.reg[n]||{},wk=wKey(n),w=wk?A.wait[wk].roh*(1-chLoss(wk)/100):0,kg=(g.p1|0)+(g.p2|0)*.25+w,ld=kg/(P/6),d=CROP.afterShopDays(ld);
+  const cs=CROP.sort(n),age=cs&&cs.last?ddays(cs.last,today()):null,warn=NR&&d<NR;
+  const t=kg<.05?"leer":ld>=24?"4+ Wochen":d.toLocaleDateString("de-DE",{weekday:"short",day:"numeric",month:"short"});
+  return{w:warn,t,txt:(kg<.05?"leer · ":`reicht bis ${t}${w>.05?` (mit ${f1(w)} kg geröstet, noch nicht abgepackt)`:""} · `)+`Prognose ${f1(P)} kg/Wo`+(age!=null?` · zuletzt geröstet vor ${age} ${age===1?"Tag":"Tagen"}`:"")}}
 function renderR(){AN();ckBanner("ckR");const act=new Set(A.sort.filter(x=>!x.aus).map(x=>x.name));const names=[...new Set(Object.keys(A.reg).filter(n=>(A.reg[n].p1|0)+(A.reg[n].p2|0)>0).concat([...act]))].sort((a,b)=>a.localeCompare(b,"de"));
   const t1=names.reduce((a,n)=>a+((A.reg[n]||{}).p1|0),0),t2=names.reduce((a,n)=>a+((A.reg[n]||{}).p2|0),0);
-  $("rSum").innerHTML=`<div class="miss"><div class="big"><b>${f1(t1+t2*.25)}</b><span>kg abgepackt</span></div><div><b>${t2}</b><span>× 250 g</span></div><div><b>${t1}</b><span>× 1 kg</span></div></div>`;
+  $("rSum").innerHTML=`<div class="hrow"><h2>Regal</h2><span class="hint">Tüten · 250 g / 1 kg</span></div><div class="miss"><div class="big"><b>${f1(t1+t2*.25)}</b><span>kg abgepackt</span></div><div><b>${t2}</b><span>× 250 g</span></div><div><b>${t1}</b><span>× 1 kg</span></div></div>
+   <div class="fl rgl">${names.filter(n=>((A.reg[n]||{}).p1|0)+((A.reg[n]||{}).p2|0)>0).map(n=>`<div class="r"><b>${esc(n)}</b><span><em>${(A.reg[n].p2|0)||"–"}</em><em>${(A.reg[n].p1|0)||"–"}</em></span></div>`).join("")}</div>`;
+  const NR=window.CROP?CROP.nextRoast():null,LE={};names.forEach(n=>{LE[n]=leerAm(n,NR)});
+  const crit=names.filter(n=>LE[n]&&LE[n].w);
+  if(NR&&window.CROP)$("rSum").innerHTML+=crit.length?`<p class="rwarn"><b>Vor dem nächsten Rösttag (${esc(dFmt(iso(NR)))}) leer:</b> ${crit.map(n=>esc(n.split(" ")[0])+" "+esc(LE[n].t)).join(" · ")}</p>`:`<p class="rok">✓ Alles reicht bis zum nächsten Rösttag (${esc(dFmt(iso(NR)))})</p>`;
   $("rl").innerHTML=names.length?names.map(n=>{const g=A.reg[n]||{p1:0,p2:0},o=rOpen===n;
-    return `<div class="rr2${o?" o":""}${(g.p1|0)+(g.p2|0)?"":" e"}"><button type="button" class="krow" data-rn="${esc(n)}" aria-expanded="${o}"><span class="t"><b>${esc(n)}</b><small>${(g.p1|0)+(g.p2|0)?f1((g.p1|0)+(g.p2|0)*.25)+" kg abgepackt":"leer"}</small></span><span class="tc${g.p2|0?"":" z"}" aria-label="${g.p2|0} Tüten 250 g"><b>${g.p2|0}</b><span>250 g</span></span><span class="tc${g.p1|0?"":" z"}" aria-label="${g.p1|0} Tüten 1 kg"><b>${g.p1|0}</b><span>1 kg</span></span><span class="ch">${o?"▴":"›"}</span></button>
+    return `<div class="rr2${o?" o":""}${(g.p1|0)+(g.p2|0)?"":" e"}"><button type="button" class="krow" data-rn="${esc(n)}" aria-expanded="${o}"><span class="t"><b>${esc(n)}</b><small>${(g.p1|0)+(g.p2|0)?f1((g.p1|0)+(g.p2|0)*.25)+" kg abgepackt":"leer"}</small>${LE[n]?`<span class="leer${LE[n].w?" w":""}">${esc(LE[n].txt)}</span>`:""}</span><span class="tc${g.p2|0?"":" z"}" aria-label="${g.p2|0} Tüten 250 g"><b>${g.p2|0}</b><span>250 g</span></span><span class="tc${g.p1|0?"":" z"}" aria-label="${g.p1|0} Tüten 1 kg"><b>${g.p1|0}</b><span>1 kg</span></span><span class="ch">${o?"▴":"›"}</span></button>
      ${o?`<div class="ri"><p class="hint" style="margin:0">Gezählt im Regal:</p>
        <div class="pr"><span class="t">250-g-Tüten</span><span class="step"><button type="button" data-ri="p2" data-v="-1" aria-label="250 g weniger">−</button><output>${RI.p2}</output><button type="button" data-ri="p2" data-v="1" aria-label="250 g mehr">+</button></span></div>
        <div class="pr"><span class="t">1-kg-Tüten</span><span class="step"><button type="button" data-ri="p1" data-v="-1" aria-label="1 kg weniger">−</button><output>${RI.p1}</output><button type="button" data-ri="p1" data-v="1" aria-label="1 kg mehr">+</button></span></div>

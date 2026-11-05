@@ -14,6 +14,161 @@
 <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 </head><body>
+<script>
+/* laden-v52: Röstungen aus Cropster (Schlüssel cropster.v1). Röstwoche liest den Excel-Export ein, Röstwoche, Lager und Zahlen rechnen damit.
+   r: [ID, "2026-11-03T12:33", Name in Cropster, roh kg, geröstet kg, Dauer s]  ·  map: {Cropster-Name normalisiert: Sortenname | "-" (keine Sorte)} */
+window.CROP = (() => {
+  const K = "cropster.v1";
+  const nb = s => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
+  let C = null, ST = null;
+  const reset = () => { C = null; ST = null; };
+  function load() {
+    if (C) return C;
+    try { C = JSON.parse(localStorage.getItem(K)); } catch (e) { C = null; }
+    if (!C || !Array.isArray(C.r)) C = { v: 1, r: [], map: {} };
+    C.map = C.map && typeof C.map === "object" ? C.map : {};
+    return C;
+  }
+  function save() { try { localStorage.setItem(K, JSON.stringify(C)); ST = null; return true; } catch (e) { return false; } }
+  addEventListener("storage", e => { if (e.key === K || e.key === null || e.key === "abpack.v1" || e.key === "verkauf.v1") reset(); });
+  addEventListener("pageshow", reset);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) reset(); });
+
+  /* ---------- Excel-Export aus Cropster lesen ---------- */
+  function parse(aoa) {
+    const hi = aoa.findIndex(r => r.some(c => /^ID-Tag$/i.test(String(c).trim())) && r.some(c => /Startgewicht/i.test(String(c))));
+    if (hi < 0) return null;
+    const H = aoa[hi].map(c => String(c).trim().toLowerCase()), ix = n => H.indexOf(n.toLowerCase());
+    const iI = ix("ID-Tag"), iN = ix("Name Röstung"), iD = ix("Röstdatum"), iS = ix("Startgewicht"), iSu = ix("Einheit Startgewicht"), iE = ix("Endgewicht"), iEu = ix("Einheit Endgewicht"), iDu = ix("Dauer"), iP = ix("Profil"), iL = ix("Rohkaffeechargen");
+    const num = v => { const x = parseFloat(String(v == null ? "" : v).replace(/\s/g, "").replace(",", ".")); return isNaN(x) ? null : x; };
+    const unit = (v, u) => v == null ? null : /^g$/i.test(String(u || "").trim()) ? v / 1000 : v;
+    const out = [];
+    aoa.slice(hi + 1).forEach(r => {
+      const id = String(r[iI] || "").trim(); if (!id) return;
+      const m = String(r[iD] || "").match(/(\d{1,2})\.(\d{1,2})\.(\d{4})\D+(\d{1,2}):(\d{2})/); if (!m) return;
+      const d = m[3] + "-" + m[2].padStart(2, "0") + "-" + m[1].padStart(2, "0") + "T" + m[4].padStart(2, "0") + ":" + m[5];
+      const g = unit(num(r[iS]), r[iSu]), e = unit(num(r[iE]), r[iEu]); if (!(g > 0)) return;
+      const du = String(r[iDu] || "").match(/(\d+):(\d{2})/);
+      out.push([id, d, (String(r[iN] || "").trim() || String(iP >= 0 ? r[iP] || "" : "").trim()), Math.round(g * 1000) / 1000, e > 0 ? Math.round(e * 1000) / 1000 : null, du ? +du[1] * 60 + +du[2] : null, iL >= 0 ? String(r[iL] || "").trim().slice(0, 160) : ""]);
+    });
+    return out;
+  }
+  function merge(rows) {
+    load(); const have = new Set(C.r.map(x => x[0])); let neu = 0;
+    rows.forEach(x => { if (!have.has(x[0])) { C.r.push(x); have.add(x[0]); neu++; } });
+    C.r.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); C.at = new Date().toISOString();
+    return { neu, total: C.r.length, last: C.r.length ? C.r[C.r.length - 1][1].slice(0, 10) : null, ok: save() };
+  }
+
+  /* ---------- Name in Cropster -> Sorte im Sortiment ---------- */
+  function sortNames() {
+    let A = {}, V = {}; try { A = JSON.parse(localStorage.getItem("abpack.v1")) || {}; } catch (e) {} try { V = JSON.parse(localStorage.getItem("verkauf.v1")) || {}; } catch (e) {}
+    const out = [], seen = new Set(), add = n => { const k = nb(n); if (k && !seen.has(k)) { seen.add(k); out.push(n); } };
+    const L = Array.isArray(A.sort) ? A.sort : [];
+    L.filter(x => !x.aus).forEach(x => add(x.name)); L.filter(x => x.aus).forEach(x => add(x.name));
+    (Array.isArray(V.sorts) ? V.sorts : []).forEach(x => add(x.name));
+    return out;
+  }
+  function sortOf(cn, L) {
+    const k = nb(cn), m = load().map[k]; if (m != null) return m === "-" ? null : m;
+    const f = k.split(" ")[0]; if (f.length < 3) return null;
+    return (L || sortNames()).find(n => nb(n).split(" ")[0] === f) || null;
+  }
+  function setMap(cn, sorte) { load(); C.map[nb(cn)] = sorte || "-"; return save(); }
+  // Röstung mit plausiblem Gewicht (Ausreißer wie 49 % Verlust bleiben draußen)
+  const lossOf = x => x[4] > 0 ? (1 - x[4] / x[3]) * 100 : null;
+  /* Röstverlust über 40 % = sicher falsch eingetragen (z. B. PR-4738, PR-4994 mit 2,544 kg). Diese Röstungen zählen nirgends mit, bis sie in Cropster korrigiert sind. */
+  const bad = x => { const l = lossOf(x); return l != null && l > 40; };
+  const okRow = x => { const l = lossOf(x); return l != null && l >= 8 && l <= 25; };
+
+  /* ---------- Wochen wie in Zahlen (fortlaufend ab verkauf.v1 year) ---------- */
+  const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+  function isoW(ds) { const t = new Date(Date.UTC(+ds.slice(0, 4), +ds.slice(5, 7) - 1, +ds.slice(8, 10))), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d);
+    const y = t.getUTCFullYear(); return { y, kw: Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7) }; }
+  function wIdx(ds, base) { const k = isoW(ds); let o = 0; for (let i = base; i < k.y; i++) o += wks(i); for (let i = k.y; i < base; i++) o -= wks(i); return k.kw + o; }
+  function verkauf() { try { return JSON.parse(localStorage.getItem("verkauf.v1")); } catch (e) { return null; } }
+
+  /* ---------- Auswertung (einmal je Seitenaufruf) ---------- */
+  function stats() {
+    if (ST) return ST;
+    const D = verkauf(), base = +(D && D.year) || new Date().getFullYear(), L = sortNames(), so = {}, unk = {}, wk = {}, days = {}, wd = [0, 0, 0, 0, 0, 0, 0];
+    const cache = new Map(), sOf = n => { if (!cache.has(n)) cache.set(n, sortOf(n, L)); return cache.get(n); };
+    const skip = [];
+    load().r.forEach(x => {
+      if (bad(x)) { skip.push(x[0]); const d0 = x[1].slice(0, 10); (days[d0] || (days[d0] = [])).push({ id: x[0], t: x[1].slice(11, 16), cn: x[2], n: sOf(x[2]), g: x[3], e: null, dur: x[5], bad: 1 }); return; }
+      const n = sOf(x[2]), date = x[1].slice(0, 10), w = wIdx(date, base), e = okRow(x) ? x[4] : null;
+      if (!n) { const u = unk[x[2]] || (unk[x[2]] = { n: 0, roh: 0 }); u.n++; u.roh += x[3]; }
+      const s = n ? (so[n] || (so[n] = { name: n, n: 0, roh: 0, e: 0, L: [], G: [], last: null, wk: {} })) : null;
+      if (s) { s.n++; s.roh += x[3]; s.e += e != null ? e : x[3] * .85; if (e != null) s.L.push(lossOf(x)); s.G.push(x[3]); s.last = date;
+        const q = s.wk[w] || (s.wk[w] = { n: 0, roh: 0, e: 0 }); q.n++; q.roh += x[3]; q.e += e != null ? e : x[3] * .85; }
+      const t = wk[w] || (wk[w] = { n: 0, roh: 0, e: 0, dur: 0, d: {} }); t.n++; t.roh += x[3]; t.e += e != null ? e : x[3] * .85; t.dur += x[5] || 0; t.d[date] = 1;
+      (days[date] || (days[date] = [])).push({ id: x[0], t: x[1].slice(11, 16), cn: x[2], n, g: x[3], e, dur: x[5] });
+      wd[(new Date(date + "T12:00:00").getDay() + 6) % 7]++;
+    });
+    const med = a => { if (!a.length) return null; const b = a.slice().sort((p, q) => p - q), m = b.length >> 1; return b.length % 2 ? b[m] : (b[m - 1] + b[m]) / 2; };
+    Object.values(so).forEach(s => {
+      const l = s.L.slice(-12); s.loss = l.length >= 3 ? Math.round(med(l) * 10) / 10 : null;
+      const g = s.G.slice(-10).map(v => Math.round(v)), cnt = {}; g.forEach(v => cnt[v] = (cnt[v] || 0) + 1);
+      const top = +Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a])[0]; s.size = top === 3 ? 3 : top === 5 ? 5 : null;
+      s.lossMin = l.length ? Math.round(Math.min(...l) * 10) / 10 : null; s.lossMax = l.length ? Math.round(Math.max(...l) * 10) / 10 : null;
+    });
+    const all = load().r, first = all.length ? all[0][1].slice(0, 10) : null, last = all.length ? all[all.length - 1][1].slice(0, 10) : null;
+    return ST = { so, unk, wk, days, wd, skip, n: all.length, first, last, w0: first ? wIdx(first, base) : null, w1: last ? wIdx(last, base) : null, base, D };
+  }
+  const find = (n, obj) => { const k = nb(n), ks = Object.keys(obj); return ks.find(x => nb(x) === k) || ks.find(x => nb(x).split(" ")[0] === k.split(" ")[0]) || null; };
+  function sort(n) { const S = stats(), k = find(n, S.so); return k ? S.so[k] : null; }
+  function vkSort(D, n) { const vs = D && Array.isArray(D.sorts) ? D.sorts : [], k = nb(n); return vs.find(x => nb(x.name) === k) || vs.find(x => nb(x.name).split(" ")[0] === k.split(" ")[0]) || null; }
+
+  /* Eigenbedarf (Tonnen, Mühlen, Kisten) = geröstet laut Cropster − verkauft laut Lightspeed, Schnitt der letzten 8 Berichtswochen.
+     Regal-Schwankungen gleichen sich über 8 Wochen aus. Nur für Sorten mit Kiste/Silo sinnvoll. */
+  function eig(n, nW) {
+    const S = stats(), s = sort(n), D = S.D; if (!s || !D || !D.weeks || S.w0 == null) return null;
+    const v = vkSort(D, n), rep = Object.keys(D.weeks).map(Number).filter(w => w > S.w0 && w <= S.w1).sort((a, b) => a - b).slice(-(nW || 8));
+    if (rep.length < 4) return null;
+    const rows = rep.map(w => { const r = s.wk[w] ? s.wk[w].e : 0, vk = v && v.kg ? +v.kg[w] || 0 : 0; return { w, r, vk, d: r - vk }; });
+    const kg = Math.max(0, rows.reduce((a, x) => a + x.d, 0) / rows.length), sold = rows.reduce((a, x) => a + x.vk, 0) / rows.length, roast = rows.reduce((a, x) => a + x.r, 0) / rows.length;
+    return { kg: Math.round(kg * 10) / 10, sold, roast, n: rows.length, rows };
+  }
+
+  /* Rohkaffee der letzten Röstung einer Sorte: [{n: Bohne, share}] aus „[PG-0037] Cerrado Lua Roxa Brazil (4 kg), …“ */
+  function lot(n) { const L = sortNames(), k = nb(n), r = load().r.slice().reverse().find(x => x[6] && (sortOf(x[2], L) && nb(sortOf(x[2], L)) === k));
+    if (!r) return null; const parts = []; r[6].split(/,\s*(?=\[)/).forEach(p => { const m = p.match(/^\s*(?:\[([^\]]+)\])?\s*(.*?)\s*\(([\d.,]+)\s*kg\)\s*$/); if (m) parts.push({ id: m[1] || "", n: m[2].trim(), kg: +m[3].replace(",", ".") }); });
+    const t = parts.reduce((a, x) => a + x.kg, 0); return t > 0 ? parts.map(x => ({ id: x.id, n: x.n, share: x.kg / t })) : null; }
+  /* Röstungen eines Tages je Sorte (für „Geröstet ✓“) */
+  function day(date) { const S = stats(), L = S.days[date] || [], m = new Map();
+    L.forEach(x => { const k = x.n || ("? " + x.cn), q = m.get(k) || { n: x.n, cn: x.cn, c: 0, roh: 0, e: 0, sizes: {} }; q.c++; q.roh += x.g; q.e += x.e != null ? x.e : x.g * .85; const z = Math.round(x.g); q.sizes[z] = (q.sizes[z] || 0) + 1; m.set(k, q); });
+    return [...m.values()].map(q => ({ ...q, size: +Object.keys(q.sizes).sort((a, b) => q.sizes[b] - q.sizes[a])[0] === 3 ? 3 : 5 })); }
+  /* Welcher Cropster-Tag gehört zu Rösttag d der Liste? Gleicher Wochentag ab dem Tag der Liste, sonst der k-te noch freie Rösttag. */
+  const WT = ["montag", "dienstag", "mittwoch", "donnerstag", "freitag", "samstag", "sonntag"];
+  function dateFor(from, dayName, k, used) {
+    const S = stats(), ds = Object.keys(S.days).filter(d => d >= from && !(used || []).includes(d)).sort();
+    if (!ds.length) return null; const i = WT.indexOf(nb(dayName));
+    if (i >= 0) return ds.find(d => (new Date(d + "T12:00:00").getDay() + 6) % 7 === i) || null;
+    return ds[k] || null;
+  }
+
+  /* Prognose wie in Röstwoche/Zahlen (gewichteter Schnitt 6 Wochen + gedämpfter Trend) */
+  function fc2(vals) { const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if (pts.length < 4) return null;
+    const l6 = pts.slice(-6), ws = l6.reduce((a, _, i) => a + i + 1, 0), base = l6.reduce((a, p, i) => a + p[1] * (i + 1), 0) / ws, r = pts.slice(-10), n = r.length,
+      mx = r.reduce((a, p) => a + p[0], 0) / n, my = r.reduce((a, p) => a + p[1], 0) / n, sl = r.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / (r.reduce((a, p) => a + (p[0] - mx) ** 2, 0) || 1);
+    const gap = vals.length - 1 - l6[l6.length - 1][0]; return Math.max(0, base + sl * .5 * (gap + .9)); }
+
+  /* Prognose kg/Woche einer Sorte aus verkauf.v1 (wie Röstwoche) */
+  function fcOf(n) { const D = verkauf(), v = D ? vkSort(D, n) : null; if (!v || !D.weeks) return null;
+    const ks = Object.keys(D.weeks).map(Number).sort((a, b) => a - b); if (!ks.length) return null; const vals = [];
+    for (let w = ks[0]; w <= ks[ks.length - 1]; w++) vals.push(D.weeks[w] ? (+(v.kg || {})[w] || 0) : null);
+    const last = vals.map((x, i) => x > 0 ? i : -1).filter(i => i >= 0).pop(); if (last == null || last < vals.length - 4) return null; return fc2(vals); }
+  /* nächster Rösttag: erster eingestellter Rösttag der Röstwoche nach heute (sonst Montag) */
+  function nextRoast(from) { let R = {}; try { R = JSON.parse(localStorage.getItem("roestplan.v4")) || {}; } catch (e) {}
+    const ix = (Array.isArray(R.days) ? R.days : []).map(d => WT.indexOf(nb(d))).filter(i => i >= 0), want = ix.length ? Math.min(...ix) : 0;
+    const d = from ? new Date(from) : new Date(); d.setHours(12, 0, 0, 0); for (let i = 1; i <= 7; i++) { d.setDate(d.getDate() + 1); if ((d.getDay() + 6) % 7 === want) return d; } return d; }
+  /* Ladentage (Mo–Sa) bis zu einem Datum, und Datum nach n Ladentagen */
+  function shopDays(to) { const d = new Date(); d.setHours(12, 0, 0, 0); let n = 0; while (d < to) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d <= to) n++; } return n; }
+  function afterShopDays(n) { const d = new Date(); d.setHours(12, 0, 0, 0); let k = Math.floor(n); while (k > 0) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0) k--; } return d; }
+  const pc = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("de-DE", { maximumFractionDigits: 1 });
+  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset };
+})();
+</script>
 <style>
 /* Layout wie Tagesabschluss: eine Spalte, Karten mit feiner Linie, vier Seiten (Zahlen / Chargen / Liste / Verlauf) über eine schwebende Glas-Leiste unten. Farbschema Crema, Helvetica Neue. */
 :root{
@@ -221,6 +376,36 @@ section[hidden]{display:none!important}
 .rep li span:last-child{font-weight:600;text-align:right}
 .rep .y{color:var(--d3)}.rep .n{color:var(--warn)}
 .rep p{margin:8px 0 0;color:var(--muted);font-size:13px}
+/* laden-v52: Cropster */
+.crop{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 6px;font-size:14px}
+.crop h3{margin:0;font-size:16px}
+.crop h3 small{display:block;font-size:13px;color:var(--muted);font-weight:500}
+.crop .c1{color:var(--muted);font-size:13px;margin:2px 0 8px}
+.crop .c1 b{color:var(--fg)}
+.crop .ok{color:var(--d3);font-weight:600}
+.crop .cl{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:10px 0 2px}
+.crop .cr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.crop .cr b{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crop .cr small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+.crop .cr .v{text-align:right;white-space:nowrap;font-size:14px}
+.crop .cr .v s{color:var(--muted);text-decoration:none}
+.crop .cr .v s::after{content:" → "}
+.crop select{font:inherit;font-size:14px;color:var(--fg);height:38px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 4px;max-width:150px}
+.crop .cbtn{width:100%;margin:8px 0 6px;min-height:44px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-size:15px}
+.crop .msg{margin:6px 0 4px;font-size:13px;color:var(--d3);font-weight:600}
+.crop details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px;padding:6px 0;list-style:none}
+.crop details summary::-webkit-details-marker{display:none}
+.cs .pi .eg{color:var(--fg);font-weight:600}
+.rcrop{font-size:13px;color:var(--muted);margin:2px 0 6px}
+.rcrop b{color:var(--fg)}
+.cs .pi .rb{display:block;margin-top:2px}
+.cs .pi .rb.lo{color:var(--warn);font-weight:600}
+.rk4 .lr{min-height:0;padding:9px 0;align-items:flex-start}
+.rk4 .lr b{font-weight:600;min-width:0}
+.rk4 .lr b small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;white-space:normal}
+.rk4 .lr span{text-align:right;color:var(--fg);font-weight:600}
+.rk4 .lr span small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.rk4 .tot{display:flex;justify-content:space-between;padding:10px 0 2px;font-weight:700}
 /* laden-v41: Zusammenspiel mit Lager und Zahlen */
 .note.sync .go{display:flex;gap:8px;margin-top:10px}
 .note.sync .go a{flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;font-size:15px}
@@ -244,6 +429,65 @@ section[hidden]{display:none!important}
 .ask.rost .loss small{color:var(--muted);font-size:13px;font-weight:400}
 .ask.rost .dt{display:flex;justify-content:space-between;align-items:center;min-height:52px}
 .ask.rost input[type=date]{border:1px solid var(--line);border-radius:10px;background:var(--bg);height:40px;padding:0 10px}
+/* laden-v52: Mehr · Röstkalender · Wochenzeugnis */
+.mtiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mtile{display:flex;flex-direction:column;text-align:left;padding:0;border-radius:20px;background:var(--card);border:1px solid var(--line);overflow:hidden;color:var(--fg);font:inherit}
+.mtile.w{grid-column:1/-1}
+.mtile .art{display:block;height:104px;background:linear-gradient(180deg,var(--accent-soft),var(--card));position:relative}
+.mtile.w .art{height:120px}
+.mtile .art svg{position:absolute;inset:0;width:100%;height:100%}
+.mtile .art .big{position:absolute;right:14px;bottom:8px;font-size:30px;font-weight:700;letter-spacing:-.02em}
+.mtile .cap2{display:flex;flex-direction:column;gap:2px;padding:10px 14px 13px}
+.mtile .cap2 b{font-size:16px}
+.mtile .cap2 small{font-size:12.5px;color:var(--muted);line-height:1.3}
+.mback{display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:0 4px;color:var(--accent);font-size:16px;background:none;border:0;margin:0 0 6px}
+.knav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
+.knav b{font-size:18px}
+.knav button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:20px;color:var(--fg)}
+.knav button:disabled{opacity:.35}
+.kgrid{display:grid;grid-template-columns:34px repeat(7,minmax(0,1fr));gap:4px;font-variant-numeric:tabular-nums}
+.kgrid .kh{font-size:12px;color:var(--muted);text-align:center;font-weight:600}
+.kgrid .kw{font-size:11px;color:var(--muted);display:flex;align-items:center}
+.kgrid .kd{aspect-ratio:1/1.05;border-radius:10px;border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;font-size:13px;color:var(--muted);line-height:1.1;min-width:0}
+.kgrid .kd.out{opacity:.35}
+.kgrid .kd.r{color:var(--fg);border-color:transparent;background:color-mix(in srgb,var(--accent) calc(var(--i)*100%),var(--accent-soft))}
+.kgrid .kd.r.hi{color:var(--accent-ink)}
+.kgrid .kd b{font-size:15px}
+.kgrid .kd.sel{outline:2.5px solid var(--fg);outline-offset:1px}
+.kgrid .kd.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.kday{margin-top:14px;padding:14px 16px}
+.kday h3{margin:0 0 2px;font-size:18px}
+.kfig{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0}
+.kfig div{background:var(--soft);border-radius:10px;padding:8px 4px;text-align:center}
+.kfig b{display:block;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kfig small{font-size:11.5px;color:var(--muted)}
+.ktl{width:100%;height:auto;display:block;margin:6px 0 2px}
+.ktl text{font-size:10px;fill:var(--muted)}
+.ktl rect.b{cursor:pointer}
+.kinfo{min-height:22px;font-size:14px;margin:4px 0 8px}
+.klist{display:flex;flex-direction:column}
+.klist .kr{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.klist .kr i{width:10px;height:10px;border-radius:3px}
+.klist .kr small{display:block;color:var(--muted);font-size:12.5px}
+.klist .kr em{font-style:normal;color:var(--muted);font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kleg{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.kleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.zsum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:4px 0 12px}
+.zsum div{background:var(--soft);border-radius:12px;padding:10px 6px;text-align:center}
+.zsum b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.zsum small{font-size:12px;color:var(--muted)}
+.zr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+.zr:first-child{border-top:0}
+.zr small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
+.zp{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}
+.zp.ok{background:color-mix(in srgb,var(--d3) 18%,var(--card));color:var(--d3)}
+.zp.hi{background:var(--warn-soft);color:var(--warn)}
+.zp.lo{background:#f6dcd6;color:#a8392a}
+.zp.nu{background:var(--soft);color:var(--muted)}
+.zh{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.zcard{padding:4px 16px 8px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .zp.lo{background:#3d2420;color:#ef8c74}}
+:root[data-theme=dark] .zp.lo{background:#3d2420;color:#ef8c74}
 </style>
 
 <main>
@@ -272,6 +516,8 @@ section[hidden]{display:none!important}
     <div class="card"><div class="loss"><span>Röstverlust<br><small style="color:var(--muted);font-size:13px">für Sorten ohne Angabe im Sortiment</small></span><span class="step"><button data-loss="-1" aria-label="Röstverlust verringern">−</button><output id="lossOut"></output><button data-loss="1" aria-label="Röstverlust erhöhen">+</button></span></div>
       <div class="loss"><label for="wkIn">Woche</label><input class="wk" id="wkIn" autocomplete="off" enterkeyhint="done" placeholder="KW 42"></div>
       <div class="loss days"><span>Rösttage</span><span class="dsel" id="dSel"></span></div></div>
+    <div class="lbl">Cropster</div>
+    <div class="crop" id="cropBox" hidden></div>
   </section>
 
   <section id="t-chargen" hidden>
@@ -300,7 +546,14 @@ section[hidden]{display:none!important}
     </div>
   </section>
 
+  <section id="t-mehr" hidden>
+    <div id="mHome"><p class="cap">Was man nicht jeden Tag braucht.</p><div class="mtiles" id="mT"></div></div>
+    <div id="mKal" hidden><button class="mback" data-mback>‹ Mehr</button><div id="kBox"></div></div>
+    <div id="mZeug" hidden><button class="mback" data-mback>‹ Mehr</button><div id="zBox"></div></div>
+  </section>
+
   <section id="t-verlauf" hidden>
+    <button class="mback" data-mback>‹ Mehr</button>
     <p class="cap">Gesicherte Listen, die neueste oben. Beim Leeren und vor dem Laden eines neuen Berichts wird die alte Liste automatisch gesichert.</p>
     <div class="card" id="vList"></div>
   </section>
@@ -311,7 +564,7 @@ section[hidden]{display:none!important}
   <button role="tab" data-tab="zahlen" aria-selected="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>Zahlen<small id="tb1"></small></button>
   <button role="tab" data-tab="chargen" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8"/><path d="M12 4c-3 3-3 13 0 16"/></svg>Chargen<small id="tb2"></small></button>
   <button role="tab" data-tab="liste" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6h11M9 12h11M9 18h11"/><path d="M4 5.5l1 1 1.8-2M4 11.5l1 1 1.8-2M4 17.5l1 1 1.8-2"/></svg>Liste<small id="tb3"></small></button>
-  <button role="tab" data-tab="verlauf" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 8v4.5l3 2"/></svg>Verlauf<small id="tb4"></small></button>
+  <button role="tab" data-tab="mehr" aria-selected="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="4" width="6.5" height="6.5" rx="1.6"/><rect x="4" y="13.5" width="6.5" height="6.5" rx="1.6"/><rect x="13.5" y="13.5" width="6.5" height="6.5" rx="1.6"/></svg>Mehr<small id="tb4"></small></button>
 </div></nav>
 
 <script src="lib/xlsx.full.min.js"></script>
@@ -518,11 +771,20 @@ function sugFor(r) {
   const hk = pickK(I.known, n), known = hk != null, H = known ? (I.reg.get(hk) || 0) + (I.wait.get(hk) || 0) : null;
   if (!f) return { known, H };
   const s = S.sorts.find(x => x.id === r.id), e = effSort(s), buf = f.L ? f.L.buf : 10, sea = F.sea ? F.sea.pct : 0, P = f.P * (1 + sea / 100);
-  // Sorten mit Eigenbedarf (Tonnen, Mühle 2): der Verbrauch steht nicht im Verkaufsbericht, darum kein Vorschlag
-  if (eigSort(n)) return { known, H, P, buf, sea, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: null, eig: true };
-  const need = P * (1 + buf / 100) - (H || 0), nS = need <= 0.05 ? 0 : Math.ceil(need / (1 - e.loss / 100) / e.s.size - 1e-9);
-  return { known, H, P, buf, sea, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: nS };
+  // Sorten mit Eigenbedarf (Tonnen, Mühle 2): der Verbrauch steht nicht im Verkaufsbericht.
+  // laden-v52: mit Cropster ist er bekannt (geröstet − verkauft, Ø 8 Berichtswochen) und wird mitgerechnet; ohne Cropster wie bisher kein Vorschlag
+  const E = eigSort(n) && window.CROP ? CROP.eig(s.name) : null;
+  if (eigSort(n) && !(E && E.kg > 0)) return { known, H, P, buf, sea, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: null, eig: true };
+  const need = P * (1 + buf / 100) + (E ? E.kg : 0) - (H || 0), nS = need <= 0.05 ? 0 : Math.ceil(need / (1 - e.loss / 100) / e.s.size - 1e-9);
+  // laden-v52: wie lange reicht es nach dieser Röstung? (Haus + geplante Chargen geröstet) / Verbrauch pro Woche
+  const per = P + (E ? E.kg : 0), cov = n => per > 0 ? ((H || 0) + n * e.s.size * (1 - e.loss / 100)) / per : null;
+  return { known, H, P, buf, sea, learned: !!f.L, days: known && P > 0 ? H / (P / OPEN_DAYS) : null, n: nS, E, per, cov };
 }
+// Datum + KW nach w Wochen ab heute
+function inWeeks(w) { const d = new Date(); d.setDate(d.getDate() + Math.round(w * 7)); return { d, kw: isoWeek(d) }; }
+function covTxt(x, n) { const w = x.cov ? x.cov(n) : null; if (w == null) return "";
+  const t = inWeeks(w), nr = window.CROP ? CROP.nextRoast() : null, lo = nr ? t.d < nr : w < 1;
+  return `<span class="rb${lo ? " lo" : ""}">${n} ${n === 1 ? "Charge" : "Chargen"} ${x.known ? "+ Bestand " : ""}reicht ${w >= 6 ? "über 6 Wochen" : `bis ca. <b>KW ${t.kw}</b> (${t.d.toLocaleDateString("de-DE", { weekday: "short", day: "numeric", month: "short" })})`}${lo ? " · nicht bis zur nächsten Röstwoche" : w >= 2.5 && n > 0 ? " · nächste Woche kann sie ausfallen" : ""}</span>`; }
 function eigSort(n) { const L = salesInfo().sil;
   return L.some(x => { const b = normB(x.sorte || ""), a = normB(x.name || ""); return (b && n.includes(b)) || (a && a !== "muhle 2" && (n.includes(a) || n.split(" ")[0] === a.split(" ")[0])); }); }
 // Röstung dieser Liste läuft schon (ein Tag bestätigt): dann keine Vorschläge mehr, der Bestand enthält ja schon Geröstetes dieser Liste
@@ -533,8 +795,8 @@ function piHtml(r, started) {
   const p = [];
   if (x.known) p.push(`im Haus <b>${f1(x.H)} kg</b>` + (x.days != null ? ` · <span class="${x.days < 3 ? "lo" : ""}">${x.days < .5 ? "leer" : "reicht " + (x.days >= 12 ? "12+ Tage" : Math.round(x.days) + (Math.round(x.days) === 1 ? " Tag" : " Tage"))}</span>` : ""));
   else if (x.P != null) p.push("im Lager noch nicht gezählt");
-  if (x.P != null) p.push(`Prognose <b>${f1(x.P)} kg</b>${x.sea ? ` (inkl. ${x.sea > 0 ? "+" : "−"}${String(Math.abs(x.sea)).replace(".", ",")} % ${salesInfo().sea.mon === 11 ? "Dezember" : "November"})` : ""} + ${x.buf} % Puffer${x.learned ? "" : " (Standard)"}` + (x.eig ? " · dazu Eigenbedarf, darum kein Vorschlag" : ""));
-  let h = `<div class="pi">${p.join(" · ")}</div>`;
+  if (x.P != null) p.push(`Prognose <b>${f1(x.P)} kg</b>${x.sea ? ` (inkl. ${x.sea > 0 ? "+" : "−"}${String(Math.abs(x.sea)).replace(".", ",")} % ${salesInfo().sea.mon === 11 ? "Dezember" : "November"})` : ""} + ${x.buf} % Puffer${x.learned ? "" : " (Standard)"}` + (x.E ? ` + <span class="eg">Eigenbedarf ${f1(x.E.kg)} kg</span> (Cropster, Ø ${x.E.n} Wochen)` : x.eig ? " · dazu Eigenbedarf, darum kein Vorschlag" : ""));
+  let h = `<div class="pi">${p.join(" · ")}${x.P != null ? covTxt(x, r.batches.length) : ""}</div>`;
   if (x.n != null && x.known && !started && x.n !== r.batches.length) {
     const d = x.n - r.batches.length; SG.set(r.id, x.n);
     h += `<button class="sg" data-sg="${r.id}" data-n="${x.n}"><span>Vorschlag: ${x.n} ${x.n === 1 ? "Charge" : "Chargen"} (${d > 0 ? "+" : "−"}${Math.abs(d)})</span><u>Übernehmen</u></button>`;
@@ -593,7 +855,7 @@ function renderZahlen() {
   $("wkIn").value = S.week || "";
   $("clearBtn0").hidden = !S.sorts.some(s => s.totalG > 0); $("clearAsk0").hidden = true;
   $("dSel").innerHTML = [0, 1, 2].map(d => `<select data-day="${d}" aria-label="Rösttag ${d + 1}"><option value="">Tag ${d + 1}</option>${WTAGE.map(w => `<option${S.days && S.days[d] === w ? " selected" : ""}>${w}</option>`).join("")}</select>`).join("");
-  updTotals();
+  updTotals(); cropBox();
 }
 /* laden-v42: ein Ort zum Hochladen. Der Bericht der Röstwoche wird nachgereicht, falls er in Zahlen fehlt (z. B. als Foto/Excel geladen oder vor v40):
    nur kg je Sorte, als „aus Röstwoche“ markiert; vorhandene Wochen werden nie überschrieben, ein späteres PDF ersetzt die Woche mit Tütenzahlen. */
@@ -614,6 +876,56 @@ function healSales() {
     localStorage.setItem("verkauf.v1", JSON.stringify(D)); FI = null; return kw;
   } catch (_) { return null; }
 }
+/* laden-v52: Karte „Cropster“ in Zahlen. Zeigt Stand, unbekannte Namen (einmal zuordnen) und echte Werte fürs Sortiment. */
+let cropMsg = "", cropAll = false;
+function cropBox() {
+  const el = $("cropBox"); if (!window.CROP) { el.hidden = true; return; }
+  const C = CROP.stats();
+  if (!C.n) { el.hidden = false; el.innerHTML = `<h3>Cropster</h3><p class="c1">Lade den Cropster-Export (Excel, „Röstungen“) oben über <b>Datei</b>. Dann rechnet die App mit deinem echten Röstverlust, deinem Eigenbedarf und bestätigt Rösttage aus Cropster.</p>${cropMsg ? `<p class="msg">${esc(cropMsg)}</p>` : ""}`; return; }
+  let A = {}; try { A = JSON.parse(localStorage.getItem("abpack.v1")) || {}; } catch (_) {}
+  const I = sortimentInfo(), L = CROP.sortNames();
+  const unk = Object.entries(C.unk).sort((a, b) => b[1].n - a[1].n);
+  // echte Werte gegen Sortiment: nur Sorten, die noch verkauft werden oder im Sortiment aktiv sind
+  const act = new Set((Array.isArray(A.sort) ? A.sort : []).filter(x => !x.aus).map(x => normB(x.name)));
+  const rows = Object.values(C.so).filter(s => s.loss != null && s.n >= 3 && (act.size ? act.has(normB(s.name)) : true)).map(s => {
+    const n = normN(s.name), cur = I.loss.has(n) ? I.loss.get(n) : null, p = I.sort.get(n), cs = p && (p.size === 3 || p.size === 5) ? p.size : null;
+    return { s, cur, cs, dl: cur == null || Math.abs(cur - s.loss) >= .3, ds: s.size && cs !== s.size };
+  }).sort((a, b) => b.s.roh - a.s.roh);
+  const diff = rows.filter(r => r.dl || r.ds);
+  const opt = cur => `<option value="">bitte wählen</option><option value="-"${cur === "-" ? " selected" : ""}>keine Sorte (Probe, Muster)</option>` + L.map(n => `<option${cur === n ? " selected" : ""}>${esc(n)}</option>`).join("");
+  const showR = cropAll ? rows : diff.slice(0, 5);
+  el.hidden = false;
+  el.innerHTML = `<h3><span>Aus Cropster</span> <small>${intFmt(C.n)} Röstungen · ${esc(dShort(C.first))} – ${esc(dShort(C.last))}</small></h3>
+    <p class="c1">Neue Röstungen: Cropster-Export (Excel) oben über <b>Datei</b> laden. Doppelte erkennt die App selbst.</p>
+    ${cropMsg ? `<p class="msg">${esc(cropMsg)}</p>` : ""}
+    ${C.skip && C.skip.length ? `<p class="c1">Nicht mitgerechnet: <b>${C.skip.map(esc).join(", ")}</b>. Röstverlust über 40 %, wohl ein Tippfehler beim Endgewicht in Cropster. Im Lager stehen sie trotzdem als Charge.</p>` : ""}
+    ${unk.length ? `<div class="cl">Diese Namen kenne ich nicht</div>${unk.map(([cn, u]) => `<div class="cr"><span style="min-width:0"><b>${esc(cn)}</b><small>${u.n} ${u.n === 1 ? "Röstung" : "Röstungen"} · ${f1(u.roh)} kg roh</small></span><select data-cmap="${esc(cn)}" aria-label="Sorte für ${esc(cn)}">${opt("")}</select></div>`).join("")}` : ""}
+    <div class="cl">Röstverlust und Chargengröße aus Cropster</div>
+    ${showR.length ? showR.map(r => `<div class="cr"><span style="min-width:0"><b>${esc(r.s.name)}</b><small>${r.s.n} Röstungen · Spanne ${CROP.pc(r.s.lossMin)}–${CROP.pc(r.s.lossMax)} %</small></span>
+      <span class="v">${r.dl ? `<s>${r.cur == null ? S.loss : CROP.pc(r.cur)} %</s>` : ""}<b>${CROP.pc(r.s.loss)} %</b>${r.s.size ? ` · ${r.ds && r.cs ? `<s>${r.cs} kg</s>` : ""}${r.s.size} kg` : ""}</span></div>`).join("")
+      : `<p class="c1"><span class="ok">✓ Sortiment stimmt mit Cropster überein.</span></p>`}
+    ${diff.length ? `<button class="cbtn" id="cropTake">${diff.length === 1 ? "1 Wert" : diff.length + " Werte"} ins Sortiment übernehmen</button><p class="c1" style="margin-top:0">Median der letzten 12 Röstungen je Sorte. Danach kannst du jeden Wert im Lager unter Sortiment wie gewohnt ändern.</p>` : ""}
+    ${rows.length > showR.length || cropAll ? `<button class="link" id="cropAll" style="min-height:36px;font-size:14px">${cropAll ? "Weniger zeigen" : "Alle " + rows.length + " Sorten zeigen"}</button>` : ""}`;
+}
+function cropTake() {
+  let A = null; try { A = JSON.parse(localStorage.getItem("abpack.v1")); } catch (_) {}
+  if (!A || typeof A !== "object") A = { v: 1 };
+  A.loss = A.loss && typeof A.loss === "object" ? A.loss : {}; A.sort = Array.isArray(A.sort) ? A.sort : [];
+  const I = sortimentInfo(); let n = 0;
+  Object.values(CROP.stats().so).forEach(s => { if (s.loss == null || s.n < 3) return; const k = normN(s.name);
+    const p = A.sort.find(x => normN(x.name) === k), key = p ? p.name : Object.keys(A.loss).find(x => normN(x) === k);
+    if (!p && !key) return; const nm = key || p.name;
+    if (A.loss[nm] == null || Math.abs(A.loss[nm] - s.loss) >= .3) { A.loss[nm] = s.loss; n++; }
+    if (p && s.size && p.size !== s.size) { p.size = s.size; n++; } });
+  try { localStorage.setItem("abpack.v1", JSON.stringify(A)); } catch (_) { return "Speichern hat nicht geklappt."; }
+  SI = null; CROP.reset(); return n ? `${n} ${n === 1 ? "Wert" : "Werte"} aus Cropster ins Sortiment übernommen.` : "Nichts zu ändern.";
+}
+$("cropBox").addEventListener("click", e => {
+  if (e.target.closest("#cropTake")) { cropMsg = cropTake(); renderZahlen(); updBadges(); return; }
+  if (e.target.closest("#cropAll")) { cropAll = !cropAll; cropBox(); }
+});
+$("cropBox").addEventListener("change", e => { const sl = e.target.closest("[data-cmap]"); if (!sl || !sl.value) return;
+  CROP.setMap(sl.dataset.cmap, sl.value); SI = null; FI = null; cropMsg = `„${sl.dataset.cmap}“ zählt jetzt als ${sl.value === "-" ? "keine Sorte" : sl.value}.`; cropBox(); });
 // Übersicht: in welcher Kachel ist der Bericht dieser Woche hinterlegt
 function repBox() {
   const el = $("repBox"), kw = wkNum(S.week);
@@ -758,6 +1070,19 @@ function rohSum(rows) {
   const list = rows.filter(r => r.batches.length).map(r => ({ name: r.name, kgs: r.batches.map(b => b.kg), kg: Core.sumKg(r.batches.map(b => b.kg)) })).sort((a, b) => b.kg - a.kg);
   return { list, kg: list.reduce((a, x) => a + x.kg, 0) };
 }
+/* laden-v52: Rohkaffee für die nächsten 4 Wochen je Bohne: (Prognose + Eigenbedarf) / (1 − echter Röstverlust), Bohnen aus dem letzten Cropster-Lot der Sorte */
+function roh4() {
+  const rows = computeBatches(), beans = new Map(); let tot = 0, nF = 0;
+  rows.forEach(r => { const x = sugFor(r); if (x.P == null) return; nF++;
+    const s = S.sorts.find(y => y.id === r.id), e = effSort(s), wk = (x.P * (1 + (x.buf || 0) / 100) + (x.E ? x.E.kg : 0)) / (1 - e.loss / 100), kg4 = wk * 4; tot += kg4;
+    const L = window.CROP ? CROP.lot(r.name) : null;
+    (L || [{ n: r.name, share: 1, id: "" }]).forEach(b => { const k = b.n.toLowerCase(), q = beans.get(k) || { n: b.n, id: b.id, kg: 0, from: new Set(), lot: !!L }; q.kg += kg4 * b.share; q.from.add(r.name.split(" ")[0]); beans.set(k, q); }); });
+  if (!nF) return "";
+  const L = [...beans.values()].sort((a, b) => b.kg - a.kg);
+  return `<div class="dayh"><b>Rohkaffee nächste 4 Wochen</b><span>≈ ${intFmt(Math.round(tot))} kg</span></div>
+    <p class="cap" style="margin-top:-4px">Prognose + Puffer + Eigenbedarf, mit echtem Röstverlust je Sorte. Bohnen aus dem letzten Cropster-Lot. Zum Abgleich mit deinem Rohkaffee-Lager.</p>
+    <div class="card rk4">${L.map(b => `<div class="lr"><b>${esc(b.n)}<small>${b.lot ? [...b.from].join(", ") + (b.id ? " · " + esc(b.id) : "") : "ohne Cropster-Lot"}</small></b><span>${intFmt(Math.round(b.kg))} kg<small>${f1(b.kg / 4)} kg/Woche</small></span></div>`).join("")}</div>`;
+}
 let lEdit = false;
 function renderListe() {
   const rows = computeBatches(); cleanAssign(rows);
@@ -765,7 +1090,7 @@ function renderListe() {
   const h = lEdit && (days.some(l => l.length) || open.length) ? [0, 1, 2].map(d => edGroup(days[d], d)).join("") + (open.length ? edGroup(open, 3) : "") + `<p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag. Chargen änderst du unter „Chargen“.</p>` : listHtml(days, open, null, true), rk = rohSum(rows);
   $("lList").classList.toggle("ed", !!lEdit && !!h);
   $("lEditBtn").hidden = !h; $("lEditBtn").textContent = lEdit ? "Fertig" : "Bearbeiten";
-  $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${rk.list.reduce((a, x) => a + x.kgs.length, 0)} Chargen · ${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)} · ${intFmt(x.kg)} kg</span></div>`).join("")}</div>` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
+  $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${rk.list.reduce((a, x) => a + x.kgs.length, 0)} Chargen · ${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)} · ${intFmt(x.kg)} kg</span></div>`).join("")}</div>${roh4()}` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
   $("clearAsk").hidden = true;
   $("autoAll2").hidden = !open.length;
   savedNote(); autoKeepSoon();
@@ -801,12 +1126,21 @@ function rostHtml(d) {
   if (RO && RO.d === d) {
     const t = RO.rows.reduce((a, r) => a + r.c, 0), roh = RO.rows.reduce((a, r) => a + r.c * r.size, 0);
     return `<div class="ask rost" style="${dc(d)}"><p style="margin:0 0 4px"><b>${esc(dn(d))} geröstet?</b> Anders geröstet? Mit − und + ändern.</p>
-      ${RO.rows.map((r, i) => `<div class="loss"><span>${esc(r.n)}<br><small>${r.c} × ${r.size} kg roh</small></span><span class="step"><button data-rc="${i}" data-v="-1" aria-label="Eine Charge weniger ${esc(r.n)}">−</button><output>${r.c}</output><button data-rc="${i}" data-v="1" aria-label="Eine Charge mehr ${esc(r.n)}">+</button></span></div>`).join("")}
+      ${RO.crop ? `<p class="rcrop">Aus Cropster vom <b>${esc(dShort(RO.crop))}</b>. Geplant war, was grau dahinter steht.</p>` : ""}
+      ${RO.rows.map((r, i) => `<div class="loss"><span>${esc(r.n)}<br><small>${r.c} × ${r.size} kg roh${RO.crop && r.plan !== r.c ? ` · geplant ${r.plan}` : ""}</small></span><span class="step"><button data-rc="${i}" data-v="-1" aria-label="Eine Charge weniger ${esc(r.n)}">−</button><output>${r.c}</output><button data-rc="${i}" data-v="1" aria-label="Eine Charge mehr ${esc(r.n)}">+</button></span></div>`).join("")}
       <div class="dt"><label for="roDate">Geröstet am</label><input type="date" id="roDate" value="${RO.date}" max="${todayIso()}"></div>
       <p class="cap" style="margin:4px 0 0">${t} ${t === 1 ? "Charge" : "Chargen"} · ${intFmt(roh)} kg roh kommen ins Lager zum Abpacken.</p>
       <div class="exp" style="margin-top:12px"><button data-rno="1">Abbrechen</button><button class="main" data-rok="1">So geröstet</button></div></div>`;
   }
-  return `<div class="rrow" style="${dc(d)}"><button class="rbtn" data-roast="${d}">Geröstet ✓</button></div>`;
+  const cd = cropDate(d), cq = cd ? CROP.day(cd) : null;
+  return `<div class="rrow" style="${dc(d)}"><button class="rbtn" data-roast="${d}">Geröstet ✓</button></div>` + (cq ? `<p class="rcrop">Cropster: <b>${cq.reduce((a, q) => a + q.c, 0)} Röstungen am ${esc(dShort(cd))}</b> · „Geröstet ✓“ übernimmt sie</p>` : "");
+}
+/* laden-v52: welcher Cropster-Tag gehört zu Rösttag d? Ab dem Tag, an dem die Liste gesichert wurde; schon bestätigte Tage zählen nicht mehr. */
+function cropDate(d) {
+  if (!window.CROP || !CROP.stats().n) return null; const id = curVId(), v = id && V.find(x => x.id === id); if (!v) return null;
+  const conf = sortimentInfo().conf, used = Object.keys(conf).filter(k => k.startsWith(id + "#")).map(k => conf[k]);
+  const from = String(v.at || "").slice(0, 10), open = [0, 1, 2].filter(i => !conf[id + "#" + i]);
+  return CROP.dateFor(from, dn(d), Math.max(0, open.indexOf(d)), used);
 }
 function bookRoast() {
   autoKeep(); const id = curVId(); if (!id || !RO) return "Erst alle Chargen auf Tage verteilen.";
@@ -814,6 +1148,9 @@ function bookRoast() {
   if (!A || typeof A !== "object") A = { v: 1 };
   A.wait = A.wait && typeof A.wait === "object" ? A.wait : {}; A.conf = A.conf && typeof A.conf === "object" ? A.conf : {}; A.log = Array.isArray(A.log) ? A.log : [];
   const key = id + "#" + RO.d; if (A.conf[key]) { SI = null; return "Dieser Rösttag ist schon bestätigt."; }
+  // laden-v52: Röstung schon aus Cropster im Lager (Chargen)? Dann nur bestätigen, nichts doppelt buchen
+  let CG = null; try { CG = JSON.parse(localStorage.getItem("chargen.v1")); } catch (_) {}
+  if (RO.crop && CG && CG.days && CG.days[RO.crop]) { A.conf[key] = RO.crop; try { localStorage.setItem("abpack.v1", JSON.stringify(A)); } catch (_) {} SI = null; return `${dn(RO.d)}: Die Chargen stehen schon aus Cropster im Lager, Rösttag ist bestätigt.`; }
   const d = RO.date || todayIso(), rows = RO.rows.filter(r => r.c > 0), add = {};
   rows.forEach(r => { const w = A.wait[r.n] || (A.wait[r.n] = { roh: 0 }); w.roh = Math.round(((+w.roh || 0) + r.c * r.size) * 1000) / 1000; w.d = d; add[r.n] = (add[r.n] || 0) + r.c * r.size; });
   A.conf[key] = d;
@@ -824,7 +1161,12 @@ function bookRoast() {
 }
 $("lList").addEventListener("click", e => {
   if (lEdit) return; const b = e.target.closest("button"); if (!b) return;
-  if (b.dataset.roast != null) { const d = +b.dataset.roast, { days } = dayLists(computeBatches()); RO = { d, rows: days[d].map(x => ({ n: x.name, size: x.kgs[0] || 5, c: x.kgs.length })), date: todayIso() }; renderListe(); return; }
+  if (b.dataset.roast != null) { const d = +b.dataset.roast, { days } = dayLists(computeBatches()); RO = { d, rows: days[d].map(x => ({ n: x.name, size: x.kgs[0] || 5, c: x.kgs.length })), date: todayIso() };
+    // laden-v52: gibt es diesen Rösttag in Cropster, stehen dort die echten Chargen (auch Sorten, die spontan dazukamen)
+    const cd = cropDate(d); if (cd) { const cq = CROP.day(cd), plan = RO.rows; RO.date = cd; RO.crop = cd;
+      RO.rows = plan.map(r => { const q = cq.find(y => y.n && normN(y.n) === normN(r.n)); return { n: r.n, size: q ? q.size : r.size, c: q ? q.c : 0, plan: r.c }; })
+        .concat(cq.filter(q => q.n && !plan.some(r => normN(r.n) === normN(q.n))).map(q => ({ n: q.n, size: q.size, c: q.c, plan: 0 }))); }
+    renderListe(); return; }
   if (!RO) return;
   if (b.dataset.rc != null) { const r = RO.rows[+b.dataset.rc]; r.c = Math.max(0, Math.min(30, r.c + +b.dataset.v)); renderListe(); return; }
   if (b.dataset.rno) { RO = null; renderListe(); return; }
@@ -1372,6 +1714,11 @@ async function readFile(file, lbl) {
     const buf = await file.arrayBuffer();
     const wb = XLSX.read(buf, { type: "array" });
     const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: "" });
+    // laden-v52: Cropster-Export (Excel) erkennen, Röstungen merken. Der Wochenbericht bleibt, wie er ist.
+    const cr = window.CROP && CROP.parse(aoa);
+    if (cr) { if (!cr.length) { cropMsg = "In der Cropster-Datei waren keine Röstungen."; } else { const r = CROP.merge(cr); SI = null; FI = null;
+      cropMsg = r.ok ? `Cropster gelesen: ${intFmt(cr.length)} Röstungen, davon ${intFmt(r.neu)} neu. Stand bis ${dShort(r.last)}.` : "Speichern hat nicht geklappt, der Speicher ist voll."; }
+      renderZahlen(); S.warn = ""; $("srcInfo").textContent = cropMsg + " Details unten unter „Cropster“."; return; }
     const loc = localParse(aoa);
     if (loc) { applyImport(loc, "file"); return; }
     const sample = await getCap("sample");
@@ -1391,20 +1738,182 @@ function updBadges() {
   $("tb1").textContent = kgFmt(S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), 0) + " kg";
   $("tb2").textContent = n + " Chargen";
   $("tb3").textContent = open.n ? open.n + " offen" : "fertig";
-  $("tb4").textContent = V.length === 1 ? "1 Liste" : V.length + " Listen";
+  $("tb4").textContent = "Kalender";
 }
+/* ===== laden-v52: Mehr (Röstkalender, Wochenzeugnis, Verlauf) ===== */
+const MON = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli", "August", "September", "Oktober", "November", "Dezember"];
+const WTL = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
+const isoD = d => d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+const dOf = s => new Date(s + "T12:00:00");
+const wdI = s => (dOf(s).getDay() + 6) % 7;
+const hm = m => { m = Math.round(m); return String(Math.floor(m / 60)).padStart(2, "0") + ":" + String(m % 60).padStart(2, "0"); };
+const hDur = m => { m = Math.round(m); return m >= 60 ? Math.floor(m / 60) + " h " + String(m % 60).padStart(2, "0") : m + " Min"; };
+const kCol = n => { const t = (n || "").toLowerCase(); return /decaf/.test(t) ? "var(--d3)" : /filter/.test(t) ? "var(--d2)" : "var(--d1)"; };
+const kOk = () => window.CROP && CROP.stats().n > 0;
+let mView = null, kMon = null, kSel = null, kPick = null, zW = null;
+
+function mGo(v) {
+  mView = v || null;
+  $("t-verlauf").hidden = mView !== "verlauf"; $("t-mehr").hidden = mView === "verlauf";
+  $("mHome").hidden = !!mView; $("mKal").hidden = mView !== "kalender"; $("mZeug").hidden = mView !== "zeugnis";
+  if (mView === "verlauf") renderVerlauf(); else if (mView === "kalender") renderKal(); else if (mView === "zeugnis") renderZeug(); else renderMehr();
+  window.scrollTo(0, 0);
+}
+document.addEventListener("click", e => {
+  if (e.target.closest("[data-mback]")) { mGo(null); return; }
+  const t = e.target.closest("[data-mgo]"); if (t) mGo(t.dataset.mgo);
+});
+
+/* Ein Rösttag aus Cropster: Chargen mit Start/Ende in Minuten, Pausen, Röstzeit */
+function kDay(ds) {
+  const L = kOk() ? (CROP.stats().days[ds] || []) : []; if (!L.length) return null;
+  const m = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
+  const B = L.slice().sort((a, b) => a.t < b.t ? -1 : a.t > b.t ? 1 : 0).map(x => ({ ...x, s: m(x.t), z: m(x.t) + (x.dur || 780) / 60 }));
+  const st = B[0].s, en = Math.max(...B.map(b => b.z)), roast = B.reduce((a, b) => a + (b.z - b.s), 0);
+  const gaps = B.slice(1).map((b, i) => ({ s: B[i].z, e: b.s, len: b.s - B[i].z }));
+  const pauses = gaps.filter(g => g.len >= 5), steps = B.slice(1).map((b, i) => b.s - B[i].s);
+  const grp = []; B.forEach(b => { const k = b.n || b.cn, g = grp.length && grp[grp.length - 1].k === k ? grp[grp.length - 1] : null; if (g) { g.c++; g.e = b.z; g.roh += b.g; } else grp.push({ k, n: b.n, c: 1, s: b.s, e: b.z, roh: b.g, size: Math.round(b.g) }); });
+  return { B, st, en, roast, span: en - st, pauses, pauseSum: pauses.reduce((a, g) => a + g.len, 0), avgStep: steps.length ? steps.reduce((a, x) => a + x, 0) / steps.length : null, grp, roh: B.reduce((a, b) => a + b.g, 0) };
+}
+function kDays() { return kOk() ? Object.keys(CROP.stats().days).sort() : []; }
+
+/* ---------- Mehr: Kacheln ---------- */
+function renderMehr() {
+  const ds = kDays(), last = ds.slice(-14), mx = Math.max(1, ...last.map(d => CROP.stats().days[d].length));
+  const artK = `<svg viewBox="0 0 360 120" preserveAspectRatio="none" aria-hidden="true">${last.map((d, i) => { const v = CROP.stats().days[d].length, h = 10 + v / mx * 80, x = 18 + i * (324 / Math.max(1, last.length)); return `<rect x="${x.toFixed(1)}" y="${(104 - h).toFixed(1)}" width="${(324 / Math.max(1, last.length) * .62).toFixed(1)}" height="${h.toFixed(1)}" rx="4" fill="var(--accent)" opacity="${i === last.length - 1 ? 1 : .5}"/>`; }).join("")}<line x1="14" x2="346" y1="104.5" y2="104.5" stroke="var(--accent)" stroke-opacity=".3"/></svg>`;
+  const lastD = ds[ds.length - 1], kd = lastD ? kDay(lastD) : null;
+  const Z = (() => { const L = zWeeks(); for (let i = L.length - 1; i >= 0 && i >= L.length - 6; i--) { const z = zData(L[i]); if (z && z.cnt.ok + z.cnt.hi + z.cnt.lo) return z; } return null; })();
+  const artZ = `<svg viewBox="0 0 160 104" aria-hidden="true">${[["var(--d3)", .9], ["var(--warn)", .55], ["var(--d1)", .3]].map((c, i) => `<rect x="16" y="${18 + i * 26}" width="${[110, 72, 44][i]}" height="16" rx="8" fill="${c[0]}" opacity="${c[1]}"/>`).join("")}</svg>`;
+  const artV = `<svg viewBox="0 0 160 104" aria-hidden="true"><path d="M30 26h100M30 52h100M30 78h70" stroke="var(--accent)" stroke-width="7" stroke-linecap="round" opacity=".45"/></svg>`;
+  const T = (k, cls, art, big, t, s) => `<button type="button" class="mtile${cls}" data-mgo="${k}"><span class="art">${art}${big}</span><span class="cap2"><b>${t}</b><small>${esc(s)}</small></span></button>`;
+  $("mT").innerHTML =
+    T("kalender", " w", kOk() ? artK : "", "", "Röstkalender", kd ? `Jeder Rösttag aus Cropster als Zeitleiste · zuletzt ${WTL[wdI(lastD)]} ${dOf(lastD).getDate()}.${dOf(lastD).getMonth() + 1}., ${kd.B.length} Chargen` : "Lade den Cropster-Export über „Datei“ auf der Seite Zahlen.")
+    + T("zeugnis", "", artZ, "", "Wochenzeugnis", Z ? `KW ${Z.kw}: ${Z.cnt.ok} passten · ${Z.cnt.hi} zu viel · ${Z.cnt.lo} zu knapp` : "Plan, Cropster und Verkauf je Woche")
+    + T("verlauf", "", artV, "", "Verlauf", V.length === 1 ? "1 gesicherte Liste" : V.length + " gesicherte Listen");
+}
+
+/* ---------- Röstkalender ---------- */
+function renderKal() {
+  const ds = kDays();
+  if (!ds.length) { $("kBox").innerHTML = `<h2 style="margin:0 0 6px">Röstkalender</h2><p class="cap">Noch keine Röstungen. Lade den Cropster-Export (Excel) auf der Seite Zahlen über „Datei“.</p>`; return; }
+  if (!kMon) kMon = ds[ds.length - 1].slice(0, 7);
+  if (!kSel || kSel.slice(0, 7) !== kMon) { const inM = ds.filter(d => d.startsWith(kMon)); kSel = inM.length ? inM[inM.length - 1] : null; kPick = null; }
+  const y = +kMon.slice(0, 4), mo = +kMon.slice(5, 7) - 1, first = new Date(y, mo, 1, 12), start = new Date(first); start.setDate(1 - ((first.getDay() + 6) % 7));
+  const D = CROP.stats().days, mx = Math.max(1, ...ds.map(d => D[d].length)), today = isoD(new Date());
+  let g = `<span></span>` + ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"].map(t => `<span class="kh">${t}</span>`).join("");
+  const c = new Date(start);
+  for (let r = 0; r < 6; r++) {
+    if (r > 0 && c.getMonth() !== mo) break;
+    g += `<span class="kw">KW ${CROP.isoW(isoD(c)).kw}</span>`;
+    for (let i = 0; i < 7; i++) {
+      const s = isoD(c), n = D[s] ? D[s].length : 0, o = c.getMonth() !== mo, iv = .25 + .75 * n / mx;
+      g += n ? `<button class="kd r${iv > .62 ? " hi" : ""}${s === kSel ? " sel" : ""}${s === today ? " today" : ""}${o ? " out" : ""}" style="--i:${iv.toFixed(2)}" data-kd="${s}" aria-label="${c.getDate()}. ${MON[c.getMonth()]}: ${n} Chargen"><span>${c.getDate()}</span><b>${n}</b></button>`
+        : `<span class="kd${o ? " out" : ""}${s === today ? " today" : ""}">${c.getDate()}</span>`;
+      c.setDate(c.getDate() + 1);
+    }
+  }
+  const pm = new Date(y, mo - 1, 15), nm = new Date(y, mo + 1, 15), has = k => ds.some(d => d.startsWith(k));
+  const pk = isoD(pm).slice(0, 7), nk = isoD(nm).slice(0, 7);
+  const monRo = ds.filter(d => d.startsWith(kMon)), monN = monRo.reduce((a, d) => a + D[d].length, 0);
+  $("kBox").innerHTML = `<h2 style="margin:0 0 4px">Röstkalender</h2>
+    <p class="cap">Jeder Rösttag aus Cropster. Die Zahl ist die Anzahl Chargen. Tag antippen zeigt den Ablauf.</p>
+    <div class="card" style="padding:12px 12px 14px">
+      <div class="knav"><button data-km="${pk}" ${has(pk) ? "" : "disabled"} aria-label="Monat davor">‹</button><b>${MON[mo]} ${y}</b><button data-km="${nk}" ${has(nk) ? "" : "disabled"} aria-label="Monat danach">›</button></div>
+      <div class="kgrid">${g}</div>
+      <p class="cap" style="margin:10px 0 0">${monRo.length} Rösttage · ${monN} Chargen im ${MON[mo]}</p>
+    </div>
+    <div class="card kday" id="kDay">${kSel ? kDayHtml(kSel) : `<p class="cap" style="margin:0">In diesem Monat wurde nicht geröstet.</p>`}</div>`;
+}
+function kDayHtml(ds) {
+  const k = kDay(ds); if (!k) return "";
+  const W = 340, H = 92, pl = 14, pr = 16, top = 22, bh = 30, t0 = Math.floor(k.st / 30) * 30, t1 = Math.ceil(k.en / 30) * 30, X = m => pl + (m - t0) / (t1 - t0) * (W - pl - pr);
+  let svg = `<svg class="ktl" viewBox="0 0 ${W} ${H}" role="img" aria-label="Ablauf des Rösttags">`;
+  for (let t = t0; t <= t1; t += 30) svg += `<line x1="${X(t)}" x2="${X(t)}" y1="${top - 4}" y2="${top + bh + 4}" stroke="var(--line)" stroke-width="${t % 60 ? .6 : 1.2}"/>${t % 60 ? "" : `<text x="${X(t)}" y="${top - 8}" text-anchor="middle">${hm(t).slice(0, 2)} Uhr</text>`}`;
+  k.pauses.forEach(p => { svg += `<rect x="${X(p.s)}" y="${top + bh + 8}" width="${Math.max(1, X(p.e) - X(p.s))}" height="4" rx="2" fill="var(--warn)"/>${X(p.e) - X(p.s) > 18 ? `<text x="${(X(p.s) + X(p.e)) / 2}" y="${top + bh + 24}" text-anchor="middle" style="fill:var(--warn)">${Math.round(p.len)}′</text>` : ""}`; });
+  k.B.forEach((b, i) => { svg += `<rect class="b" data-kb="${i}" x="${X(b.s) + .4}" y="${top}" width="${Math.max(1.5, X(b.z) - X(b.s) - .8)}" height="${bh}" rx="2.5" fill="${kCol(b.n)}" opacity="${kPick === i ? 1 : .82}" ${kPick === i ? 'stroke="var(--fg)" stroke-width="1.5"' : ""}/>`; });
+  svg += `</svg>`;
+  const b = kPick != null ? k.B[kPick] : null;
+  const kgS = x => String(Math.round(x * 100) / 100).replace(".", ",");
+  const info = b ? `<b>${esc(b.id)}</b> · ${esc(b.n || b.cn)} · ${b.t}–${hm(b.z)} Uhr · ${Math.floor((b.dur || 0) / 60)}:${String((b.dur || 0) % 60).padStart(2, "0")} Min · ${kgS(b.g)} → ${b.e != null ? kgS(b.e) + " kg (" + CROP.pc((1 - b.e / b.g) * 100) + " % Verlust)" : "Gewicht unklar"}`
+    : `<span style="color:var(--muted)">Charge antippen für Details.</span>`;
+  const d = dOf(ds);
+  return `<h3>${WTL[wdI(ds)]}, ${d.getDate()}. ${MON[d.getMonth()]}</h3><p class="cap" style="margin:0">KW ${CROP.isoW(ds).kw} · ${hm(k.st)}–${hm(k.en)} Uhr</p>
+    <div class="kfig"><div><b>${k.B.length}</b><small>Chargen</small></div><div><b>${hDur(k.span)}</b><small>am Röster</small></div><div><b>${hDur(k.roast)}</b><small>reine Röstzeit</small></div><div><b>${String(Math.round((k.span - k.pauseSum) / k.B.length * 10) / 10).replace(".", ",")}</b><small>Min. je Charge</small></div></div>
+    ${svg}<div class="kinfo">${info}</div>
+    <div class="kleg"><span><i style="background:var(--d1)"></i>Espresso</span><span><i style="background:var(--d2)"></i>Filter</span><span><i style="background:var(--d3)"></i>Decaf</span><span><i style="background:var(--warn);height:4px;vertical-align:2px"></i>Pause ab 5 Min</span></div>
+    <p class="cap" style="margin:10px 0 2px">${k.pauses.length ? `${k.pauses.length} ${k.pauses.length === 1 ? "Pause" : "Pausen"}, zusammen ${hDur(k.pauseSum)}. Längste ${Math.round(Math.max(...k.pauses.map(p => p.len)))} Min ab ${hm(k.pauses.reduce((a, p) => p.len > a.len ? p : a).s)} Uhr.` : "Ohne Pause durchgeröstet."} ${String(Math.round(k.roh)).replace(".", ",")} kg Rohkaffee.</p>
+    <div class="klist">${k.grp.map(gp => `<div class="kr"><i style="background:${kCol(gp.n)}"></i><span>${esc(gp.n || gp.k)}<small>${gp.c} × ${gp.size} kg</small></span><em>${hm(gp.s)}–${hm(gp.e)}</em></div>`).join("")}</div>`;
+}
+$("kBox").addEventListener("click", e => {
+  const m = e.target.closest("[data-km]"); if (m && !m.disabled) { kMon = m.dataset.km; kSel = null; renderKal(); return; }
+  const d = e.target.closest("[data-kd]"); if (d) { kSel = d.dataset.kd; kMon = kSel.slice(0, 7); kPick = null; renderKal(); const el = $("kDay"); if (el) el.scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }
+  const b = e.target.closest("[data-kb]"); if (b) { kPick = +b.dataset.kb === kPick ? null : +b.dataset.kb; $("kDay").innerHTML = kDayHtml(kSel); }
+});
+
+/* ---------- Wochenzeugnis ---------- */
+/* Welche Röstwoche gehört zu einer gesicherten Liste? Gesichert Mo–Do: dieselbe Woche, Fr–So: die Woche danach. */
+function vRoastW(v) { const s = String(v.at || "").slice(0, 10); if (!s) return null; const d = dOf(s), i = (d.getDay() + 6) % 7; if (i >= 4) d.setDate(d.getDate() + 7 - i); return CROP.wIdx(isoD(d), CROP.stats().base); }
+function zWeeks() { if (!kOk()) return []; const S = CROP.stats(), w = new Set(Object.keys(S.wk).map(Number)); V.forEach(v => { const x = vRoastW(v); if (x != null) w.add(x); }); return [...w].sort((a, b) => a - b); }
+function zLatest() { const L = zWeeks(); return L.length ? L[L.length - 1] : null; }
+function zKw(w) { const S = CROP.stats(); let y = S.base, k = w; const wk = y2 => { const d = new Date(Date.UTC(y2, 11, 28)), dd = d.getUTCDay() || 7; d.setUTCDate(d.getUTCDate() + 4 - dd); const y1 = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); return Math.ceil(((d - y1) / 864e5 + 1) / 7); };
+  while (k > wk(y)) { k -= wk(y); y++; } while (k < 1) { y--; k += wk(y); } return k; }
+function zData(w) {
+  if (w == null || !kOk()) return null;
+  const S = CROP.stats(), D = S.D, has = x => !!(D && D.weeks && D.weeks[x]), key = n => { const s = CROP.sort(n); return s ? s.name : n; };
+  const v = V.slice().reverse().find(x => vRoastW(x) === w) || null;
+  const plan = {}; if (v) v.days.flat().concat(v.open || []).forEach(x => { const k = key(x.name); plan[k] = (plan[k] || 0) + x.kgs.length; });
+  const done = {}; let nAll = 0; Object.keys(S.days).forEach(d => { if (CROP.wIdx(d, S.base) !== w) return; S.days[d].forEach(x => { const k = x.n || x.cn; done[k] = (done[k] || 0) + 1; nAll++; }); });
+  const win = [w - 3, w - 2, w - 1, w], act = Object.values(S.so).filter(s => win.some(x => s.wk[x]) || win.some(x => { const vs = CROP.vkSort(D, s.name); return vs && vs.kg && +vs.kg[x] > 0; })).map(s => s.name);
+  const names = [...new Set(Object.keys(plan).concat(Object.keys(done), act))];
+  const cur = CROP.wIdx(isoD(new Date()), S.base) <= w;
+  const rows = names.map(n => {
+    const p = plan[n] || 0, r = done[n] || 0, s = CROP.sort(n);
+    let st = !v || (!p && !r) ? null : p === r ? ["✓ wie geplant", "ok"] : !p ? ["nicht geplant", "nu"] : r > p ? ["+" + (r - p) + (r - p === 1 ? " Charge" : " Chargen"), "hi"] : cur ? [(p - r) + " noch offen", "nu"] : ["−" + (p - r) + " nicht geröstet", "lo"];
+    // Passte es? Die letzten 4 Wochen bis einschließlich dieser: geröstet (nach Röstverlust) gegen verkauft (+ Eigenbedarf). 4 Wochen gleichen das Regal aus.
+    let rv = null;
+    if (s) { const ws = [w - 3, w - 2, w - 1, w], miss = ws.filter(x => !has(x));
+      if (miss.length) rv = { t: "Bericht fehlt", c: "nu", miss };
+      else { const vs = CROP.vkSort(D, n), sold = ws.reduce((a, x) => a + (vs && vs.kg ? +vs.kg[x] || 0 : 0), 0), E = eigSort(normB(n)) ? CROP.eig(n) : null, eig = E ? E.kg * ws.length : 0, need = sold + eig, got = ws.reduce((a, x) => a + (s.wk[x] ? s.wk[x].e : 0), 0);
+        if (need < .3 && got < .3) rv = null; else if (need < .3) rv = { t: "nicht im Bericht", c: "nu", ws, got };
+        else { const q = got / need; rv = { q, got, sold, eig, ws, t: q > 1.25 ? "zu viel" : q < .8 ? "zu knapp" : "passte", c: q > 1.25 ? "hi" : q < .8 ? "lo" : "ok" }; } } }
+    return { n, p, r, st, rv, roh: s && s.wk[w] ? s.wk[w].roh : 0 };
+  }).sort((a, b) => (b.r || b.p) - (a.r || a.p) || a.n.localeCompare(b.n));
+  const cnt = { ok: 0, hi: 0, lo: 0 }; rows.forEach(x => { if (x.rv && x.rv.q != null) cnt[x.rv.c]++; }); rows.sort((a, b) => ((b.rv && b.rv.sold) || 0) + ((b.rv && b.rv.eig) || 0) - ((a.rv && a.rv.sold) || 0) - ((a.rv && a.rv.eig) || 0) || (b.r || b.p) - (a.r || a.p));
+  const T = { n: nAll, roh: S.wk[w] ? S.wk[w].roh : 0 }, sold = has(w) ? D.sorts.reduce((a, x) => a + (+x.kg[w] || 0), 0) : null;
+  return { w, kw: zKw(w), v, rows, cnt, n: T.n, roh: T.roh, pN: Object.values(plan).reduce((a, x) => a + x, 0), sold, cur };
+}
+function renderZeug() {
+  const L = zWeeks(); if (!L.length) { $("zBox").innerHTML = `<h2 style="margin:0 0 6px">Wochenzeugnis</h2><p class="cap">Braucht den Cropster-Export. Lade ihn auf der Seite Zahlen über „Datei“.</p>`; return; }
+  if (zW == null || !L.includes(zW)) zW = L[L.length - 1];
+  const Z = zData(zW), i = L.indexOf(zW), f1 = x => (Math.round(x * 10) / 10).toLocaleString("de-DE");
+  const judged = Z.rows.filter(x => x.rv);
+  $("zBox").innerHTML = `<h2 style="margin:0 0 4px">Wochenzeugnis</h2>
+    <p class="cap">Dein Plan, was Cropster geröstet hat, und ob die Röstmengen über die letzten 4 Wochen gepasst haben.</p>
+    <div class="card" style="padding:12px 12px 4px">
+      <div class="knav"><button data-zw="${L[i - 1]}" ${i > 0 ? "" : "disabled"} aria-label="Woche davor">‹</button><b>KW ${Z.kw}${Z.cur ? " · läuft" : ""}</b><button data-zw="${L[i + 1]}" ${i < L.length - 1 ? "" : "disabled"} aria-label="Woche danach">›</button></div>
+      <div class="zsum"><div><b>${Z.v ? Z.pN + "/" : ""}${Z.n}</b><small>${Z.v ? "geplant/geröstet" : "Chargen"}</small></div><div><b>${f1(Z.roh)}</b><small>kg Rohkaffee</small></div><div><b>${Z.sold == null ? "–" : f1(Z.sold)}</b><small>kg Kasse</small></div></div>
+      ${judged.some(x => x.rv.q != null) ? `<div class="zsum" style="margin-top:-4px"><div><b style="color:var(--d3)">${Z.cnt.ok}</b><small>passten</small></div><div><b style="color:var(--warn)">${Z.cnt.hi}</b><small>zu viel</small></div><div><b>${Z.cnt.lo}</b><small>zu knapp</small></div></div>` : ""}
+    </div>
+    ${Z.v ? `<div class="zh">Plan gegen Röstung</div><div class="card zcard">${Z.rows.filter(x => x.st).map(x => `<div class="zr"><span>${esc(x.n)}<small>geplant ${x.p} · geröstet ${x.r}</small></span><span class="zp ${x.st[1]}">${x.st[0]}</span></div>`).join("")}</div>` : `<p class="cap" style="margin:14px 0 0">Für diese Woche ist keine Liste gesichert. Ab jetzt wird jede Liste beim Leeren oder neuen Bericht gesichert, dann steht hier auch dein Plan.</p>`}
+    ${judged.length && judged.every(x => x.rv.t === "Bericht fehlt") ? `<div class="zh">Passte es? Die letzten 4 Wochen</div><p class="cap" style="margin:0">Kommt, sobald die Verkaufsberichte ${judged[0].rv.miss.map(m => "KW " + zKw(m)).join(", ")} geladen sind.</p>` : ""}
+    ${judged.length && !judged.every(x => x.rv.t === "Bericht fehlt") ? `<div class="zh">Passte es? Die letzten 4 Wochen</div><div class="card zcard">${judged.map(x => `<div class="zr"><span>${esc(x.n)}<small>${x.rv.q != null ? `${f1(x.rv.got)} kg geröstet · ${f1(x.rv.sold)} kg verkauft${x.rv.eig ? ` + ${f1(x.rv.eig)} kg eigen` : ""}` : x.rv.t === "Bericht fehlt" ? "Wartet auf den Verkaufsbericht " + x.rv.miss.map(m => "KW " + zKw(m)).join(", ") : `${f1(x.rv.got)} kg geröstet, kein Verkauf über die Kasse`}</small></span><span class="zp ${x.rv.c}">${x.rv.t}</span></div>`).join("")}</div>
+      <p class="cap" style="margin:8px 0 0">${(() => { const ws = (judged.find(x => x.rv.ws) || {}).rv; return ws && ws.ws ? `KW ${zKw(ws.ws[0])}–${zKw(ws.ws[ws.ws.length - 1])}, nur Wochen mit Verkaufsbericht. ` : ""; })()}Passte heißt: geröstet (nach Röstverlust) liegt zwischen 80 und 125 % von dem, was über die Kasse ging${judged.some(x => x.rv.eig) ? ", bei Panea, Mogiana und Igarapé plus Eigenbedarf (Schnitt der letzten 8 Wochen)" : ""}. Vier Wochen, damit Vorrat im Regal sich ausgleicht.</p>` : ""}`;
+}
+$("zBox").addEventListener("click", e => { const b = e.target.closest("[data-zw]"); if (b && !b.disabled) { zW = +b.dataset.zw; renderZeug(); } });
+
 document.querySelector("nav").addEventListener("click", e => {
   const b = e.target.closest("button[data-tab]"); if (!b) return;
   document.querySelectorAll("nav button").forEach(x => x.setAttribute("aria-selected", x === b));
-  ["zahlen", "chargen", "liste", "verlauf"].forEach(t => $("t-" + t).hidden = t !== b.dataset.tab);
-  if (b.dataset.tab === "chargen") renderChargen(); else if (b.dataset.tab === "liste") renderListe(); else if (b.dataset.tab === "verlauf") renderVerlauf(); else renderZahlen();
+  ["zahlen", "chargen", "liste", "mehr", "verlauf"].forEach(t => $("t-" + t).hidden = t !== b.dataset.tab);
+  if (b.dataset.tab === "chargen") renderChargen(); else if (b.dataset.tab === "liste") renderListe(); else if (b.dataset.tab === "mehr") mGo(null); else renderZahlen();
   window.scrollTo(0, 0);
 });
 healSales();
 renderZahlen();
 // laden-v41: Sprung von Start oder Lager direkt auf einen Reiter (roestplan.html#chargen)
 (() => { const h = (location.hash || "").slice(1); if (!h) return;
-  if (["chargen", "liste", "verlauf"].includes(h)) { const b = document.querySelector(`nav button[data-tab="${h}"]`); if (b) b.click(); }
+  if (["chargen", "liste"].includes(h)) { const b = document.querySelector(`nav button[data-tab="${h}"]`); if (b) b.click(); }
+  if (["mehr", "verlauf", "kalender", "zeugnis"].includes(h)) { document.querySelector('nav button[data-tab="mehr"]').click(); if (h !== "mehr") mGo(h); }
   try { history.replaceState(null, "", location.pathname + location.search); } catch (_) {} })();
 </script>
 

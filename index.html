@@ -215,6 +215,36 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 .rep li span:last-child{font-weight:600;text-align:right}
 .rep .y{color:var(--d3)}.rep .n{color:var(--warn)}
 .rep p{margin:8px 0 0;color:var(--muted);font-size:13px}
+/* laden-v52: Cropster */
+.crop{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 6px;font-size:14px}
+.crop h3{margin:0;font-size:16px}
+.crop h3 small{display:block;font-size:13px;color:var(--muted);font-weight:500}
+.crop .c1{color:var(--muted);font-size:13px;margin:2px 0 8px}
+.crop .c1 b{color:var(--fg)}
+.crop .ok{color:var(--d3);font-weight:600}
+.crop .cl{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:10px 0 2px}
+.crop .cr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 10px;align-items:center;padding:7px 0;border-top:1px solid var(--line)}
+.crop .cr b{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.crop .cr small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}
+.crop .cr .v{text-align:right;white-space:nowrap;font-size:14px}
+.crop .cr .v s{color:var(--muted);text-decoration:none}
+.crop .cr .v s::after{content:" → "}
+.crop select{font:inherit;font-size:14px;color:var(--fg);height:38px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 4px;max-width:150px}
+.crop .cbtn{width:100%;margin:8px 0 6px;min-height:44px;border-radius:12px;background:var(--accent);color:var(--accent-ink);font-size:15px}
+.crop .msg{margin:6px 0 4px;font-size:13px;color:var(--d3);font-weight:600}
+.crop details summary{cursor:pointer;color:var(--accent);font-weight:600;font-size:14px;padding:6px 0;list-style:none}
+.crop details summary::-webkit-details-marker{display:none}
+.cs .pi .eg{color:var(--fg);font-weight:600}
+.rcrop{font-size:13px;color:var(--muted);margin:2px 0 6px}
+.rcrop b{color:var(--fg)}
+.cs .pi .rb{display:block;margin-top:2px}
+.cs .pi .rb.lo{color:var(--warn);font-weight:600}
+.rk4 .lr{min-height:0;padding:9px 0;align-items:flex-start}
+.rk4 .lr b{font-weight:600;min-width:0}
+.rk4 .lr b small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;white-space:normal}
+.rk4 .lr span{text-align:right;color:var(--fg);font-weight:600}
+.rk4 .lr span small{display:block;font-weight:400;color:var(--muted);font-size:12.5px}
+.rk4 .tot{display:flex;justify-content:space-between;padding:10px 0 2px;font-weight:700}
 /* laden-v41: Zusammenspiel mit Lager und Zahlen */
 .note.sync .go{display:flex;gap:8px;margin-top:10px}
 .note.sync .go a{flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;font-size:15px}
@@ -238,6 +268,65 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
 .ask.rost .loss small{color:var(--muted);font-size:13px;font-weight:400}
 .ask.rost .dt{display:flex;justify-content:space-between;align-items:center;min-height:52px}
 .ask.rost input[type=date]{border:1px solid var(--line);border-radius:10px;background:var(--bg);height:40px;padding:0 10px}
+/* laden-v52: Mehr · Röstkalender · Wochenzeugnis */
+.mtiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mtile{display:flex;flex-direction:column;text-align:left;padding:0;border-radius:20px;background:var(--card);border:1px solid var(--line);overflow:hidden;color:var(--fg);font:inherit}
+.mtile.w{grid-column:1/-1}
+.mtile .art{display:block;height:104px;background:linear-gradient(180deg,var(--accent-soft),var(--card));position:relative}
+.mtile.w .art{height:120px}
+.mtile .art svg{position:absolute;inset:0;width:100%;height:100%}
+.mtile .art .big{position:absolute;right:14px;bottom:8px;font-size:30px;font-weight:700;letter-spacing:-.02em}
+.mtile .cap2{display:flex;flex-direction:column;gap:2px;padding:10px 14px 13px}
+.mtile .cap2 b{font-size:16px}
+.mtile .cap2 small{font-size:12.5px;color:var(--muted);line-height:1.3}
+.mback{display:inline-flex;align-items:center;gap:4px;min-height:40px;padding:0 4px;color:var(--accent);font-size:16px;background:none;border:0;margin:0 0 6px}
+.knav{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 0 10px}
+.knav b{font-size:18px}
+.knav button{width:44px;height:44px;border-radius:12px;border:1px solid var(--line);background:var(--card);font-size:20px;color:var(--fg)}
+.knav button:disabled{opacity:.35}
+.kgrid{display:grid;grid-template-columns:34px repeat(7,minmax(0,1fr));gap:4px;font-variant-numeric:tabular-nums}
+.kgrid .kh{font-size:12px;color:var(--muted);text-align:center;font-weight:600}
+.kgrid .kw{font-size:11px;color:var(--muted);display:flex;align-items:center}
+.kgrid .kd{aspect-ratio:1/1.05;border-radius:10px;border:1px solid var(--line);background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:0;font-size:13px;color:var(--muted);line-height:1.1;min-width:0}
+.kgrid .kd.out{opacity:.35}
+.kgrid .kd.r{color:var(--fg);border-color:transparent;background:color-mix(in srgb,var(--accent) calc(var(--i)*100%),var(--accent-soft))}
+.kgrid .kd.r.hi{color:var(--accent-ink)}
+.kgrid .kd b{font-size:15px}
+.kgrid .kd.sel{outline:2.5px solid var(--fg);outline-offset:1px}
+.kgrid .kd.today{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.kday{margin-top:14px;padding:14px 16px}
+.kday h3{margin:0 0 2px;font-size:18px}
+.kfig{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:12px 0}
+.kfig div{background:var(--soft);border-radius:10px;padding:8px 4px;text-align:center}
+.kfig b{display:block;font-size:16px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kfig small{font-size:11.5px;color:var(--muted)}
+.ktl{width:100%;height:auto;display:block;margin:6px 0 2px}
+.ktl text{font-size:10px;fill:var(--muted)}
+.ktl rect.b{cursor:pointer}
+.kinfo{min-height:22px;font-size:14px;margin:4px 0 8px}
+.klist{display:flex;flex-direction:column}
+.klist .kr{display:grid;grid-template-columns:12px minmax(0,1fr) auto;gap:10px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:15px}
+.klist .kr i{width:10px;height:10px;border-radius:3px}
+.klist .kr small{display:block;color:var(--muted);font-size:12.5px}
+.klist .kr em{font-style:normal;color:var(--muted);font-size:13.5px;font-variant-numeric:tabular-nums;white-space:nowrap}
+.kleg{display:flex;flex-wrap:wrap;gap:12px;font-size:12.5px;color:var(--muted);margin-top:6px}
+.kleg i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:4px;vertical-align:-1px}
+.zsum{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:4px 0 12px}
+.zsum div{background:var(--soft);border-radius:12px;padding:10px 6px;text-align:center}
+.zsum b{display:block;font-size:22px;font-variant-numeric:tabular-nums}
+.zsum small{font-size:12px;color:var(--muted)}
+.zr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding:9px 0;border-top:1px solid var(--line);font-size:15px}
+.zr:first-child{border-top:0}
+.zr small{display:block;color:var(--muted);font-size:12.5px;line-height:1.3}
+.zp{font-size:12.5px;font-weight:700;padding:3px 10px;border-radius:99px;white-space:nowrap}
+.zp.ok{background:color-mix(in srgb,var(--d3) 18%,var(--card));color:var(--d3)}
+.zp.hi{background:var(--warn-soft);color:var(--warn)}
+.zp.lo{background:#f6dcd6;color:#a8392a}
+.zp.nu{background:var(--soft);color:var(--muted)}
+.zh{font-size:13px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin:16px 0 6px}
+.zcard{padding:4px 16px 8px}
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]) .zp.lo{background:#3d2420;color:#ef8c74}}
+:root[data-theme=dark] .zp.lo{background:#3d2420;color:#ef8c74}
 .lgx.solo{width:auto}
 .lgx.solo button{padding:4px 28px}
 .wrap{padding-bottom:calc(82px + env(safe-area-inset-bottom,0px))}
@@ -620,7 +709,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     }
   } catch (_) {}
   // Datensicherung: alle Daten der drei Apps in einer Datei (Schlüssel bleiben unverändert)
-  const KEYS = k => /^(kasse\.|roestplan|bruehbuch|verkauf\.|gehirn\.|abpack\.|wartung\.)/.test(k);
+  const KEYS = k => /^(kasse\.|roestplan|bruehbuch|verkauf\.|gehirn\.|abpack\.|wartung\.|cropster\.|chargen\.)/.test(k);
   const $ = id => document.getElementById(id), say = t => { $("bkMsg").textContent = t; };
   $("bkSave").onclick = async () => {
     const data = {}; for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (KEYS(k)) data[k] = localStorage.getItem(k); }
