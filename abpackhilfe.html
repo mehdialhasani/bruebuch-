@@ -455,6 +455,7 @@ details.fk[open]>summary::after{transform:rotate(-90deg)}
 .ebg{display:flex;flex-direction:column;gap:6px}
 .ebg+.ebg{margin-top:12px}
 .ebh{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ebh .link{margin-left:auto;font-size:14px;min-height:0;padding:2px 4px}
 .ebh b{font-size:16px}.ebh span{font-size:13px;color:var(--muted)}
 .ebi{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:12px;padding:8px 10px}
 .ebi.now{background:var(--accent-soft)}
@@ -988,7 +989,7 @@ function renderDet(){
     ${f}
     ${s.id==="panea"?`<div class="hrow" style="margin-top:4px"><h2 style="font-size:15px">Tonnen</h2><button type="button" data-m="ton" aria-pressed="${mode==="ton"}" style="min-height:36px;font-size:14px">+ Tonne</button></div>
     ${mode==="ton"?`<form class="form" id="tf"><div class="row2"><label class="f">Menge geröstet (kg)<input id="tKg" inputmode="decimal" autocomplete="off" value="${String(tonKg()).replace(".",",")}"></label><label class="f">Geröstet am<input id="tD" type="date" value="${today()}" max="${today()}"></label></div><div class="btns"><button type="button" id="bNo">Abbrechen</button><button class="primary" type="submit">Tonne dazu</button></div></form>`:""}
-    <div class="pl">${(s.ton||[]).length?s.ton.slice().sort((a,b)=>a.d<b.d?-1:1).map(t=>`<div class="pi">${ring(t.d,1)}<span class="t"><b>${kgT(t.kg)} kg</b><small>geröstet ${esc(dFmt(t.d))}</small></span><button type="button" data-tleer="${t.id}">Leer</button></div>`).join(""):`<p class="hint">Noch keine Tonnen mit Röstdatum. Mit „+ Tonne“ eintragen oder beim Abpacken Tonnen wählen.</p>`}</div>`:""}
+    <p class="hint" style="margin:0">${(s.ton||[]).length?(s.ton.length===1?"1 Tonne":s.ton.length+" Tonnen")+" · "+f1(s.ton.reduce((a,t)=>a+t.kg,0))+" kg. Die Liste steht oben unter Eigenbedarf.":"Noch keine Tonnen. Mit „+ Tonne“ eintragen oder unter Abpacken › Chargen."}</p>`:""}
     <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:4px"><h2 style="font-size:15px">${soFld(s)?"Als Nächstes":"Vorgeplante Chargen"}</h2><button type="button" data-m="plan" aria-pressed="${mode==="plan"}" style="min-height:36px;font-size:14px">+ Vorplanen</button></div>
     <div class="pl">${c.plan.length?c.plan.map(p=>`<div class="pi"><span class="t">${p.sorte?`<span class="sn">${esc(p.sorte)}</span><small>${f1(p.kg)} kg · ${esc(dFmt(p.d))}${p.note?" · "+esc(p.note):""}</small>`:`<b>${f1(p.kg)} kg</b> · ${esc(dFmt(p.d))}${p.note?`<small>${esc(p.note)}</small>`:""}`}</span><button type="button" data-in="${p.id}">${soFld(s)?"Jetzt rein":"Eingelagert"}</button><button type="button" data-pdel="${p.id}" aria-label="Plan löschen">×</button></div>`).join(""):`<p class="hint">Noch nichts vorgeplant. So kannst du Chargen für die kommende Zeit weglegen.</p>`}</div>`;
   if($("chB")){const i=$("bKg")||$("pKg");if(i)i.value=kgT(chKg())}
@@ -1386,16 +1387,24 @@ function ebData(){const L=cgList(),out=[];AN();const lg=id=>A.log.find(y=>y.id==
     else items=L.filter(x=>x.st&&x.st.s==="kiste"&&!x.st.leer&&(lg(x.st.log)||{}).silo===s.id).sort((a,b)=>a.d<b.d?-1:1).map(x=>({kind:"ch",id:x.id,lab:x.ph?"Nr. folgt":x.id,d:x.d,kg:x.e}));
     out.push({s,items})});
   const leer=L.filter(x=>x.st&&x.st.leer).sort((a,b)=>a.st.leer<b.st.leer?1:-1).slice(0,3);return{out,leer}}
+let EBX=false;
 function renderEB(){const c=$("ebC");if(!c)return;const{out,leer}=ebData(),m2=out.find(g=>norm(g.s.name)==="muhle 2");
   c.innerHTML=`<div class="hrow"><h2>Eigenbedarf</h2><span class="hint">nur für die Mühlen</span></div>
    <p class="hint" style="margin-top:-6px">Welche Chargen als Eigenbedarf markiert sind. Markieren unter Abpacken › Chargen. Panea: 2 Chargen = 1 Tonne.</p>
-   ${out.map(g=>{const isM=g===m2,its=g.items;return `<div class="ebg"><div class="ebh"><b>${esc(g.s.name)}</b><span>${its.length?its.length+(isM?" vorgemerkt":g.s.id==="panea"?(its.length===1?" Tonne":" Tonnen"):(its.length===1?" Charge":" Chargen"))+" · "+f1(its.reduce((a,x)=>a+x.kg,0))+" kg":"nichts markiert"}</span></div>
+   ${out.map(g=>{const isM=g===m2,its=g.items;return `<div class="ebg"><div class="ebh"><b>${esc(g.s.name)}</b>${g.s.id==="panea"&&its.length?`<button type="button" class="link" data-ebx="1">${EBX?"Fertig":"Korrigieren"}</button>`:""}<span>${its.length?its.length+(isM?" vorgemerkt":g.s.id==="panea"?(its.length===1?" Tonne":" Tonnen"):(its.length===1?" Charge":" Chargen"))+" · "+f1(its.reduce((a,x)=>a+x.kg,0))+" kg":"nichts markiert"}</span></div>
      ${its.map((x,i)=>{const a=ddays(x.d,today()),first=isM&&i===0;return `<div class="ebi${first?" now":""}"><span class="n">${isM?i+1:"✓"}</span><span class="t"><b>${esc(x.lab)}</b>${x.so?` · ${esc(x.so)}`:""}<small>${isM?(first?"in der Mühle · ":"vorgemerkt · "):""}${kgT(x.kg)} kg · geröstet ${esc(dFmt(x.d))} (${a} ${a===1?"Tag":"Tage"})</small>
        ${isM&&!first?`<span class="gas"><i style="width:${Math.min(100,a/GAS*100)}%"></i></span><small>${a>=GAS?"ausgegast":"ausgegast in "+(GAS-a)+(GAS-a===1?" Tag":" Tagen")}</small>`:""}</span>
-       ${isM&&i>0?`<button type="button" data-ebup="${esc(x.id)}" aria-label="nach vorne"${i===1?" disabled":""}>↑</button>`:""}${!isM||first?`<button type="button" data-ebleer="${x.kind}:${esc(x.id)}">Leer</button>`:""}</div>`}).join("")}</div>`}).join("")}
+       ${isM&&i>0?`<button type="button" data-ebup="${esc(x.id)}" aria-label="nach vorne"${i===1?" disabled":""}>↑</button>`:""}${x.kind==="ton"&&EBX?`<button type="button" data-ebdel="${esc(x.id)}">Löschen</button>`:!isM||first?`<button type="button" data-ebleer="${x.kind}:${esc(x.id)}">Leer</button>`:""}</div>`}).join("")}
+     ${g.s.id==="panea"&&EBX?`<p class="ebe">Löschen = Tonne war nie da (falsch eingetragen). Bucht nichts als Eigenbedarf. Leer = Tonne wurde verbraucht.</p>`:""}</div>`}).join("")}
    ${leer.length?`<p class="ebe" style="margin-top:10px">Zuletzt leer: ${leer.map(x=>`${esc(x.ph?"Nr. folgt":x.id)} (${esc(dFmt(x.st.leer))}) <button type="button" class="link" data-ebback="${esc(x.id)}">zurück</button>`).join(" · ")}</p>`:""}
    <p class="ebe">Mühle 2: ausgegast nach ${GAS} Tagen.</p>`}
-$("ebC").addEventListener("click",e=>{const up=e.target.closest("[data-ebup]"),le=e.target.closest("[data-ebleer]"),bk=e.target.closest("[data-ebback]");
+$("ebC").addEventListener("click",e=>{if(e.target.closest("[data-ebx]")){EBX=!EBX;renderEB();return}
+  const dl=e.target.closest("[data-ebdel]");if(dl){const id=dl.dataset.ebdel,s0=S().list.find(x=>(x.ton||[]).some(t=>t.id===id)),t=s0&&s0.ton.find(x=>x.id===id);if(!t)return;
+    commit(s=>{const z=s.list.find(y=>y.id===s0.id);z.ton=z.ton.filter(x=>x.id!==t.id);const b=t.b&&s.buch.find(y=>y.id===t.b&&y.t==="rein");
+      if(b){b.kg=Math.round((b.kg-t.kg)*100)/100;if(b.kg<.05)s.buch=s.buch.filter(y=>y!==b)}});
+    AN();A.log.forEach(l=>{if(l.tids&&l.tids.includes(id)){l.tids=l.tids.filter(x=>x!==id);l.e=Math.round(Math.max(0,(l.e||0)-t.kg)*100)/100}});aSave();
+    if(!S().list.some(x=>(x.ton||[]).length))EBX=false;say("Tonne gelöscht, nichts als Eigenbedarf gebucht.");render();return}
+  const up=e.target.closest("[data-ebup]"),le=e.target.closest("[data-ebleer]"),bk=e.target.closest("[data-ebback]");
   if(up){const m=ebData().out.find(g=>norm(g.s.name)==="muhle 2"),i=m.items.findIndex(x=>x.id===up.dataset.ebup);if(i>0){const a=CG.b[m.items[i].id],b=CG.b[m.items[i-1].id],t=a.o;a.o=b.o;b.o=t;if(a.o===b.o)a.o=b.o-1;cgSave();renderEB()}return}
   if(bk){const st=CG.b[bk.dataset.ebback];if(st){delete st.leer;cgSave();say("Wieder in der Liste.");renderEB()}return}
   if(le){const[k,id]=le.dataset.ebleer.split(/:(.+)/);
