@@ -418,6 +418,14 @@ table.bta tr.sum td{border-top:2px solid var(--line);border-bottom:0;font-weight
 .bcp span b{font-size:16px}
 .bcp .c2{background:var(--accent-soft)}.bcp .c1{background:var(--good-soft)}.bcp .cl{background:var(--grid);color:var(--ink2)}
 .bnote{font-size:13px;color:var(--ink2);background:var(--warn-soft);border-radius:10px;padding:8px 10px;margin:0}
+/* laden-v56: Karten zum Einklappen (Titel antippen), Zustand bleibt gespeichert (verkauf.zu) */
+.card.zk{position:relative}
+.card.zk>.zh{cursor:pointer;padding-right:30px;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
+.card.zk>.zar{position:absolute;top:13px;right:12px;width:28px;height:28px;display:flex;align-items:center;justify-content:center;font-size:22px;line-height:1;color:var(--muted);pointer-events:none;transform:rotate(90deg);transition:transform .2s}
+.card.zk.zu>.zar{transform:none}
+.card.zk.zu>:not(.zh):not(.zar){display:none!important}
+.card.zk.zu{padding-top:18px;padding-bottom:18px}
+@media (prefers-reduced-motion:reduce){.card.zk>.zar{transition:none}}
 </style>
 </head><body>
 <script>
@@ -1601,7 +1609,7 @@ function eigNames(){let L=[];try{const g=JSON.parse(localStorage.getItem("gehirn
 function cropCards(a,p){
   if(!window.CROP)return"";const C=CROP.stats();
   const head=`<div style="margin-top:8px"><h2 style="font-size:22px">Rösterei</h2><p class="sub">aus Cropster · folgt dem Zeitraum oben</p></div>`;
-  if(!C.n)return head+`<div class="card"><p class="note">Lade in der Röstwoche den Cropster-Export (Excel) über „Datei“. Dann siehst du hier, wohin dein Kaffee geht, deinen echten Röstverlust, die Röstzeit und wie gut die Prognose trifft.</p></div>`;
+  if(!C.n)return head+`<div class="card"><h2>Noch keine Röstdaten</h2><p class="note">Lade in der Röstwoche den Cropster-Export (Excel) über „Datei“. Dann siehst du hier, wohin dein Kaffee geht, deinen echten Röstverlust, die Röstzeit und wie gut die Prognose trifft.</p></div>`;
   const ws=a.ws.filter(w=>w>=C.w0&&w<=C.w1),wr=ws.filter(w=>has(w)&&w>C.w0);
   if(!ws.length)return head+`<div class="card"><p class="note">Für diesen Zeitraum gibt es keine Röstungen in Cropster (Daten ab ${dShort(C.first)}).</p></div>`;
   const sumW=(L,f)=>L.reduce((q,w)=>q+(C.wk[w]?f(C.wk[w]):0),0);
@@ -1780,6 +1788,34 @@ $("files").addEventListener("change",async e=>{const fs=[...e.target.files];if(!
 // Berichte aus der Röstwoche, die ankamen, bevor Zahlen das erste Mal offen war (laden-v40)
 try{const Q=JSON.parse(localStorage.getItem("verkauf.neu"))||[];if(Q.length){const lg=[];Q.filter(x=>x&&x.r&&x.r.kw).sort((a,b)=>((a.r.year||VKY.near(a.r.kw))*100+a.r.kw)-((b.r.year||VKY.near(b.r.kw))*100+b.r.kw)).forEach(x=>{if(x&&x.r)merge(x.r,x.f||"Röstwoche",lg)});save();localStorage.removeItem("verkauf.neu")}}catch(e){}
 all();
+})();
+
+/* laden-v56: jede Karte mit Titel lässt sich einklappen (wie „Reicht noch“). Titel antippen, Zustand je Karte in verkauf.zu. */
+(function(){
+  const KEY="verkauf.zu",SKIP=new Set(["bTab","aWeek","main"]);
+  let Z={};try{Z=JSON.parse(localStorage.getItem(KEY))||{}}catch(e){Z={}}
+  const put=()=>{try{localStorage.setItem(KEY,JSON.stringify(Z))}catch(e){}};
+  const headOf=c=>{const f=c.firstElementChild;if(!f||f.classList.contains("zar"))return null;
+    if(f.tagName==="H2"||f.classList.contains("lbl"))return f;
+    if(f.tagName==="DIV"&&f.querySelector(":scope>h2"))return f;return null};
+  const nameOf=(c,h)=>{const pg=c.closest(".wrap"),t=(h.tagName==="H2"||h.classList.contains("lbl")?h:h.querySelector(":scope>h2")).textContent;
+    return (pg?pg.id:"")+":"+t.replace(/[0-9.,–\-]+/g,"").replace(/\s+/g," ").trim()};
+  function scan(){document.querySelectorAll(".wrap .card").forEach(c=>{
+    if(c.tagName==="DETAILS"||SKIP.has(c.id))return;
+    const h=headOf(c);if(!h)return;
+    const k=nameOf(c,h);
+    if(c.dataset.zk===k&&h.classList.contains("zh")&&c.querySelector(":scope>.zar"))return;
+    c.classList.add("zk");c.dataset.zk=k;h.classList.add("zh");
+    h.setAttribute("role","button");h.setAttribute("tabindex","0");
+    if(!c.querySelector(":scope>.zar")){const a=document.createElement("span");a.className="zar";a.setAttribute("aria-hidden","true");a.textContent="›";c.appendChild(a)}
+    c.classList.toggle("zu",!!Z[k]);h.setAttribute("aria-expanded",Z[k]?"false":"true")})}
+  function flip(h){const c=h.parentElement;if(!c||!c.classList.contains("zk"))return;const k=c.dataset.zk,zu=!c.classList.contains("zu");
+    c.classList.toggle("zu",zu);h.setAttribute("aria-expanded",zu?"false":"true");if(zu)Z[k]=1;else delete Z[k];put()}
+  document.addEventListener("click",e=>{const h=e.target.closest&&e.target.closest(".card.zk>.zh");if(!h)return;
+    if(e.target.closest("button,a,input,select,label,summary")&&e.target.closest("button,a,input,select,label,summary")!==h)return;flip(h)});
+  document.addEventListener("keydown",e=>{if((e.key==="Enter"||e.key===" ")&&e.target.classList&&e.target.classList.contains("zh")){e.preventDefault();flip(e.target)}});
+  let q=0;new MutationObserver(()=>{if(q)return;q=requestAnimationFrame(()=>{q=0;scan()})}).observe(document.body,{childList:true,subtree:true});
+  scan();
 })();
 </script>
 <style>
