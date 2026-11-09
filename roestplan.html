@@ -165,8 +165,20 @@ window.CROP = (() => {
   /* Ladentage (Mo–Sa) bis zu einem Datum, und Datum nach n Ladentagen */
   function shopDays(to) { const d = new Date(); d.setHours(12, 0, 0, 0); let n = 0; while (d < to) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0 && d <= to) n++; } return n; }
   function afterShopDays(n) { const d = new Date(); d.setHours(12, 0, 0, 0); let k = Math.floor(n); while (k > 0) { d.setDate(d.getDate() + 1); if (d.getDay() !== 0) k--; } return d; }
+  /* laden-v57: Röstverlust je Sorte automatisch aus Cropster (Median der letzten 12 Röstungen, ab 3 Röstungen).
+     Schreibt in das übergebene abpack.v1-Objekt A: A.loss[Sorte], A.lossC[Sorte]=1 (= kommt aus Cropster). Von Hand geänderte Werte (A.lossM) bleiben. */
+  function autoLoss(A) {
+    if (!A || typeof A !== "object") return 0; const S = stats(); if (!S.n) return 0;
+    A.loss = A.loss && typeof A.loss === "object" ? A.loss : {}; A.lossC = A.lossC && typeof A.lossC === "object" ? A.lossC : {};
+    const M = A.lossM && typeof A.lossM === "object" ? A.lossM : {}, L = Array.isArray(A.sort) ? A.sort : []; let n = 0;
+    Object.values(S.so).forEach(s => { if (s.loss == null || s.n < 3) return; const k = nb(s.name);
+      const p = L.find(x => nb(x.name) === k || (Array.isArray(x.aka) && x.aka.some(a => nb(a) === k)));
+      const key = p ? p.name : Object.keys(A.loss).find(x => nb(x) === k); if (!key || M[key]) return;
+      if (A.loss[key] !== s.loss) { A.loss[key] = s.loss; n++; } if (!A.lossC[key]) { A.lossC[key] = 1; n++; } });
+    return n;
+  }
   const pc = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("de-DE", { maximumFractionDigits: 1 });
-  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset };
+  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset, autoLoss };
 })();
 </script>
 <style>
@@ -900,12 +912,21 @@ function cropBox() {
     ${cropMsg ? `<p class="msg">${esc(cropMsg)}</p>` : ""}
     ${C.skip && C.skip.length ? `<p class="c1">Nicht mitgerechnet: <b>${C.skip.map(esc).join(", ")}</b>. Röstverlust über 40 %, wohl ein Tippfehler beim Endgewicht in Cropster. Im Lager stehen sie trotzdem als Charge.</p>` : ""}
     ${unk.length ? `<div class="cl">Diese Namen kenne ich nicht</div>${unk.map(([cn, u]) => `<div class="cr"><span style="min-width:0"><b>${esc(cn)}</b><small>${u.n} ${u.n === 1 ? "Röstung" : "Röstungen"} · ${f1(u.roh)} kg roh</small></span><select data-cmap="${esc(cn)}" aria-label="Sorte für ${esc(cn)}">${opt("")}</select></div>`).join("")}` : ""}
-    <div class="cl">Röstverlust und Chargengröße aus Cropster</div>
+    <div class="cl">Röstverlust und Chargengröße aus Cropster</div><p class="c1">Den Röstverlust je Sorte übernimmt die App automatisch aus Cropster (Median der letzten 12 Röstungen).</p>
     ${showR.length ? showR.map(r => `<div class="cr"><span style="min-width:0"><b>${esc(r.s.name)}</b><small>${r.s.n} Röstungen · Spanne ${CROP.pc(r.s.lossMin)}–${CROP.pc(r.s.lossMax)} %</small></span>
       <span class="v">${r.dl ? `<s>${r.cur == null ? S.loss : CROP.pc(r.cur)} %</s>` : ""}<b>${CROP.pc(r.s.loss)} %</b>${r.s.size ? ` · ${r.ds && r.cs ? `<s>${r.cs} kg</s>` : ""}${r.s.size} kg` : ""}</span></div>`).join("")
       : `<p class="c1"><span class="ok">✓ Sortiment stimmt mit Cropster überein.</span></p>`}
-    ${diff.length ? `<button class="cbtn" id="cropTake">${diff.length === 1 ? "1 Wert" : diff.length + " Werte"} ins Sortiment übernehmen</button><p class="c1" style="margin-top:0">Median der letzten 12 Röstungen je Sorte. Danach kannst du jeden Wert im Lager unter Sortiment wie gewohnt ändern.</p>` : ""}
+    ${diff.length ? `<button class="cbtn" id="cropTake">${diff.every(r => !r.dl) ? (diff.length === 1 ? "1 Chargengröße" : diff.length + " Chargengrößen") : diff.length === 1 ? "1 Wert" : diff.length + " Werte"} ins Sortiment übernehmen</button><p class="c1" style="margin-top:0">Median der letzten 12 Röstungen je Sorte. Danach kannst du jeden Wert im Lager unter Sortiment wie gewohnt ändern.</p>` : ""}
     ${rows.length > showR.length || cropAll ? `<button class="link" id="cropAll" style="min-height:36px;font-size:14px">${cropAll ? "Weniger zeigen" : "Alle " + rows.length + " Sorten zeigen"}</button>` : ""}`;
+}
+// laden-v57: Röstverlust je Sorte kommt automatisch aus Cropster (beim Öffnen und nach jedem Cropster-Import)
+function cropAuto() {
+  if (!window.CROP || !CROP.stats().n) return 0;
+  let A = null; try { A = JSON.parse(localStorage.getItem("abpack.v1")); } catch (_) {}
+  if (!A || typeof A !== "object") return 0;
+  const n = CROP.autoLoss(A); if (!n) return 0;
+  try { localStorage.setItem("abpack.v1", JSON.stringify(A)); } catch (_) { return 0; }
+  SI = null; return n;
 }
 function cropTake() {
   let A = null; try { A = JSON.parse(localStorage.getItem("abpack.v1")); } catch (_) {}
@@ -1716,7 +1737,7 @@ async function readFile(file, lbl) {
     const aoa = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { header: 1, raw: false, defval: "" });
     // laden-v52: Cropster-Export (Excel) erkennen, Röstungen merken. Der Wochenbericht bleibt, wie er ist.
     const cr = window.CROP && CROP.parse(aoa);
-    if (cr) { if (!cr.length) { cropMsg = "In der Cropster-Datei waren keine Röstungen."; } else { const r = CROP.merge(cr); SI = null; FI = null;
+    if (cr) { if (!cr.length) { cropMsg = "In der Cropster-Datei waren keine Röstungen."; } else { const r = CROP.merge(cr); SI = null; FI = null; cropAuto();
       cropMsg = r.ok ? `Cropster gelesen: ${intFmt(cr.length)} Röstungen, davon ${intFmt(r.neu)} neu. Stand bis ${dShort(r.last)}.` : "Speichern hat nicht geklappt, der Speicher ist voll."; }
       renderZahlen(); S.warn = ""; $("srcInfo").textContent = cropMsg + " Details unten unter „Cropster“."; return; }
     const loc = localParse(aoa);
@@ -1909,6 +1930,7 @@ document.querySelector("nav").addEventListener("click", e => {
   window.scrollTo(0, 0);
 });
 healSales();
+cropAuto();
 renderZahlen();
 // laden-v41: Sprung von Start oder Lager direkt auf einen Reiter (roestplan.html#chargen)
 (() => { const h = (location.hash || "").slice(1); if (!h) return;
