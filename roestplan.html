@@ -187,7 +187,7 @@ window.CROP = (() => {
   --bg:#F3EEE7; --card:#FBF8F3; --fg:#2B211B; --muted:#7A6A5D; --line:#E3D9CC; --soft:#F3EEE7;
   --accent:#8A5A3B; --accent-ink:#FFFFFF; --accent-soft:#EEDFD0;
   --warn:#9A6200; --warn-soft:#FBEFD6;
-  --d1:#8A5A3B; --d2:#4F6F88; --d3:#5B7A3E;
+  --d1:#8A5A3B; --d2:#4F6F88; --d3:#5B7A3E; --d5:#A0702A; --d6:#7A527A; --d7:#3B7A75; --d8:#8E4A44;
   --glass:rgba(251,248,243,.7); --glass-line:rgba(255,255,255,.7); --shadow:rgba(60,40,25,.16);
   --f:"Helvetica Neue",Helvetica,Arial,system-ui,sans-serif;
 }
@@ -195,13 +195,13 @@ window.CROP = (() => {
   --bg:#17120F; --card:#211A16; --fg:#EFE7DF; --muted:#AD9E91; --line:#3A2F28; --soft:#17120F;
   --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
   --warn:#E5B35A; --warn-soft:#3A2E17;
-  --d1:#D3A27C; --d2:#8FB0CF; --d3:#A9C88A;
+  --d1:#D3A27C; --d2:#8FB0CF; --d3:#A9C88A; --d5:#E2B46E; --d6:#C9A0C9; --d7:#86C2BC; --d8:#DE9A92;
   --glass:rgba(40,32,27,.62); --glass-line:rgba(255,255,255,.08); --shadow:rgba(0,0,0,.45); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#17120F; --card:#211A16; --fg:#EFE7DF; --muted:#AD9E91; --line:#3A2F28; --soft:#17120F;
   --accent:#D3A27C; --accent-ink:#1A120D; --accent-soft:#3A2A1F;
   --warn:#E5B35A; --warn-soft:#3A2E17;
-  --d1:#D3A27C; --d2:#8FB0CF; --d3:#A9C88A;
+  --d1:#D3A27C; --d2:#8FB0CF; --d3:#A9C88A; --d5:#E2B46E; --d6:#C9A0C9; --d7:#86C2BC; --d8:#DE9A92;
   --glass:rgba(40,32,27,.62); --glass-line:rgba(255,255,255,.08); --shadow:rgba(0,0,0,.45); color-scheme:dark}
 *{box-sizing:border-box}
 html{-webkit-text-size-adjust:100%;text-size-adjust:100%}
@@ -304,7 +304,10 @@ section[hidden]{display:none!important}
 /* Einstellungen: Woche + Rösttage */
 .card .loss+.loss{border-top:1px solid var(--line)}
 .loss .wk{width:120px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);text-align:right;padding:0 10px}
-.dsel{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;width:100%}
+.dsel{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px;width:100%}
+.dsel button{font:inherit;font-size:14px;font-weight:600;height:42px;border:1px solid var(--line);border-radius:10px;background:var(--bg);color:var(--muted);padding:0}
+.dsel button[aria-pressed=true]{background:var(--dc);border-color:var(--dc);color:#fff}
+.dhint{grid-column:1/-1;font-size:13px;color:var(--muted);margin:2px 0 0}
 .dsel select{font:inherit;font-size:13px;color:var(--fg);height:40px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 2px;width:100%;min-width:0}
 .loss.days{flex-wrap:wrap;gap:8px;padding:9px 0}
 .row2 .link+.link{margin-left:auto}
@@ -685,14 +688,26 @@ S.extra = 0; S.adj = S.adj || {};  // kein %-Aufschlag mehr (Mehdi 26.10.): mehr
 S.assign = S.assign || {}; S.active = S.active || 0;
 function save() { try { localStorage.setItem("roestplan.v4", JSON.stringify(S)); } catch (_) {} }
 
-const DAYS = 3;
+// laden-v59: Rösttage frei aus Mo–So wählbar (bis 7). Index 0–2 und 4–7 = Rösttage, 3 = „noch nicht verteilt“ (so in alten Daten gespeichert)
+const DAYS = 8, SLOTS = [0, 1, 2, 4, 5, 6, 7];
+const isDay = k => k >= 0 && k < 8 && k !== 3;
+const wOrd = (i, names) => { const n = (names || S.days || [])[i]; return n && WTAGE.indexOf(n) >= 0 ? WTAGE.indexOf(n) : 10 + i; };
+// aktive Rösttage dieser Liste in Wochentag-Reihenfolge: benannte Tage + Tage, auf denen schon Chargen liegen; ohne Namen wie früher Tag 1–3
+function DIX() {
+  const d = S.days || [], ix = SLOTS.filter(i => d[i]);
+  Object.values(S.assign || {}).forEach(i => { if (isDay(i) && !ix.includes(i)) ix.push(i); });
+  if (!ix.length) ix.push(0, 1, 2);
+  return ix.sort((a, b) => wOrd(a) - wOrd(b));
+}
+// Tage eines gespeicherten Berichts (Verlauf): benannte oder belegte Tage
+const vDIX = (days, names) => SLOTS.filter(i => ((days || [])[i] && days[i].length) || (names || [])[i]).sort((a, b) => wOrd(a, names) - wOrd(b, names));
 const $ = id => document.getElementById(id);
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const kgFmt = (g, d = 1) => (g / 1000).toLocaleString("de-DE", { minimumFractionDigits: d, maximumFractionDigits: d });
 const intFmt = n => n.toLocaleString("de-DE");
 const dc = d => `--dc:var(--d${d + 1})`;
 // Name eines Rösttags: eingestellter Wochentag oder „Tag 1–3“; names = gespeicherte Namen eines Verlaufseintrags
-const dn = (d, names) => ((names || S.days || [])[d]) || "Tag " + (d + 1);
+const dn = (d, names) => ((names || S.days || [])[d]) || "Tag " + (d < 3 ? d + 1 : d);
 const dnShort = d => (S.days && S.days[d]) ? S.days[d].slice(0, 2) : String(d + 1);
 const WTAGE = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
 function liveWarn() {
@@ -849,7 +864,7 @@ const batchText = kgs => {
 function dayLists(rows) {
   const days = Array.from({ length: DAYS }, () => []), open = [];
   rows.forEach(r => {
-    for (let d = 0; d < DAYS; d++) { const k = r.batches.filter(b => b.day === d).map(b => b.kg); if (k.length) days[d].push({ id: r.id, name: r.name, kgs: k }); }
+    for (let d = 0; d < DAYS; d++) { if (!isDay(d)) continue; const k = r.batches.filter(b => b.day === d).map(b => b.kg); if (k.length) days[d].push({ id: r.id, name: r.name, kgs: k }); }
     const o = r.batches.filter(b => b.day == null).map(b => b.kg); if (o.length) open.push({ id: r.id, name: r.name, kgs: o });
   });
   // eigene Reihenfolge je Rösttag (auf der Seite „Liste“ mit ↑ ↓ gesetzt), neue Sorten hinten
@@ -870,7 +885,9 @@ function renderZahlen() {
   $("lossOut").textContent = S.loss + " %";
   $("wkIn").value = S.week || "";
   $("clearBtn0").hidden = !S.sorts.some(s => s.totalG > 0); $("clearAsk0").hidden = true;
-  $("dSel").innerHTML = [0, 1, 2].map(d => `<select data-day="${d}" aria-label="Rösttag ${d + 1}"><option value="">Tag ${d + 1}</option>${WTAGE.map(w => `<option${S.days && S.days[d] === w ? " selected" : ""}>${w}</option>`).join("")}</select>`).join("");
+  const sd = S.days || [];
+  $("dSel").innerHTML = WTAGE.map(w => { const i = sd.indexOf(w); return `<button type="button" data-wd="${w}" aria-pressed="${i >= 0 && isDay(i)}" aria-label="${w}"${i >= 0 ? ` style="${dc(i)}"` : ""}>${w.slice(0, 2)}</button>`; }).join("")
+    + `<p class="dhint">${sd.some(Boolean) ? "Antippen: Tag an oder aus. Chargen eines abgewählten Tags werden wieder offen." : "Wähle die Tage, auf die du verteilen willst."}</p>`;
   updTotals(); cropBox();
 }
 /* laden-v42: ein Ort zum Hochladen. Der Bericht der Röstwoche wird nachgereicht, falls er in Zahlen fehlt (z. B. als Foto/Excel geladen oder vor v40):
@@ -1014,7 +1031,9 @@ document.addEventListener("pointerdown", e => { const a = document.activeElement
 function renderChargen() {
   const rows = computeBatches(); cleanAssign(rows);
   const { t, open } = dayTotals(rows);
-  setKids($("dpick"), t.map((x, d) => `<button data-d="${d}" style="${dc(d)}" aria-pressed="${d === S.active}"><b><i></i>${esc(dn(d))}</b><small>${x.n} Ch. · ${intFmt(x.kg)} kg</small></button>`), "");
+  const DX = DIX(); if (!DX.includes(S.active)) S.active = DX[0];
+  $("dpick").style.gridTemplateColumns = `repeat(${DX.length === 4 ? 2 : Math.min(3, DX.length)},1fr)`;
+  setKids($("dpick"), DX.map(d => { const x = t[d]; return `<button data-d="${d}" style="${dc(d)}" aria-pressed="${d === S.active}"><b><i></i>${esc(dn(d))}</b><small>${x.n} Ch. · ${intFmt(x.kg)} kg</small></button>`; }), "");
   $("openInfo").textContent = open.n ? `${open.n} Chargen noch offen` : "Alle Chargen sind verteilt.";
   $("allOpen").textContent = open.n ? `Alle offenen auf ${dn(S.active)}` : "";
   // Knopf bleibt immer stehen (sonst springt die Seite beim Antippen), ohne offene Chargen nur ausgegraut
@@ -1046,13 +1065,23 @@ function setKids(box, htmls, empty) {
   box._k = htmls;
 }
 $("wkIn").addEventListener("input", e => { S.week = e.target.value.trim().slice(0, 20); $("wk").textContent = S.week; save(); });
-$("dSel").addEventListener("change", e => { const d = +e.target.dataset.day; S.days = (S.days || ["", "", ""]).slice(); S.days[d] = e.target.value; if (!S.days.some(Boolean)) delete S.days; save(); });
+$("dSel").addEventListener("click", e => {
+  const b = e.target.closest("[data-wd]"); if (!b) return; const w = b.dataset.wd, d = (S.days || []).slice(); while (d.length < DAYS) d.push("");
+  const i = d.indexOf(w);
+  if (i >= 0) { // Tag abwählen: seine Chargen werden wieder offen
+    if (d.filter((x, k) => x && isDay(k)).length <= 1) return;
+    d[i] = ""; Object.keys(S.assign).forEach(k => { if (S.assign[k] === i) delete S.assign[k]; }); if (S.order) delete S.order[i];
+  } else { // freien Platz nehmen (unbenannt, keine Chargen darauf)
+    const used = new Set(Object.values(S.assign)), f = SLOTS.find(k => !d[k] && !used.has(k)) ?? SLOTS.find(k => !d[k]); if (f == null) return; d[f] = w;
+  }
+  S.days = d; if (!S.days.some(Boolean)) delete S.days; save(); renderZahlen(); updBadges();
+});
 // Verteilt alle offenen Chargen gleichmäßig auf die Rösttage; schon verteilte bleiben, wo sie sind
 function autoAssign() {
   const rows = computeBatches(); cleanAssign(rows);
-  const load = dayTotals(rows).t.map(x => x.kg);
-  const out = Core.assignDays(rows.map((r, idx) => ({ id: r.id, idx, kg: Core.sumKg(r.batches.filter(b => b.day == null).map(b => b.kg)) })), DAYS, load);
-  rows.forEach(r => { const d = out[r.id]; if (d != null) r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = d; }); });
+  const DX = DIX(), T = dayTotals(rows).t, load = DX.map(d => T[d].kg);
+  const out = Core.assignDays(rows.map((r, idx) => ({ id: r.id, idx, kg: Core.sumKg(r.batches.filter(b => b.day == null).map(b => b.kg)) })), DX.length, load);
+  rows.forEach(r => { const d = out[r.id]; if (d != null) r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = DX[d]; }); });
   save();
 }
 $("autoAll").addEventListener("click", () => { if ($("autoAll").disabled) return; autoAssign(); renderChargen(); });
@@ -1086,7 +1115,7 @@ $("cList").addEventListener("click", e => {
 const listTotals = list => ({ n: list.reduce((a, x) => a + x.kgs.length, 0), kg: list.reduce((a, x) => a + Core.sumKg(x.kgs), 0) });
 function listHtml(days, open, names, live) {
   let h = "";
-  days.forEach((list, d) => {
+  vDIX(days, names || S.days).forEach(d => { const list = days[d] || [];
     if (!list.length) return; const t = listTotals(list);
     h += `<div class="dayh" style="${dc(d)}"><b><i></i>${esc(dn(d, names))}</b><span>${t.n} Chargen · ${intFmt(t.kg)} kg roh</span></div>
       <div class="card">${list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)}</span></div>`).join("")}</div>${live && !open.length ? rostHtml(d) : ""}`;
@@ -1117,7 +1146,7 @@ let lEdit = false;
 function renderListe() {
   const rows = computeBatches(); cleanAssign(rows);
   const { days, open } = dayLists(rows);
-  const h = lEdit && (days.some(l => l.length) || open.length) ? [0, 1, 2].map(d => edGroup(days[d], d)).join("") + (open.length ? edGroup(open, 3) : "") + `<p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag. Chargen änderst du unter „Chargen“.</p>` : listHtml(days, open, null, true), rk = rohSum(rows);
+  const h = lEdit && (days.some(l => l.length) || open.length) ? DIX().map(d => edGroup(days[d], d)).join("") + (open.length ? edGroup(open, 3) : "") + `<p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag. Chargen änderst du unter „Chargen“.</p>` : listHtml(days, open, null, true), rk = rohSum(rows);
   $("lList").classList.toggle("ed", !!lEdit && !!h);
   $("lEditBtn").hidden = !h; $("lEditBtn").textContent = lEdit ? "Fertig" : "Bearbeiten";
   $("lList").innerHTML = h ? h + `<div class="dayh"><b>Rohkaffee gesamt</b><span>${rk.list.reduce((a, x) => a + x.kgs.length, 0)} Chargen · ${intFmt(rk.kg)} kg roh</span></div><div class="card">${rk.list.map(x => `<div class="lr"><b style="font-weight:500">${esc(x.name)}</b><span>${batchText(x.kgs)} · ${intFmt(x.kg)} kg</span></div>`).join("")}</div>${roh4()}` : `<div class="empty">Noch keine Chargen. Trage unter „Zahlen“ den Verkauf ein.</div>`;
@@ -1169,7 +1198,7 @@ function rostHtml(d) {
 function cropDate(d) {
   if (!window.CROP || !CROP.stats().n) return null; const id = curVId(), v = id && V.find(x => x.id === id); if (!v) return null;
   const conf = sortimentInfo().conf, used = Object.keys(conf).filter(k => k.startsWith(id + "#")).map(k => conf[k]);
-  const from = String(v.at || "").slice(0, 10), open = [0, 1, 2].filter(i => !conf[id + "#" + i]);
+  const from = String(v.at || "").slice(0, 10), open = vDIX(v.days, v.dn).filter(i => !conf[id + "#" + i]);
   return CROP.dateFor(from, dn(d), Math.max(0, open.indexOf(d)), used);
 }
 function bookRoast() {
@@ -1207,9 +1236,9 @@ $("lList").addEventListener("change", e => { if (e.target.id === "roDate" && RO)
 $("lEditBtn").addEventListener("click", () => { lEdit = !lEdit; renderListe(); });
 // Sorte x von Gruppe k (Tag 0–2, 3 = offen) nach Gruppe t an Stelle ti; ihre Chargen dieses Tages wandern mit
 dragList($("lList"), () => lEdit, (k, i, t, ti) => {
-  const rows = computeBatches(), { days, open } = dayLists(rows), G = [days[0], days[1], days[2], open], x = G[k][i];
+  const rows = computeBatches(), { days, open } = dayLists(rows), G = days.slice(), x = (G[3] = open, G[k] || [])[i];
   if (!x || (k === t && i === ti)) { renderListe(); return; }
-  if (k !== t) rows.find(y => y.id === x.id).batches.forEach(y => { if ((y.day == null ? 3 : y.day) === k) { if (t < 3) S.assign[y.key] = t; else delete S.assign[y.key]; } });
+  if (k !== t) rows.find(y => y.id === x.id).batches.forEach(y => { if ((y.day == null ? 3 : y.day) === k) { if (isDay(t)) S.assign[y.key] = t; else delete S.assign[y.key]; } });
   const ids = G[t].map(y => y.id).filter(id => id !== x.id); ids.splice(Math.min(ti, ids.length), 0, x.id);
   S.order = Object.assign({}, S.order, { [t]: ids }); if (k !== t) S.order[k] = G[k].map(y => y.id).filter(id => id !== x.id);
   save(); renderListe(); updBadges();
@@ -1220,7 +1249,7 @@ const msg = t => { $("expMsg").textContent = t; };
 function planText(snap) {
   const rows = snap ? null : computeBatches(), { days, open } = snap || dayLists(rows), week = snap ? snap.week : S.week, names = snap ? (snap.dn || []) : null;
   let out = "Röstplan " + week + "\n";
-  days.forEach((list, d) => { if (!list.length) return; const t = listTotals(list); out += "\n" + dn(d, names) + " (" + t.n + " Chargen, " + intFmt(t.kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
+  vDIX(days, names || S.days).forEach(d => { const list = days[d] || []; if (!list.length) return; const t = listTotals(list); out += "\n" + dn(d, names) + " (" + t.n + " Chargen, " + intFmt(t.kg) + " kg roh)\n"; list.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); });
   if (open.length) { out += "\nNoch nicht verteilt\n"; open.forEach(x => out += "☐ " + x.name + ": " + batchText(x.kgs) + "\n"); }
   if (rows) { const rk = rohSum(rows); if (rk.list.length) { out += "\nRohkaffee gesamt (" + intFmt(rk.kg) + " kg)\n"; rk.list.forEach(x => out += x.name + ": " + batchText(x.kgs) + " = " + intFmt(x.kg) + " kg\n"); } }
   return out;
@@ -1232,7 +1261,8 @@ $("copyTxt").addEventListener("click", () => {
 });
 function drawImage() {
   const rows = computeBatches(); const { days, open } = dayLists(rows); const { t } = dayTotals(rows);
-  const groups = days.map((l, d) => ({ title: dn(d), sub: t[d].n + " Chargen · " + intFmt(t[d].kg) + " kg roh", list: l, col: ["#8A5A3B", "#4F6F88", "#5B7A3E"][d] })).filter(g => g.list.length);
+  const DCOL = { 0: "#8A5A3B", 1: "#4F6F88", 2: "#5B7A3E", 4: "#A0702A", 5: "#7A527A", 6: "#3B7A75", 7: "#8E4A44" };
+  const groups = DIX().map(d => ({ title: dn(d), sub: t[d].n + " Chargen · " + intFmt(t[d].kg) + " kg roh", list: days[d], col: DCOL[d] })).filter(g => g.list.length);
   if (open.length) groups.push({ title: "Noch nicht verteilt", sub: "", list: open, col: "#7A6A5D" });
   const W = 1080, pad = 72, lh = 76;
   let h = pad + 100; groups.forEach(g => h += 120 + g.list.length * lh); h += pad;
@@ -1315,7 +1345,7 @@ function snapshot() {
   days = days.map(strip); open = strip(open);
   return { id: "v" + Date.now().toString(36), at: new Date().toISOString(), week: S.week, loss: S.loss, extra: S.extra,
     sorts: S.sorts.filter(s => Core.soldGrams(s) > 0 || S.adj[s.id] > 0).map(s => ({ name: s.name, totalG: Core.soldGrams(s), size: prof(s).size })),
-    soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open, dn: [0, 1, 2].map(d => dn(d)) };
+    soldG: S.sorts.reduce((x, s) => x + Core.soldGrams(s), 0), n: tot.n, kg: tot.kg, days, open, dn: Array.from({ length: DAYS }, (_, d) => isDay(d) && DIX().includes(d) ? dn(d) : "") };
 }
 /* Gemeinsames Gehirn (Schlüssel gehirn.v1, alle Apps): gesicherte Listen = geröstete Mengen pro Woche. Gleiche Woche nochmal gesichert = korrigierte Mengen, die neueste zählt. */
 const GK = "gehirn.v1";
@@ -1361,11 +1391,12 @@ function refreshV(id) {
 const dateFmt = iso => { const d = new Date(iso), o = { weekday: "short", day: "numeric", month: "short" }; if (d.getFullYear() !== new Date().getFullYear()) o.year = "numeric"; return d.toLocaleDateString("de-DE", o) + ", " + d.toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit" }); };
 let vOpen = null, vEdit = null, D = null;
 // Bearbeiten: D ist eine Kopie des Berichts; erst „Speichern“ schreibt in den Verlauf
-const dGroups = () => [0, 1, 2].map(d => D.days[d]).concat([D.open]);
+// laden-v59: Gruppen als [Index, Liste]; Index 3 = noch nicht verteilt
+const dGroups = names => { const ix = vDIX(D.days, names); ix.forEach(d => { D.days[d] = D.days[d] || []; }); for (let k = 0; k < D.days.length; k++) D.days[k] = D.days[k] || []; return ix.map(d => [d, D.days[d]]).concat([[3, D.open]]); };
 // Bearbeitbare Gruppe (Rösttag k = 0–2, 3 = nicht verteilt): Zeilen mit Griff ≡ rechts, festhalten und ziehen (auch auf einen anderen Tag). Gilt für Liste und Verlauf.
 const GRIP = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 12h16M4 16h16"/></svg>`;
 function edGroup(list, k, names) {
-  return `<div class="dayh"${k < 3 ? ` style="${dc(k)}"` : ""}><b>${k < 3 ? "<i></i>" : ""}${esc(k < 3 ? dn(k, names) : "Noch nicht verteilt")}</b><span>${listTotals(list).n} Chargen · ${intFmt(listTotals(list).kg)} kg roh</span></div>
+  return `<div class="dayh"${isDay(k) ? ` style="${dc(k)}"` : ""}><b>${isDay(k) ? "<i></i>" : ""}${esc(isDay(k) ? dn(k, names) : "Noch nicht verteilt")}</b><span>${listTotals(list).n} Chargen · ${intFmt(listTotals(list).kg)} kg roh</span></div>
     <div class="card drop" data-g="${k}">${list.length ? list.map((x, i) => `<div class="er" data-g="${k}" data-i="${i}"><span class="t"><b>${esc(x.name)}</b><small>${batchText(x.kgs)}</small></span><button class="hd" aria-label="${esc(x.name)} verschieben (Pfeiltasten hoch/runter)">${GRIP}</button></div>`).join("") : `<div class="empty">Hierher ziehen</div>`}</div>`;
 }
 // Ziehen mit dem Finger: Zeile schwebt unter dem Finger, eine Lücke zeigt, wo sie landet. Am Rand scrollt die Seite mit.
@@ -1421,12 +1452,12 @@ function dragList(box, active, onDrop) {
 function editHtml(v) {
   const names = v.dn || [], grp = (list, k) => edGroup(list, k, names);
   return `<div class="ed"><div class="card" style="margin-top:12px"><div class="loss"><label for="edWk">Woche</label><input class="wk" id="edWk" autocomplete="off" enterkeyhint="done" value="${esc(D.week || "")}"></div></div>
-    ${dGroups().map((l, k) => (k < 3 || l.length) ? grp(l, k) : "").join("")}
+    ${dGroups(names).map(([k, l]) => (isDay(k) || l.length) ? grp(l, k) : "").join("")}
     <p class="cap" style="margin:10px 0 0">Am ≡ festhalten und ziehen, auch auf einen anderen Tag.</p>
     <div class="exp"><button data-edno="${v.id}">Abbrechen</button><button class="main" data-edyes="${v.id}">Speichern</button></div></div>`;
 }
 dragList($("vList"), () => !!D, (k, i, t, ti) => {
-  const G = dGroups(), x = G[k][i];
+  const v0 = V.find(y => y.id === vEdit), G = {}; dGroups(v0 && v0.dn).forEach(([d, l]) => { G[d] = l; }); const x = (G[k] || [])[i];
   if (x && !(k === t && i === ti)) {
     G[k].splice(i, 1); const same = k !== t && G[t].find(y => y.name === x.name);
     if (same) same.kgs.push(...x.kgs); else G[t].splice(Math.min(ti, G[t].length), 0, x);

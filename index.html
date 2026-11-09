@@ -693,7 +693,7 @@ h1{margin:4px 0 22px;font-size:34px;line-height:1.05;font-weight:700;letter-spac
     const vk1 = get("verkauf.v1"), ab = get("abpack.v1") || {}, rp = get("roestplan.v4"), rv = get("roestplan.verlauf"), TI = idxOf(+(vk1 && vk1.year) || TY, TY, T);
     if ((rp && rp.source && rp.source !== "preset") || (vk1 && vk1.weeks)) {
       const e = rp && rp.vId && Array.isArray(rv) ? rv.find(x => x && x.id === rp.vId) : null, cur = e && kwOf(e.week) === T ? e : null;
-      const keys = cur ? [0, 1, 2].filter(d => (cur.days || [])[d] && cur.days[d].length).concat(cur.open && cur.open.length ? [3] : []) : [];
+      const keys = cur ? (cur.days || []).map((l, d) => d).filter(d => d !== 3 && cur.days[d] && cur.days[d].length).concat(cur.open && cur.open.length ? [3] : []) : [];
       const conf = ab.conf || {}, nC = keys.filter(d => conf[cur.id + "#" + d]).length;
       const wait = Object.values(ab.wait || {}).reduce((a, w) => a + (+(w && w.roh) || 0), 0);
       const st = [

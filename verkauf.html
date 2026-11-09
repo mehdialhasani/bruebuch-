@@ -1414,7 +1414,7 @@ const nrm=s=>{const n=nrm0(s);return AKA[n]||n};
 /* laden-v41: wirklich geröstet = bestätigte Rösttage (Lager oder Röstwoche „Geröstet ✓“), sonst die geplante Liste */
 function istOf(ge){if(!ge||!ge.id)return null;let A=null,V=null;try{A=JSON.parse(localStorage.getItem("abpack.v1"))}catch(e){}try{V=JSON.parse(localStorage.getItem("roestplan.verlauf"))}catch(e){}
   const v=Array.isArray(V)?V.find(x=>x&&x.id===ge.id):null;if(!v||!A||!A.conf)return null;
-  const keys=[0,1,2].filter(d=>(v.days||[])[d]&&v.days[d].length).concat(v.open&&v.open.length?[3]:[]),ok=keys.filter(d=>A.conf[ge.id+"#"+d]),sum={};
+  const keys=(v.days||[]).map((l,d)=>d).filter(d=>d!==3&&v.days[d]&&v.days[d].length).concat(v.open&&v.open.length?[3]:[]),ok=keys.filter(d=>A.conf[ge.id+"#"+d]),sum={};
   (Array.isArray(A.log)?A.log:[]).forEach(l=>{if(l&&l.t==="roast"&&l.key&&l.key.startsWith(ge.id+"#")&&A.conf[l.key])Object.entries(l.add||{}).forEach(([n,kg])=>{sum[n]=(sum[n]||0)+(+kg||0)})});
   return{sum,n:ok.length,of:keys.length}}
 /* laden-v41: Puffer lernt je Sorte, gleiche Rechnung wie in der Röstwoche: wie weit lag der Verkauf in den letzten 8 Berichtswochen über der Prognose */

@@ -1186,7 +1186,8 @@ function renderW(){
 function renderRoast(){
   const c=$("roastC"),e=WD.e;
   if(!e){c.hidden=!WD.sorts.length;c.innerHTML=`<h2>Rösttag bestätigen</h2><p class="hint">Sobald in der Röstwoche alle Chargen einen Tag haben, erscheinen die Rösttage hier. Bestätigen geht auch direkt dort unter „Liste“ mit „Geröstet ✓“.</p>`;return}
-  const days=[0,1,2].map(d=>({d,l:(e.days||[])[d]||[],nm:(e.dn||[])[d]||"Tag "+(d+1)})).concat([{d:3,l:e.open||[],nm:"Ohne Tag"}]).filter(x=>x.l.length);
+  const WT=["Montag","Dienstag","Mittwoch","Donnerstag","Freitag","Samstag","Sonntag"],wo=d=>{const i=WT.indexOf((e.dn||[])[d]);return i<0?10+d:i};
+  const days=(e.days||[]).map((l,d)=>d).filter(d=>d!==3).sort((a,b)=>wo(a)-wo(b)).map(d=>({d,l:(e.days||[])[d]||[],nm:(e.dn||[])[d]||"Tag "+(d<3?d+1:d)})).concat([{d:3,l:e.open||[],nm:"Ohne Tag"}]).filter(x=>x.l.length);
   // laden-v54: Rösttage werden nur von Hand bestätigt (Mehdi), Cropster kommt danach als Vergleich
   const open=days.filter(x=>!A.conf[e.id+"#"+x.d]);
   if(!open.length){c.hidden=false;c.className="card";c.innerHTML=`<div class="hrow"><h2>Rösttage ${esc(e.week||"")}</h2><span class="okk">alle bestätigt ✓</span></div>`;return}
@@ -1209,7 +1210,7 @@ function renderRoast(){
 }
 let RCD={};
 function cropDateL(e,d,open){if(!window.CROP||!CROP.stats().n||!e)return null;const used=Object.keys(A.conf).filter(k=>k.startsWith(e.id+"#")).map(k=>A.conf[k]);
-  const nm=[0,1,2].includes(d)?((e.dn||[])[d]||""):"";return CROP.dateFor(String(e.at||"").slice(0,10),nm,Math.max(0,open.findIndex(x=>x.d===d)),used)}
+  const nm=d!==3?((e.dn||[])[d]||""):"";return CROP.dateFor(String(e.at||"").slice(0,10),nm,Math.max(0,open.findIndex(x=>x.d===d)),used)}
 function bar(r){const N=Math.max(r.needKg,r.pk+r.w,.01),p=r.pk/N*100,w=Math.min(r.w,Math.max(0,N-r.pk))/N*100;return `<span class="bar" aria-hidden="true"><i class="p" style="width:${p}%"></i><i class="w" style="width:${w}%"></i></span>`}
 // laden-v45: je Größe leise „da / Ziel“ + was noch fehlt, statt langer Textzeile
 function tbl(r){
@@ -1442,7 +1443,7 @@ $("roastC").addEventListener("click",e=>{
   const b=e.target.closest("[data-rc]");if(b){const r=RC[WD.e.id+"#"+rcDay][+b.dataset.rc];r.c=Math.max(0,Math.min(30,r.c+ +b.dataset.v));renderRoast();return}
   if(e.target.closest("#rOk")){const key=WD.e.id+"#"+rcDay,rows=RC[key].filter(r=>r.c>0),d=$("rDate").value||today();AN();const add={};
     rows.forEach(r=>{const w=A.wait[r.n]||(A.wait[r.n]={roh:0});w.roh=Math.round((w.roh+r.c*r.size)*1000)/1000;w.d=d;add[r.n]=r.c*r.size});
-    const dnm=[0,1,2].includes(rcDay)?((WD.e.dn||[])[rcDay]||"Tag "+(rcDay+1)):"ohne Tag";
+    const dnm=rcDay!==3?((WD.e.dn||[])[rcDay]||"Tag "+(rcDay<3?rcDay+1:rcDay)):"ohne Tag";
     A.conf[key]=d;A.log.unshift({id:uid(),n:Date.now(),d,t:"roast",key,add,cnt:Object.fromEntries(rows.map(r=>[r.n,r.c])),sz:Object.fromEntries(rows.map(r=>[r.n,r.size])),txt:"Rösttag "+dnm+" bestätigt",sub:rows.map(r=>r.n.split(" ")[0]+" "+r.c+"×").join(" · ")});
     if(!aSave()){say2("Speichern hat nicht geklappt.");return}delete RC[key];rcDay=null;say2(rows.reduce((a,r)=>a+r.c,0)+" Chargen übernommen.");renderW()}});
 /* Charge von Hand ins freie Kontingent nachtragen (laden-v30), ohne Röstplan-Bericht */
