@@ -429,6 +429,8 @@ section[hidden]{display:none!important}
 .sg u{text-decoration:none;font-weight:700;white-space:nowrap}
 .sgall{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 0;padding:6px 6px 6px 12px;border-radius:12px;background:color-mix(in srgb,var(--d2) 13%,var(--card));color:var(--fg);font-size:14px}
 .sgall[hidden]{display:none}
+.sgall{flex-wrap:wrap}.sgall span{flex:1 1 55%}
+.sg.sgb{color:var(--fg);background:color-mix(in srgb,var(--fg) 7%,var(--card))}
 .sgall button{color:var(--d2);font-size:15px;min-height:40px;padding:0 8px;white-space:nowrap}
 .saved{font-size:14px;color:var(--muted);margin:0 0 8px}
 .saved:empty{display:none}
@@ -813,6 +815,8 @@ function piHtml(r, started) {
     const d = x.n - r.batches.length; SG.set(r.id, x.n);
     h += `<button class="sg" data-sg="${r.id}" data-n="${x.n}"><span>Vorschlag: ${x.n} ${x.n === 1 ? "Charge" : "Chargen"} (${d > 0 ? "+" : "−"}${Math.abs(d)})</span><u>Übernehmen</u></button>`;
   }
+  if (S.adj[r.id]) { const s = S.sorts.find(x => x.id === r.id), e = s ? effSort(s) : null, b = e ? Core.autoBatches(e.s, e.loss, 0, 0).length : 0;
+    h += `<button class="sg sgb" data-base="${r.id}"><span>Liste: ${b} ${b === 1 ? "Charge" : "Chargen"} (ohne Bestand)</span><u>Zurück</u></button>`; }
   return h;
 }
 function applySg(id, n) { const r = computeBatches().find(x => x.id === id); if (!r) return; S.adj[id] = (S.adj[id] || 0) + (n - r.batches.length); if (!S.adj[id]) delete S.adj[id]; }
@@ -1026,8 +1030,10 @@ function renderChargen() {
         <span class="adj"><button data-adj="-1" aria-label="Eine Charge weniger ${esc(r.name)}">−</button><button data-adj="1" aria-label="Eine Charge mehr ${esc(r.name)}">+</button></span></div>${piHtml(r, started)}
       <div class="bs">${r.batches.map(b => `<button class="b${b.day != null ? " on" : ""}" data-k="${b.key}" ${b.day != null ? `style="${dc(b.day)}"` : ""} aria-label="${b.kg} kg${b.day != null ? ", " + esc(dn(b.day)) : ", offen"}">${b.kg} kg${b.day != null ? `<sup>${esc(dnShort(b.day))}</sup>` : ""}</button>`).join("")}</div>
     </div>`), `<div class="empty">Noch keine Verkaufszahlen.</div>`);
-  const sa = $("sgAll"); sa.hidden = !SG.size;
-  if (SG.size) sa.innerHTML = `<span>${SG.size === 1 ? "1 Vorschlag" : SG.size + " Vorschläge"} aus Bestand im Haus und Prognose</span><button id="sgAllBtn">Alle übernehmen</button>`;
+  // laden-v58: Gegenstück zu „Alle übernehmen“: zurück zur Liste aus dem Bericht (ohne Bestand), für alle oder je Sorte
+  const sa = $("sgAll"), nAdj = Object.keys(S.adj).filter(k => S.adj[k]).length; sa.hidden = !SG.size && !nAdj;
+  sa.innerHTML = (SG.size ? `<span>${SG.size === 1 ? "1 Vorschlag" : SG.size + " Vorschläge"} aus Bestand im Haus und Prognose</span><button id="sgAllBtn">Alle übernehmen</button>` : "")
+    + (nAdj ? `<span>${nAdj === 1 ? "1 Sorte weicht" : nAdj + " Sorten weichen"} von der Liste ab (Bericht ohne Bestand)</span><button id="sgBaseBtn">Alle wie Liste</button>` : "");
   updBadges(); autoKeepSoon();
 }
 // Nur geänderte Zeilen neu zeichnen: beim Antippen einer Charge wird so eine Sorte ersetzt statt der ganzen Liste (flüssiger am iPhone)
@@ -1054,10 +1060,13 @@ $("autoAll2").addEventListener("click", () => { autoAssign(); renderListe(); upd
 $("dpick").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; S.active = +b.dataset.d; save(); renderChargen(); });
 $("allOpen").addEventListener("click", () => { computeBatches().forEach(r => r.batches.forEach(b => { if (b.day == null) S.assign[b.key] = S.active; })); save(); renderChargen(); });
 $("clearAll").addEventListener("click", () => { S.assign = {}; save(); renderChargen(); });
-$("sgAll").addEventListener("click", e => { if (!e.target.closest("#sgAllBtn")) return; [...SG.entries()].forEach(([id, n]) => applySg(id, n)); save(); renderChargen(); });
+$("sgAll").addEventListener("click", e => {
+  if (e.target.closest("#sgBaseBtn")) { S.adj = {}; save(); renderChargen(); msg("Alle Sorten wieder wie die Liste aus dem Bericht."); return; }
+  if (!e.target.closest("#sgAllBtn")) return; [...SG.entries()].forEach(([id, n]) => applySg(id, n)); save(); renderChargen(); });
 $("cList").addEventListener("click", e => {
   const btn = e.target.closest("button"); if (!btn) return;
   if (btn.dataset.sg) { applySg(btn.dataset.sg, +btn.dataset.n); save(); renderChargen(); return; }
+  if (btn.dataset.base) { delete S.adj[btn.dataset.base]; save(); renderChargen(); return; }
   if (btn.dataset.adj) {
     const id = btn.closest(".cs").dataset.id, r = computeBatches().find(x => x.id === id), d = +btn.dataset.adj;
     if (d < 0 && !r.batches.length) return;
