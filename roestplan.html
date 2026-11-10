@@ -617,6 +617,7 @@ section[hidden]{display:none!important}
     <div class="acts" style="margin:0;justify-content:flex-end"><button class="link" id="lEditBtn">Bearbeiten</button></div>
     <p class="saved" id="savedNote" role="status"></p>
     <div id="lList"></div>
+    <div id="lUpd" hidden><div class="exp"><button class="main" id="updBtn">Aktualisieren</button></div><p class="cap" style="margin:6px 0 0">Übernimmt die Zahlen dieser Liste in den Bericht im Verlauf.</p><p class="note" id="updMsg" role="status"></p></div>
     <div class="exp"><button class="main" id="saveImg">Als Bild sichern</button><button id="copyTxt">Text kopieren</button></div>
     <p class="note" id="expMsg" role="status"></p>
     <div class="acts"><button class="link" id="keepBtn">Im Verlauf sichern</button><button class="link danger" id="clearBtn">Liste leeren</button></div>
@@ -1187,6 +1188,8 @@ function renderListe() {
   $("clearAsk").hidden = true;
   $("autoAll2").hidden = !open.length;
   savedNote(); autoKeepSoon();
+  // laden-v63: „Aktualisieren“ steht hier statt im Verlauf; „Im Verlauf sichern“ nur, solange es noch keinen Bericht gibt
+  const cid = curVId(); $("lUpd").hidden = !cid || !h; $("keepBtn").hidden = !!cid;
 }
 /* laden-v41: Liste sichert sich selbst, sobald alle Chargen einen Tag haben (und bei jeder Änderung danach). Das Lager sieht die Rösttage dann sofort. */
 let akT = 0;
@@ -1504,7 +1507,6 @@ function renderVerlauf() {
     <div class="vh" data-id="${v.id}">
       <button aria-expanded="${v.id === vOpen}"><span><b>${esc(v.week || "Ohne Woche")}${v.id === cur ? ` <em class="cur">aktuell</em>` : ""}</b><small>${v.n} Chargen · ${intFmt(v.kg)} kg roh · ${esc(dateFmt(v.at))}</small></span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
       ${v.id === vOpen && v.id === vEdit ? `<div class="vd">${editHtml(v)}<p class="note" role="status"></p></div>` : v.id === vOpen ? `<div class="vd"><p class="cap" style="margin:0">Verkauf ${kgFmt(v.soldG, 2)} kg · Röstverlust ${v.loss} %${v.extra ? " · +" + v.extra + " %" : ""}${v.edited ? " · bearbeitet" : ""}</p>${listHtml(v.days, v.open, v.dn || [])}
-        ${v.id === cur ? `<div class="exp"><button class="main" data-upd="${v.id}">Aktualisieren</button></div><p class="cap" style="margin:6px 0 0">Übernimmt die Zahlen aus der jetzigen Liste. Geht nur, solange die Liste nicht geleert ist.</p>` : ""}
         <div class="exp"><button data-edit="${v.id}">Bearbeiten</button><button data-copy="${v.id}">Text kopieren</button><button class="del" data-del="${v.id}">Löschen</button></div>
         <div class="ask" data-ask="${v.id}" hidden><p>Diese Liste aus dem Verlauf löschen? Das lässt sich nicht rückgängig machen.</p>
           <div class="exp"><button data-delno="${v.id}">Abbrechen</button><button class="main" data-delyes="${v.id}">Löschen</button></div></div>
@@ -1559,6 +1561,11 @@ const keepMsg = { neu: "Im Verlauf gesichert.", gleich: "Diese Liste ist schon i
 // laden-v41: die Liste der laufenden Woche hat genau einen Eintrag; Sichern aktualisiert ihn statt einen zweiten anzulegen
 const keepCur = () => { const id = curVId(); return id ? refreshV(id) : keep(); };
 $("keepBtn").addEventListener("click", () => msg(keepMsg[keepCur()]));
+$("updBtn").addEventListener("click", () => {
+  const id = curVId(), r = id ? refreshV(id) : "leer";
+  $("updMsg").textContent = { neu: "Aktualisiert: Zahlen dieser Liste im Verlauf übernommen.", gleich: "Schon aktuell, nichts geändert.", leer: "Nichts zu aktualisieren, die Liste ist leer.", fehler: "Aktualisieren hat nicht geklappt, der Speicher ist voll." }[r];
+  savedNote(); if (!$("t-verlauf").hidden) renderVerlauf();
+});
 // Leeren geht auf „Zahlen“ (wo man sieht, dass die Liste voll ist) und auf „Liste“; vorher wird gefragt, ob gesichert werden soll. Rückgabe wie keep(), ohne Sichern "aus"
 function clearList(withKeep) {
   const r = withKeep ? keepCur() : "aus"; if (r === "fehler") return r;
