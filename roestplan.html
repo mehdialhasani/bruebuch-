@@ -2,7 +2,7 @@
 <html lang="de"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,viewport-fit=cover">
-<title>Röstplan</title>
+<title>Röstwoche</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" href="icon-192.png">
@@ -14,6 +14,70 @@
 <meta name="theme-color" content="#17120F" media="(prefers-color-scheme: dark)">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style>
 </head><body>
+<script>
+/* laden-v60: gemeinsamer Rechenkern für Röstwoche, Lager und Zahlen. Jede Rechnung steht nur noch hier, alle drei Seiten rufen dieselbe auf.
+   Wird von build.py vor cropster.js und vor den Seiten-Skripten eingefügt. Liest nur, schreibt nichts außer gSave(). */
+window.KERN = (() => {
+  const OPEN_DAYS = 6;   // Laden hat 6 Tage pro Woche offen
+  const ENDED_GAP = 3;   // Sorte gilt als ausgelaufen, wenn sie 3 Berichtswochen in Folge nicht verkauft wurde
+
+  /* ---------- Wochen fortlaufend über Jahre (laden-v46) ----------
+     verkauf.v1 zählt die Wochen fortlaufend ab D.year (erstes Jahr der Daten): KW 1 des Folgejahres = 54, weil 2026 53 Wochen hat. Angezeigt wird immer die echte KW. */
+  const VKY = (() => {
+    const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+    const base = D => +(D && D.year) || new Date().getFullYear();
+    const idx = (D, y, kw) => { const b = base(D); y = +y || b; let o = 0; for (let i = b; i < y; i++) o += wks(i); for (let i = y; i < b; i++) o -= wks(i); return kw + o; };
+    const kwOf = (D, w) => { let y = base(D); w = +w; while (w > wks(y)) { w -= wks(y); y++; } while (w < 1) { y--; w += wks(y); } return { y, kw: w }; };
+    // Jahr zu einer KW ohne Jahresangabe: das Jahr, in dem diese KW am nächsten an ref liegt
+    const near = (kw, ref) => { ref = ref || new Date(); const r = ref.getFullYear(); let best = r, bd = 1e15;
+      [r - 1, r, r + 1].forEach(y => { const j4 = Date.UTC(y, 0, 4), d = new Date(j4).getUTCDay() || 7, th = j4 + ((kw - 1) * 7 + 4 - d) * 864e5, df = Math.abs(th - ref.getTime()); if (kw <= wks(y) && df < bd) { bd = df; best = y; } }); return best; };
+    // Bericht {kw, year, prevKw} -> fortlaufende Woche in D; null = Jahr vor dem Datenstart
+    const norm = (D, r) => { if (!r || !r.kw) return r; const y = +r.year || near(r.kw); if (D && !D.year) D.year = y; const w = idx(D, y, r.kw); if (w < 1) return null;
+      const p = r.prevKw ? (r.prevKw < r.kw ? w - (r.kw - r.prevKw) : w - 1) : null; return Object.assign({}, r, { kw: w, prevKw: p && p >= 1 ? p : null, realKw: r.kw, year: y }); };
+    // Monat (0–11) des Donnerstags einer fortlaufenden Woche
+    const monthOf = (D, w) => { const k = kwOf(D, w), j4 = Date.UTC(k.y, 0, 4), d = new Date(j4).getUTCDay() || 7; return new Date(j4 + ((k.kw - 1) * 7 + 4 - d) * 864e5).getUTCMonth(); };
+    return { wks, base, idx, kwOf, near, norm, monthOf };
+  })();
+
+  /* ---------- Prognose ----------
+     Gewichteter Schnitt der letzten 6 Berichtswochen + gedämpfter Trend (Steigung der letzten 10, halbiert, jede Woche schwächer).
+     vals: kg je Woche in Reihenfolge, null = Woche ohne Bericht (zählt nicht als 0). */
+  function reg(pts) { const n = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
+    const sl = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / (pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0) || 1);
+    const sd = Math.sqrt(pts.reduce((a, p) => a + (p[1] - my - sl * (p[0] - mx)) ** 2, 0) / Math.max(1, n - 2)); return { sl, sd, my }; }
+  // h Wochen voraus: [{v, lo, hi}] oder null (weniger als 4 Berichtswochen)
+  function fc(vals, h) { const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if (pts.length < 4) return null;
+    const l6 = pts.slice(-6), ws = l6.reduce((a, _, i) => a + i + 1, 0), base = l6.reduce((a, p, i) => a + p[1] * (i + 1), 0) / ws, r = reg(pts.slice(-10));
+    const gap = vals.length - 1 - l6[l6.length - 1][0]; let acc = 0; const out = [];
+    for (let k = 1; k <= (h || 1); k++) { acc += Math.pow(.9, k); const v = Math.max(0, base + r.sl * .5 * (gap + acc)), s = r.sd * (1 + .05 * k); out.push({ v, lo: Math.max(0, v - s), hi: v + s }); } return out; }
+  // nur die nächste Woche als Zahl (kg) oder null
+  const fc1 = vals => { const f = fc(vals, 1); return f ? f[0].v : null; };
+  /* Puffer lernt je Sorte: wie weit lag der echte Verkauf in den letzten 8 Berichtswochen über der Prognose (75-%-Wert, 0–30 % in 5er-Schritten) */
+  function learn(vals) { const r = [];
+    for (let i = vals.length - 1; i >= 0 && r.length < 8; i--) { if (!(vals[i] > 0)) continue; const f = fc1(vals.slice(0, i)); if (!(f > 0)) continue; r.push(vals[i] / f - 1); }
+    if (r.length < 4) return null; const s = r.slice().sort((a, b) => a - b), p = s[Math.min(s.length - 1, Math.floor(s.length * .75))];
+    return { buf: Math.max(0, Math.min(30, Math.round(p * 20) * 5)), under: r.filter(x => x > .1).length, over: r.filter(x => x < -.1).length, fit: r.filter(x => x <= 0).length, n: r.length }; }
+  // Ausgelaufen: letzte Woche mit Verkauf liegt 3 oder mehr Wochen vor dem letzten Bericht
+  const ended = (lastSold, last) => lastSold != null && lastSold <= last - ENDED_GAP;
+
+  /* ---------- gehirn.v1 ---------- */
+  const GK = "gehirn.v1";
+  const gLoad = () => { try { const g = JSON.parse(localStorage.getItem(GK)); return g && typeof g === "object" ? g : { v: 1 }; } catch (e) { return { v: 1 }; } };
+  // strip = true: Felder, die mit „_“ anfangen, nicht mitspeichern (Lager)
+  const gSave = (g, strip) => { try { localStorage.setItem(GK, strip ? JSON.stringify(g, (k, x) => k[0] === "_" ? undefined : x) : JSON.stringify(g)); return true; } catch (e) { return false; } };
+
+  /* ---------- Saison-Zuschlag (Zahlen › Prognose, gehirn.v1 saison.dez) ----------
+     Dezember voll, November halb. Gilt für die Woche nach dem letzten Bericht. */
+  const seasonDez = () => { const g = gLoad(), v = g.saison ? +g.saison.dez || 0 : 0; return v >= -20 && v <= 50 ? v : 0; };
+  const seasonFor = (mon, dez) => mon === 11 ? dez : mon === 10 ? dez / 2 : 0;
+  function season(D, last) { const dez = seasonDez(); if (!dez || !D || last == null) return { pct: 0, mon: null };
+    const mon = VKY.monthOf(D, last + 1); return { pct: seasonFor(mon, dez), mon }; }
+  // letzte Berichtswoche in verkauf.v1
+  const lastWeek = D => { const ks = D && D.weeks ? Object.keys(D.weeks).map(Number).filter(Boolean) : []; return ks.length ? Math.max(...ks) : null; };
+
+  return { OPEN_DAYS, ENDED_GAP, VKY, reg, fc, fc1, learn, ended, GK, gLoad, gSave, season, seasonDez, seasonFor, lastWeek };
+})();
+</script>
 <script>
 /* laden-v52: Röstungen aus Cropster (Schlüssel cropster.v1). Röstwoche liest den Excel-Export ein, Röstwoche, Lager und Zahlen rechnen damit.
    r: [ID, "2026-11-03T12:33", Name in Cropster, roh kg, geröstet kg, Dauer s]  ·  map: {Cropster-Name normalisiert: Sortenname | "-" (keine Sorte)} */
@@ -82,7 +146,7 @@ window.CROP = (() => {
   const okRow = x => { const l = lossOf(x); return l != null && l >= 8 && l <= 25; };
 
   /* ---------- Wochen wie in Zahlen (fortlaufend ab verkauf.v1 year) ---------- */
-  const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+  const wks = KERN.VKY.wks;
   function isoW(ds) { const t = new Date(Date.UTC(+ds.slice(0, 4), +ds.slice(5, 7) - 1, +ds.slice(8, 10))), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d);
     const y = t.getUTCFullYear(); return { y, kw: Math.ceil(((t - Date.UTC(y, 0, 1)) / 864e5 + 1) / 7) }; }
   function wIdx(ds, base) { const k = isoW(ds); let o = 0; for (let i = base; i < k.y; i++) o += wks(i); for (let i = k.y; i < base; i++) o -= wks(i); return k.kw + o; }
@@ -147,17 +211,16 @@ window.CROP = (() => {
     return ds[k] || null;
   }
 
-  /* Prognose wie in Röstwoche/Zahlen (gewichteter Schnitt 6 Wochen + gedämpfter Trend) */
-  function fc2(vals) { const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if (pts.length < 4) return null;
-    const l6 = pts.slice(-6), ws = l6.reduce((a, _, i) => a + i + 1, 0), base = l6.reduce((a, p, i) => a + p[1] * (i + 1), 0) / ws, r = pts.slice(-10), n = r.length,
-      mx = r.reduce((a, p) => a + p[0], 0) / n, my = r.reduce((a, p) => a + p[1], 0) / n, sl = r.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / (r.reduce((a, p) => a + (p[0] - mx) ** 2, 0) || 1);
-    const gap = vals.length - 1 - l6[l6.length - 1][0]; return Math.max(0, base + sl * .5 * (gap + .9)); }
+  /* Prognose: steht in kern.js (laden-v60), hier nur weitergereicht */
+  const fc2 = KERN.fc1;
 
   /* Prognose kg/Woche einer Sorte aus verkauf.v1 (wie Röstwoche) */
-  function fcOf(n) { const D = verkauf(), v = D ? vkSort(D, n) : null; if (!v || !D.weeks) return null;
-    const ks = Object.keys(D.weeks).map(Number).sort((a, b) => a - b); if (!ks.length) return null; const vals = [];
-    for (let w = ks[0]; w <= ks[ks.length - 1]; w++) vals.push(D.weeks[w] ? (+(v.kg || {})[w] || 0) : null);
-    const last = vals.map((x, i) => x > 0 ? i : -1).filter(i => i >= 0).pop(); if (last == null || last < vals.length - 4) return null; return fc2(vals); }
+  /* sea = true: mit Saison-Zuschlag wie in der Röstwoche. Ausgelaufene Sorten (3 Wochen ohne Verkauf) haben keine Prognose, wie in Röstwoche und Zahlen. */
+  function fcOf(n, sea) { const D = verkauf(), v = D ? vkSort(D, n) : null; if (!v || !D.weeks) return null;
+    const ks = Object.keys(D.weeks).map(Number).filter(Boolean).sort((a, b) => a - b); if (!ks.length) return null; const vals = [], first = ks[0], last = ks[ks.length - 1];
+    for (let w = first; w <= last; w++) vals.push(D.weeks[w] ? (+(v.kg || {})[w] || 0) : null);
+    const li = vals.map((x, i) => x > 0 ? i : -1).filter(i => i >= 0).pop(); if (li == null || KERN.ended(first + li, last)) return null;
+    const P = fc2(vals); return P == null ? null : sea ? P * (1 + KERN.season(D, last).pct / 100) : P; }
   /* nächster Rösttag: erster eingestellter Rösttag der Röstwoche nach heute (sonst Montag) */
   function nextRoast(from) { let R = {}; try { R = JSON.parse(localStorage.getItem("roestplan.v4")) || {}; } catch (e) {}
     const ix = (Array.isArray(R.days) ? R.days : []).map(d => WT.indexOf(nb(d))).filter(i => i >= 0), want = ix.length ? Math.min(...ix) : 0;
@@ -508,7 +571,7 @@ section[hidden]{display:none!important}
 </style>
 
 <main>
-  <div class="top"><h1>Röstplan</h1><span id="wk"></span></div>
+  <div class="top"><h1>Röstwoche</h1><span id="wk"></span></div>
 
   <section id="t-zahlen">
     <div class="imp">
@@ -744,48 +807,19 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden) { SI
 
 /* laden-v41: Prognose je Sorte aus Zahlen (verkauf.v1), gleiche Rechnung wie dort: gewichteter Schnitt der letzten 6 Wochen + gedämpfter Trend.
    Puffer lernt je Sorte: wie weit der echte Verkauf in den letzten 8 Berichtswochen über der Prognose lag (75-%-Wert, 0–30 %). */
-const FC = (() => {
-  function reg(pts) { const n = pts.length, mx = pts.reduce((a, p) => a + p[0], 0) / n, my = pts.reduce((a, p) => a + p[1], 0) / n;
-    const sl = pts.reduce((a, p) => a + (p[0] - mx) * (p[1] - my), 0) / (pts.reduce((a, p) => a + (p[0] - mx) ** 2, 0) || 1);
-    return { sl }; }
-  function fc2(vals) { const pts = vals.map((v, i) => [i, v]).filter(p => p[1] != null); if (pts.length < 4) return null;
-    const l6 = pts.slice(-6), ws = l6.reduce((a, _, i) => a + i + 1, 0), base = l6.reduce((a, p, i) => a + p[1] * (i + 1), 0) / ws, r = reg(pts.slice(-10));
-    const gap = vals.length - 1 - l6[l6.length - 1][0]; return Math.max(0, base + r.sl * .5 * (gap + .9)); }
-  function learn(vals) { const r = [];
-    for (let i = vals.length - 1; i >= 0 && r.length < 8; i--) { if (!(vals[i] > 0)) continue; const f = fc2(vals.slice(0, i)); if (!(f > 0)) continue; r.push(vals[i] / f - 1); }
-    if (r.length < 4) return null; const s = r.slice().sort((a, b) => a - b), p = s[Math.min(s.length - 1, Math.floor(s.length * .75))];
-    return { buf: Math.max(0, Math.min(30, Math.round(p * 20) * 5)), under: r.filter(x => x > .1).length, over: r.filter(x => x < -.1).length, n: r.length }; }
-  return { fc2, learn };
-})();
+const FC = { fc2: KERN.fc1, learn: KERN.learn };  // laden-v60: Rechnung steht in kern.js
 /* laden-v46: Jahreswechsel. verkauf.v1 zählt die Wochen fortlaufend ab D.year (erstes Jahr der Daten): KW 1 des Folgejahres = 54, weil 2026 53 Wochen hat.
    So bleibt alles eine durchgehende Wochenreihe und kein Jahr überschreibt das andere. Angezeigt wird immer die echte KW. */
-const VKY = (() => {
-  const wks = y => { const t = new Date(Date.UTC(y, 11, 28)), d = t.getUTCDay() || 7; t.setUTCDate(t.getUTCDate() + 4 - d); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
-  const base = D => +(D && D.year) || new Date().getFullYear();
-  const idx = (D, y, kw) => { const b = base(D); y = +y || b; let o = 0; for (let i = b; i < y; i++) o += wks(i); for (let i = y; i < b; i++) o -= wks(i); return kw + o; };
-  const kwOf = (D, w) => { let y = base(D); w = +w; while (w > wks(y)) { w -= wks(y); y++; } while (w < 1) { y--; w += wks(y); } return { y, kw: w }; };
-  // Jahr zu einer KW ohne Jahresangabe: das Jahr, in dem diese KW am nächsten an ref liegt
-  const near = (kw, ref) => { ref = ref || new Date(); const r = ref.getFullYear(); let best = r, bd = 1e15;
-    [r - 1, r, r + 1].forEach(y => { const j4 = Date.UTC(y, 0, 4), d = new Date(j4).getUTCDay() || 7, th = j4 + ((kw - 1) * 7 + 4 - d) * 864e5, df = Math.abs(th - ref.getTime()); if (kw <= wks(y) && df < bd) { bd = df; best = y; } }); return best; };
-  // Bericht {kw, year, prevKw} -> fortlaufende Woche in D; null = Jahr vor dem Datenstart
-  const norm = (D, r) => { if (!r || !r.kw) return r; const y = +r.year || near(r.kw); if (D && !D.year) D.year = y; const w = idx(D, y, r.kw); if (w < 1) return null;
-    const p = r.prevKw ? (r.prevKw < r.kw ? w - (r.kw - r.prevKw) : w - 1) : null; return Object.assign({}, r, { kw: w, prevKw: p && p >= 1 ? p : null, realKw: r.kw, year: y }); };
-  return { wks, idx, kwOf, near, norm };
-})();
+const VKY = KERN.VKY;  // laden-v60: steht in kern.js
 // laden-v46: Saison-Zuschlag aus Zahlen › Prognose (gehirn.v1 saison.dez): Dezember voll, November halb, für die Woche nach dem letzten Bericht
-function seasonOf(D, last) {
-  let dez = 0; try { const g = JSON.parse(localStorage.getItem("gehirn.v1")); dez = g && g.saison ? +g.saison.dez || 0 : 0; } catch (_) {}
-  if (!dez || !D || last == null) return { pct: 0, mon: null };
-  const k = VKY.kwOf(D, last + 1), j4 = Date.UTC(k.y, 0, 4), d = new Date(j4).getUTCDay() || 7, mon = new Date(j4 + ((k.kw - 1) * 7 + 4 - d) * 864e5).getUTCMonth();
-  return { pct: mon === 11 ? dez : mon === 10 ? dez / 2 : 0, mon };
-}
+const seasonOf = KERN.season;  // laden-v60: steht in kern.js
 let FI = null;
 function salesInfo() {
   if (FI) return FI; const m = new Map(); let last = null, sea = { pct: 0, mon: null };
   try { const D = JSON.parse(localStorage.getItem("verkauf.v1"));
     if (D && D.weeks && Array.isArray(D.sorts)) { const ks = Object.keys(D.weeks).map(Number).filter(Boolean).sort((a, b) => a - b);
       if (ks.length) { last = ks[ks.length - 1]; const all = []; for (let w = ks[0]; w <= last; w++) all.push(w);
-        D.sorts.forEach(x => { const kg = x.kg || {}, sold = all.filter(w => (kg[w] || 0) > 0); if (!sold.length || sold[sold.length - 1] <= last - 3) return;
+        D.sorts.forEach(x => { const kg = x.kg || {}, sold = all.filter(w => (kg[w] || 0) > 0); if (!sold.length || KERN.ended(sold[sold.length - 1], last)) return;
           const vals = all.map(w => D.weeks[w] ? (kg[w] || 0) : null), P = FC.fc2(vals); if (P == null) return;
           const n = normN(x.name); if (n && !m.has(n)) m.set(n, { P, L: FC.learn(vals) }); }); sea = seasonOf(D, last); } } } catch (_) {}
   let sil = []; try { const g = JSON.parse(localStorage.getItem("gehirn.v1")); sil = g && g.silos && Array.isArray(g.silos.list) ? g.silos.list : []; } catch (_) {}
@@ -794,7 +828,7 @@ function salesInfo() {
 // Schlüssel suchen: gleicher Name, sonst gleiches erstes Wort (wie in Lager und Zahlen)
 const pickK = (keys, n) => { if (!n) return null; let f = null; for (const k of keys) { if (k === n) return k; if (f == null && k.split(" ")[0] === n.split(" ")[0]) f = k; } return f; };
 const f1 = v => (Math.round(v * 10) / 10).toLocaleString("de-DE", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-const OPEN_DAYS = 6;
+const OPEN_DAYS = KERN.OPEN_DAYS;
 function sugFor(r) {
   const n = normN(r.name), I = sortimentInfo(), F = salesInfo(), fk = pickK(F.m.keys(), n), f = fk != null ? F.m.get(fk) : null;
   const hk = pickK(I.known, n), known = hk != null, H = known ? (I.reg.get(hk) || 0) + (I.wait.get(hk) || 0) : null;
@@ -1349,8 +1383,8 @@ function snapshot() {
 }
 /* Gemeinsames Gehirn (Schlüssel gehirn.v1, alle Apps): gesicherte Listen = geröstete Mengen pro Woche. Gleiche Woche nochmal gesichert = korrigierte Mengen, die neueste zählt. */
 const GK = "gehirn.v1";
-const gLoad = () => { try { const g = JSON.parse(localStorage.getItem(GK)); return g && typeof g === "object" ? g : { v: 1 }; } catch (_) { return { v: 1 }; } };
-const gSave = g => { try { localStorage.setItem(GK, JSON.stringify(g)); return true; } catch (_) { return false; } };
+const gLoad = KERN.gLoad;
+const gSave = g => KERN.gSave(g);
 function toBrain(v) {
   const g = gLoad(), roh = {};
   v.days.flat().concat(v.open).forEach(x => { roh[x.name] = (roh[x.name] || 0) + x.kgs.reduce((a, k) => a + k, 0); });

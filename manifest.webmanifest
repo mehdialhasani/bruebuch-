@@ -1,7 +1,7 @@
 {
   "name": "Laden",
   "short_name": "Laden",
-  "description": "Tagesabschluss, Röstplan, Brühbuch, Verkauf, Abpackhilfe und Wartung",
+  "description": "Rezepte, Kasse, Röstwoche, Lager, Zahlen und Wartung",
   "lang": "de",
   "start_url": "./",
   "scope": "./",
