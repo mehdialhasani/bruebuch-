@@ -495,6 +495,8 @@ section[hidden]{display:none!important}
 .sg u{text-decoration:none;font-weight:700;white-space:nowrap}
 .sgall{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:12px 0 0;padding:6px 6px 6px 12px;border-radius:12px;background:color-mix(in srgb,var(--d2) 13%,var(--card));color:var(--fg);font-size:14px}
 .sgall[hidden]{display:none}
+#cMore[hidden]{display:none}#cMore{padding:12px 14px;margin-top:10px}#cMore h3{margin:0 0 2px;font-size:15px;font-weight:600}#cMore p{margin:0 0 8px;color:var(--muted);font-size:13px}
+#cMore .chips{display:flex;flex-wrap:wrap;gap:8px}#cMore .chips button{min-height:40px;padding:0 14px;border-radius:20px;background:color-mix(in srgb,var(--accent) 13%,var(--card));color:var(--accent);font-size:15px;font-weight:600}
 .sgall{flex-wrap:wrap}.sgall span{flex:1 1 55%}
 .sg.sgb{color:var(--fg);background:color-mix(in srgb,var(--fg) 7%,var(--card))}
 .sgall button{color:var(--d2);font-size:15px;min-height:40px;padding:0 8px;white-space:nowrap}
@@ -609,6 +611,7 @@ section[hidden]{display:none!important}
     <button class="auto" id="autoAll"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l1.6 4.4L18 9l-4.4 1.6L12 15l-1.6-4.4L6 9l4.4-1.6z"/><path d="M18.5 14.5l.8 2.2 2.2.8-2.2.8-.8 2.2-.8-2.2-2.2-.8 2.2-.8z"/></svg>Offene automatisch verteilen</button>
     <div class="lbl">Alle Chargen</div>
     <div class="card" id="cList"></div>
+    <div class="card" id="cMore" hidden></div>
     <div class="row2" style="padding:0"><button class="link" id="clearAll">Verteilung zurücksetzen</button></div>
   </section>
 
@@ -1087,8 +1090,18 @@ function renderChargen() {
   // laden-v58: Gegenstück zu „Alle übernehmen“: zurück zur Liste aus dem Bericht (ohne Bestand), für alle oder je Sorte
   const sa = $("sgAll"), nAdj = Object.keys(S.adj).filter(k => S.adj[k]).length; sa.hidden = !SG.size && !nAdj;
   sa.innerHTML = (SG.size ? `<span>${SG.size === 1 ? "1 Vorschlag" : SG.size + " Vorschläge"} aus Bestand im Haus und Prognose</span><button id="sgAllBtn">Alle übernehmen</button>` : "")
+  // laden-v63: Sorten aus Lager › Sortiment, die nicht in der Liste stehen (z. B. neu angelegt), hier einplanen
+  const have = new Set(S.sorts.map(x => normN(x.name))), more = [...sortimentInfo().sort.values()].filter(x => !x.aus && x.name && !have.has(normN(x.name))).map(x => x.name).sort((a, b) => a.localeCompare(b, "de"));
+  const cm = $("cMore"); cm.hidden = !more.length;
+  cm.innerHTML = more.length ? `<h3>Weitere Sorten aus dem Sortiment</h3><p>Nicht im Verkaufsbericht. Antippen plant eine Charge ein, mehr mit +.</p><div class="chips">${more.map(n => `<button data-more="${esc(n)}">+ ${esc(n)}</button>`).join("")}</div>` : "";
     + (nAdj ? `<span>${nAdj === 1 ? "1 Sorte weicht" : nAdj + " Sorten weichen"} von der Liste ab (Bericht ohne Bestand)</span><button id="sgBaseBtn">Alle wie Liste</button>` : "");
   updBadges(); autoKeepSoon();
+$("cMore").addEventListener("click", e => {
+  const b = e.target.closest("[data-more]"); if (!b) return; const n = b.dataset.more;
+  let s = S.sorts.find(x => normN(x.name) === normN(n));
+  if (!s) { s = { id: newId(), name: n, totalG: 0, size: prof({ name: n }).size === 3 ? 3 : 5, unsure: false }; S.sorts.push(s); }
+  S.adj[s.id] = Math.max(1, S.adj[s.id] || 0); save(); renderChargen();
+});
 }
 // Nur geänderte Zeilen neu zeichnen: beim Antippen einer Charge wird so eine Sorte ersetzt statt der ganzen Liste (flüssiger am iPhone)
 function setKids(box, htmls, empty) {
@@ -1618,11 +1631,13 @@ function applyImport(res, source) {
   keepCur();  // alte Liste vor dem Überschreiben sichern (laufender Eintrag wird aktualisiert)
   const totAll = all.reduce((x, r) => x + Core.soldGrams(r), 0);
   const clean = all.filter(r => !ignored(r.name));
-  const byName = new Map(S.sorts.map(s => [s.name.toLowerCase(), s]));
+  const byName = new Map(S.sorts.map(s => [s.name.toLowerCase(), s])), oldS = S.sorts;
   S.sorts = clean.map(r => { const o = byName.get(r.name.toLowerCase()); return { id: o?.id || newId(), size: o?.size === 3 ? 3 : 5, ...r }; });
   // laden-v42: gleiche Woche nochmal geladen (z. B. PDF nach Foto): Verteilung, +/− und Verlaufseintrag bleiben
   const nw = res.woche ? String(res.woche).slice(0, 20) : "KW " + isoWeek(new Date(Date.now() - 6 * 864e5)), same = wkNum(nw) && wkNum(nw) === wkNum(S.week) && S.sorts.length;
   if (!same) { S.assign = {}; S.adj = {}; S.vId = null; S.order = null; }
+  // laden-v63: von Hand eingeplante Sorten ohne Verkauf bleiben bei gleicher Woche erhalten
+  else oldS.forEach(o => { if (S.adj[o.id] > 0 && !S.sorts.some(x => x.id === o.id)) S.sorts.push({ ...o, totalG: 0, unsure: false }); });
   S.source = source; S.week = nw;
   S.sync = ""; S.syncKw = null; FI = null; healSales();
   S.warn = "";  // Hinweise zu Gesamtmenge und unsicheren Werten rechnet liveWarn() laufend neu
