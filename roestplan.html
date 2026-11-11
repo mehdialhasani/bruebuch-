@@ -118,10 +118,18 @@ window.CROP = (() => {
     return out;
   }
   function merge(rows) {
-    load(); const have = new Set(C.r.map(x => x[0])); let neu = 0;
-    rows.forEach(x => { if (!have.has(x[0])) { C.r.push(x); have.add(x[0]); neu++; } });
+    load(); const have = new Set(C.r.map(x => x[0])); let neu = 0; const add = [];
+    rows.forEach(x => { if (!have.has(x[0])) { C.r.push(x); have.add(x[0]); neu++; add.push(x); } });
     C.r.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); C.at = new Date().toISOString();
-    return { neu, total: C.r.length, last: C.r.length ? C.r[C.r.length - 1][1].slice(0, 10) : null, ok: save() };
+    return { neu, add, total: C.r.length, last: C.r.length ? C.r[C.r.length - 1][1].slice(0, 10) : null, ok: save() };
+  }
+  /* laden-v65: fehlende PR-Nummern (Cropster zählt fortlaufend). Nur die letzten 90 Tage, damit alte Lücken nicht ewig melden. */
+  function gaps() {
+    const r = load().r; if (!r.length) return [];
+    const lastD = r[r.length - 1][1].slice(0, 10), t = new Date(lastD + "T12:00:00"); t.setDate(t.getDate() - 90); const from = t.toISOString().slice(0, 10);
+    const ids = [...new Set(r.filter(x => x[1].slice(0, 10) >= from).map(x => { const m = /^PR-(\d+)$/.exec(x[0]); return m ? +m[1] : null; }).filter(v => v != null))].sort((a, b) => a - b);
+    const out = []; for (let i = 1; i < ids.length; i++) if (ids[i] - ids[i - 1] > 1) out.push([ids[i - 1] + 1, ids[i] - 1]);
+    return out;
   }
 
   /* ---------- Name in Cropster -> Sorte im Sortiment ---------- */
@@ -241,7 +249,7 @@ window.CROP = (() => {
     return n;
   }
   const pc = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("de-DE", { maximumFractionDigits: 1 });
-  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset, autoLoss };
+  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, gaps, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset, autoLoss };
 })();
 </script>
 <style>
@@ -454,6 +462,9 @@ section[hidden]{display:none!important}
 .rep li span:last-child{font-weight:600;text-align:right}
 .rep .y{color:var(--d3)}.rep .n{color:var(--warn)}
 .rep p{margin:8px 0 0;color:var(--muted);font-size:13px}
+.cnew li{align-items:flex-start}.cnew li>span:last-child{white-space:nowrap}.cnew li small{display:block;color:var(--muted);font-size:12.5px;font-weight:400}.cnew li b{display:inline;font-size:14px;margin:0}
+.cnew .gap{color:var(--warn);font-weight:600}.cnew .gap b{display:inline;font-size:13px;margin:0}
+.cnew .go{display:flex;margin-top:10px}.cnew .go a{flex:1;display:flex;align-items:center;justify-content:center;min-height:46px;border-radius:11px;background:var(--accent);color:var(--accent-ink);font-weight:600;text-decoration:none;font-size:15px}
 /* laden-v52: Cropster */
 .crop{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 12px 6px;font-size:14px}
 .crop h3{margin:0;font-size:16px}
@@ -588,6 +599,7 @@ section[hidden]{display:none!important}
     <p class="note" id="srcInfo"></p>
     <p class="note warn" id="warnBox"></p>
     <p class="note sync" id="syncBox"></p>
+    <div class="rep cnew" id="cropNew" hidden></div>
     <div class="rep" id="repBox" hidden></div>
     <div class="lbl">Verkauf letzte Woche</div>
     <p class="cap">Je Sorte die verkaufte Menge in kg (Gesamt KG). Chargengröße und Röstverlust kommen aus dem Sortiment der Abpackhilfe.</p>
@@ -978,6 +990,18 @@ function cropBox() {
     ${diff.length ? `<button class="cbtn" id="cropTake">${diff.every(r => !r.dl) ? (diff.length === 1 ? "1 Chargengröße" : diff.length + " Chargengrößen") : diff.length === 1 ? "1 Wert" : diff.length + " Werte"} ins Sortiment übernehmen</button><p class="c1" style="margin-top:0">Median der letzten 12 Röstungen je Sorte. Danach kannst du jeden Wert im Lager unter Sortiment wie gewohnt ändern.</p>` : ""}
     ${rows.length > showR.length || cropAll ? `<button class="link" id="cropAll" style="min-height:36px;font-size:14px">${cropAll ? "Weniger zeigen" : "Alle " + rows.length + " Sorten zeigen"}</button>` : ""}`;
 }
+/* laden-v65: nach dem Cropster-Import zeigen, welche Tage dazukamen, ob Nummern fehlen und wo es weitergeht (Lager › Abpacken bestätigen) */
+let cropNewH = "", cropNewAdd = [];
+function cropNewHtml(r) {
+  cropNewAdd = cropNewAdd.concat(r.add || []); // mehrere Dateien nacheinander: alle neuen Tage zeigen
+  const by = {}; cropNewAdd.forEach(x => { const d = x[1].slice(0, 10); by[d] = (by[d] || 0) + 1; });
+  const ds = Object.keys(by).sort(), G = CROP.gaps();
+  const day = d => { const q = CROP.day(d).sort((a, b) => b.c - a.c); return `<li><span><b>${esc(dShort(d))}</b><small>${q.map(x => esc(x.n ? x.n.replace(/\s+(Espresso|Filter|Decaf|Omniroast|Decaf Omniroast)$/i, "") : x.cn) + " " + x.c).join(" · ")}</small></span><span class="y">${by[d]} neu</span></li>`; };
+  const gp = G.map(([a, b]) => a === b ? `PR-${a}` : `PR-${a} bis ${b}`).join(", "), gn = G.reduce((a, [x, y]) => a + y - x + 1, 0);
+  return (ds.length ? `<b>Neu aus Cropster</b><ul class="cn">${ds.map(day).join("")}</ul><p>Bestand und Röstwoche ändern sich dadurch noch nicht. Bestätige die Tage im Lager unter Abpacken, dann stehen die Chargen dort mit Nummer.</p><div class="go"><a href="abpackhilfe.html">Im Lager bestätigen</a></div>` : `<b>Nichts Neues</b><p>Alle Röstungen aus der Datei waren schon in der App.</p>`)
+    + (G.length ? `<p class="gap">Es fehlen ${gn === 1 ? "1 Röstung" : gn + " Röstungen"}: <b>${esc(gp)}</b>. Lade in Cropster einen Export, der diese Nummern enthält.</p>` : "");
+}
+function cropNewShow() { const el = $("cropNew"); if (!el) return; el.innerHTML = cropNewH; el.hidden = !cropNewH; }
 // laden-v57: Röstverlust je Sorte kommt automatisch aus Cropster (beim Öffnen und nach jedem Cropster-Import)
 function cropAuto() {
   if (!window.CROP || !CROP.stats().n) return 0;
@@ -1834,8 +1858,10 @@ async function readFile(file, lbl) {
     // laden-v52: Cropster-Export (Excel) erkennen, Röstungen merken. Der Wochenbericht bleibt, wie er ist.
     const cr = window.CROP && CROP.parse(aoa);
     if (cr) { if (!cr.length) { cropMsg = "In der Cropster-Datei waren keine Röstungen."; } else { const r = CROP.merge(cr); SI = null; FI = null; cropAuto();
-      cropMsg = r.ok ? `Cropster gelesen: ${intFmt(cr.length)} Röstungen, davon ${intFmt(r.neu)} neu. Stand bis ${dShort(r.last)}.` : "Speichern hat nicht geklappt, der Speicher ist voll."; }
-      renderZahlen(); S.warn = ""; $("srcInfo").textContent = cropMsg + " Details unten unter „Cropster“."; return; }
+      cropMsg = r.ok ? `Cropster gelesen: ${intFmt(cr.length)} Röstungen, davon ${intFmt(r.neu)} neu. Stand bis ${dShort(r.last).replace(/\.$/, "")}.` : "Speichern hat nicht geklappt, der Speicher ist voll.";
+      cropNewH = r.ok ? cropNewHtml(r) : ""; }
+      renderZahlen(); S.warn = ""; $("srcInfo").textContent = cropMsg + " Details unten unter „Cropster“."; cropNewShow(); return; }
+    cropNewH = ""; cropNewShow();
     const loc = localParse(aoa);
     if (loc) { applyImport(loc, "file"); return; }
     const sample = await getCap("sample");

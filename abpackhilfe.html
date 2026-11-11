@@ -572,10 +572,18 @@ window.CROP = (() => {
     return out;
   }
   function merge(rows) {
-    load(); const have = new Set(C.r.map(x => x[0])); let neu = 0;
-    rows.forEach(x => { if (!have.has(x[0])) { C.r.push(x); have.add(x[0]); neu++; } });
+    load(); const have = new Set(C.r.map(x => x[0])); let neu = 0; const add = [];
+    rows.forEach(x => { if (!have.has(x[0])) { C.r.push(x); have.add(x[0]); neu++; add.push(x); } });
     C.r.sort((a, b) => a[1] < b[1] ? -1 : a[1] > b[1] ? 1 : 0); C.at = new Date().toISOString();
-    return { neu, total: C.r.length, last: C.r.length ? C.r[C.r.length - 1][1].slice(0, 10) : null, ok: save() };
+    return { neu, add, total: C.r.length, last: C.r.length ? C.r[C.r.length - 1][1].slice(0, 10) : null, ok: save() };
+  }
+  /* laden-v65: fehlende PR-Nummern (Cropster zählt fortlaufend). Nur die letzten 90 Tage, damit alte Lücken nicht ewig melden. */
+  function gaps() {
+    const r = load().r; if (!r.length) return [];
+    const lastD = r[r.length - 1][1].slice(0, 10), t = new Date(lastD + "T12:00:00"); t.setDate(t.getDate() - 90); const from = t.toISOString().slice(0, 10);
+    const ids = [...new Set(r.filter(x => x[1].slice(0, 10) >= from).map(x => { const m = /^PR-(\d+)$/.exec(x[0]); return m ? +m[1] : null; }).filter(v => v != null))].sort((a, b) => a - b);
+    const out = []; for (let i = 1; i < ids.length; i++) if (ids[i] - ids[i - 1] > 1) out.push([ids[i - 1] + 1, ids[i] - 1]);
+    return out;
   }
 
   /* ---------- Name in Cropster -> Sorte im Sortiment ---------- */
@@ -695,7 +703,7 @@ window.CROP = (() => {
     return n;
   }
   const pc = v => v == null ? "–" : (Math.round(v * 10) / 10).toLocaleString("de-DE", { maximumFractionDigits: 1 });
-  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset, autoLoss };
+  return { K, nb, lot, fcOf, nextRoast, shopDays, afterShopDays, load, save, parse, merge, gaps, sortNames, sortOf, setMap, stats, sort, eig, day, dateFor, fc2, isoW, wIdx, pc, vkSort, reset, autoLoss };
 })();
 </script>
 
@@ -1432,7 +1440,9 @@ function renderCmp(){const c=$("cmpC"),L=cmpData();if(!L.length){c.hidden=true;r
    :`<div class="hrow"><h2>Cropster · ${esc(dFmt(x.d))}</h2><span class="hint">nicht bestätigt</span></div>
     <p class="hint">An diesem Tag hast du laut Cropster geröstet, im Lager ist der Tag aber nicht bestätigt.</p>
     <div class="fl">${x.rows.map(r=>`<div class="r"><b>${esc(r.n)}</b><span>${r.ist} ${r.ist===1?"Charge":"Chargen"} · ${kgT(r.istRoh)} kg roh</span></div>`).join("")}</div>
-    <button type="button" class="primary" data-cmpday="${esc(x.d)}">Geröstet ✓ übernehmen</button>`}
+    <button type="button" class="primary" data-cmpday="${esc(x.d)}">Geröstet ✓ übernehmen</button>`;
+  // laden-v65: zeigen, dass danach noch weitere Tage warten (die Karte zeigt immer nur einen)
+  if(L.length>1)c.innerHTML+=`<p class="hint">Tag 1 von ${L.length}: danach ${L.slice(1).map(y=>esc(dFmt(y.d))).join(", ").replace(/\.$/,"")}.</p>`}
 $("cmpC").addEventListener("click",e=>{const b=e.target.closest("[data-cmpok]"),bd=e.target.closest("[data-cmpday]");if(!b&&!bd)return;AN();
   const x=cmpData().find(y=>b?y.kind==="log"&&y.l.id===b.dataset.cmpok:y.kind==="crop"&&y.d===bd.dataset.cmpday);if(!x)return;
   const PH=b?cgPH().filter(y=>y.lid===x.l.id):[];
